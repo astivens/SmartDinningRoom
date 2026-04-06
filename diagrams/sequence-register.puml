@@ -1,0 +1,86 @@
+@startuml
+title Diagrama de Secuencia - Registro de Estudiante con SISBEN
+
+actor Estudiante as user
+participant "Frontend\n(React)" as FE
+participant "API Gateway\n(Express)" as API
+participant "Auth\nController" as AC
+participant "User\nModel" as UM
+participant "Student\nModel" as SM
+database "PostgreSQL" as DB
+participant "Upload\nMiddleware" as UP
+
+== Flujo de Registro ==
+
+user -> FE: Completa formulario + archivo SISBEN
+activate FE
+
+FE -> API: POST /api/auth/register\n(multipart/form-data)
+activate API
+
+API -> UP: upload.single('archivoSisben')
+activate UP
+UP -> UP: Validar tipo archivo\n(PDF, JPG, PNG)
+UP -> UP: Validar tamaño (<10MB)
+UP -> UP: Generar nombre único\n(UUID + ext)
+UP --> API: file guardado
+deactivate UP
+
+API -> AC: register(req, res)
+activate AC
+
+AC -> AC: Extraer datos del body
+note right: email, password, name,\nlastName, cedula, carrera,\nsemestre, categoriaSisben,\nbarrio, telefono, etnia,\ndiasComedor, etc.
+
+AC -> AC: Validar archivo SISBEN
+
+alt Sin archivo SISBEN
+  AC --> API: 400 "El archivo SISBEN es obligatorio"
+  API --> FE: 400
+  FE --> user: Error: debe adjuntar SISBEN
+end
+
+AC -> UM: findOne({ where: {email} })
+activate UM
+UM -> DB: SELECT * FROM users WHERE email = ?
+DB --> UM: null o User
+UM --> AC: existingUser o null
+deactivate UM
+
+alt Email ya registrado
+  AC --> API: 400 "El correo ya está registrado"
+  API --> FE: 400
+  FE --> user: Error: email en uso
+end
+
+AC -> AC: Crear User (role=STUDENT)
+AC -> UM: create({email, password, name,...})
+activate UM
+UM -> UM: bcrypt hash password (salt=10)
+UM -> DB: INSERT INTO users
+DB --> UM: User created
+UM --> AC: newUser
+deactivate UM
+
+AC -> AC: Parsear diasComedor\n(JSON string -> array)
+
+AC -> SM: create({userId, cedula, carrera,...})
+activate SM
+SM -> DB: INSERT INTO students
+DB --> SM: Student created
+SM --> AC: newStudent
+deactivate SM
+
+AC -> AC: generateTokens(newUser)
+
+AC --> API: 201 {user, accessToken, refreshToken}
+API --> FE: 201 Created
+
+FE -> FE: Guardar tokens
+FE --> user: Registro exitoso\nRedirigir al Dashboard
+
+deactivate AC
+deactivate API
+deactivate FE
+
+@enduml

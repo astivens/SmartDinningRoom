@@ -1,0 +1,148 @@
+@startuml
+title Diagrama de Componentes - SmartComedor
+
+skinparam {
+  componentStyle rectangle
+  componentBackgroundColor #FFFFFF
+  componentBorderColor #2C3E50
+  databaseBackgroundColor #3498DB
+  databaseBorderColor #2980B9
+  nodeBackgroundColor #ECF0F1
+  nodeBorderColor #2C3E50
+  arrowColor #34495E
+}
+
+' Cliente
+node "Cliente" as ClientNode {
+  [React 18 + TypeScript] as FE
+  [Material-UI v5] as MUI
+  [Axios HTTP Client] as HTTP
+  [React Router v6] as Router
+  [Context API Auth] as AuthCtx
+  
+  FE --> MUI
+  FE --> Router
+  FE --> AuthCtx
+  FE --> HTTP
+}
+
+' Backend
+node "Servidor (Node.js)" as ServerNode {
+  [Express.js API] as API
+  [TypeScript] as TS
+  
+  package "Middleware" {
+    [authenticate] as authMW
+    [authorize] as authzMW
+    [optionalAuth] as optAuthMW
+    [Multer Upload] as multerMW
+  }
+  
+  package "Controladores" {
+    [authController]
+    [studentsController]
+    [paymentsController]
+    [mealsController]
+    [supervisorsController]
+    [ratingsController]
+    [complaintsController]
+    [newsController]
+  }
+  
+  package "Modelos Sequelize" {
+    [User]
+    [Student]
+    [Payment]
+    [MealAttendance]
+    [SupervisorLog]
+    [Rating]
+    [Complaint]
+    [News]
+    [AuditLog]
+    [SupervisorAssignment]
+  }
+  
+  package "Servicios" {
+    [emailService]
+    [auditService]
+    [backupService]
+  }
+  
+  API --> TS
+  API --> authMW
+  API --> authzMW
+  API --> optAuthMW
+  API --> multerMW
+  
+  authMW --> [User]
+  authzMW --> [User]
+  [authController] --> [User]
+  [studentsController] --> [User]
+  [studentsController] --> [Student]
+  [studentsController] --> [Payment]
+  [paymentsController] --> [Payment]
+  [paymentsController] --> [Student]
+  [mealsController] --> [MealAttendance]
+  [mealsController] --> [Student]
+  [mealsController] --> [Payment]
+  [mealsController] --> [SupervisorLog]
+  [supervisorsController] --> [User]
+  [supervisorsController] --> [SupervisorAssignment]
+  [ratingsController] --> [Rating]
+  [complaintsController] --> [Complaint]
+  [newsController] --> [News]
+  
+  [mealsController] --> [emailService]
+  [authController] --> [emailService]
+  [auditService] --> [AuditLog]
+}
+
+' Base de datos
+database "PostgreSQL 14" as DB {
+  [Tables: users, students,\npayments, meal_attendances,\nratings, complaints, news,\naudit_logs, supervisor_logs,\nsupervisor_assignments]
+}
+
+' Servicios externos
+node "Servicios Externos" as ExternalNode {
+  [SMTP Server Gmail] as SMTP
+  [File System uploads] as FS
+}
+
+' Conexiones externas
+HTTP -down-> API : HTTPS/REST JSON
+API -down-> DB : Sequelize TCP/5432
+[emailService] -down-> SMTP : SMTP :587
+[multerMW] -right-> FS : Guardar archivos
+[backupService] -down-> DB : Backup diario
+
+' Notas
+note right of FE
+  **Frontend:**
+  - React 18 + TypeScript
+  - Vite (build tool)
+  - Material-UI v5
+  - React Router v6
+  - Axios (HTTP client)
+  - JWT (autenticacion)
+end note
+
+note bottom of API
+  **Backend:**
+  - Express.js + TypeScript
+  - Sequelize ORM
+  - JWT (jsonwebtoken)
+  - bcryptjs (hash)
+  - Multer (uploads)
+  - Speakeasy (2FA)
+  - node-cron (tareas)
+end note
+
+note right of DB
+  **Base de datos:**
+  - PostgreSQL 14
+  - Docker container
+  - 10 tablas
+  - Timestamps automaticos
+end note
+
+@enduml

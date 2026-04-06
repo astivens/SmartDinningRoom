@@ -1,0 +1,131 @@
+@startuml
+title Diagrama de Secuencia - Registro de Almuerzo
+
+actor Supervisor as sup
+participant "Frontend\n(React)" as FE
+participant "API Gateway\n(Express)" as API
+participant "Meals\nController" as MC
+participant "Student\nModel" as SM
+participant "User\nModel" as UM
+participant "Payment\nModel" as PM
+participant "MealAttendance\nModel" as MA
+participant "SupervisorLog\nModel" as SL
+participant "Email\nService" as ES
+database "PostgreSQL" as DB
+
+== Flujo de Registro de Almuerzo ==
+
+sup -> FE: Busca estudiante por cédula
+activate FE
+
+FE -> API: GET /api/students/search?cedula=123456
+API --> FE: [Estudiante encontrado]
+
+sup -> FE: Confirma almuerzo (botón "Firmar")
+FE -> API: POST /api/meals {studentId}
+activate API
+
+API -> MC: registerMeal(req, res)
+activate MC
+
+MC -> MC: Obtener supervisorId de req.user
+note right: supervisorId = req.user.id
+
+MC -> SM: findByPk(studentId)
+activate SM
+SM -> DB: SELECT * FROM students WHERE id = ?
+DB --> SM: Student
+SM --> MC: student
+deactivate SM
+
+alt Estudiante no existe
+  MC --> API: 404 "Estudiante no encontrado"
+  API --> FE: 404
+  FE --> sup: Error: estudiante no existe
+end
+
+MC -> UM: findByPk(student.userId)
+activate UM
+UM -> DB: SELECT * FROM users WHERE id = ?
+DB --> UM: User
+UM --> MC: user
+deactivate UM
+
+alt Estudiante inactivo
+  MC --> API: 400 "Estudiante inactivo"
+  API --> FE: 400
+  FE --> sup: Error: estudiante inactivo
+end
+
+MC -> MC: Obtener día actual (español)\nLunes, Martes, Miércoles,...
+
+MC -> MC: Validar día autorizado\nstudent.diasComedor.includes(diaHoy)
+
+alt Día no autorizado
+  MC --> API: 400 "No tiene autorización para este día"
+  API --> FE: 400
+  FE --> sup: Error: día no autorizado
+end
+
+MC -> MA: findOne({studentId, date: hoy})
+activate MA
+MA -> DB: SELECT * FROM meal_attendances\nWHERE studentId = ? AND date = ?
+DB --> MA: null o Attendance
+MA --> MC: existingAttendance
+deactivate MA
+
+alt Ya usó el comedor hoy
+  MC --> API: 400 "El estudiante ya usó el comedor hoy"
+  API --> FE: 400
+  FE --> sup: Error: ya asistió hoy
+end
+
+MC -> PM: findAll({studentId, isVerified: true})
+activate PM
+PM -> DB: SELECT * FROM payments\nWHERE studentId = ? AND isVerified = true
+DB --> PM: [Payment1, Payment2, ...]
+PM --> MC: payments
+deactivate PM
+
+MC -> MC: Calcular:\ntotalMeals = SUM(p.mealsIncluded)\nusedMeals = SUM(p.mealsUsed)\navailableMeals = total - used
+
+alt Sin almuerzos disponibles
+  MC --> API: 400 "No tiene almuerzos disponibles"
+  API --> FE: 400
+  FE --> sup: Error: sin almuerzos
+end
+
+MC -> MA: create({studentId, supervisorId, date, hora})
+activate MA
+MA -> DB: INSERT INTO meal_attendances
+DB --> MA: Attendance
+MA --> MC: attendance
+deactivate MA
+
+MC -> MC: Decrementar mealsUsed\nen último pago
+
+MC -> SL: create({supervisorId, studentId, action, hora})
+activate SL
+SL -> DB: INSERT INTO supervisor_logs
+DB --> SL: Log
+SL --> MC: OK
+deactivate SL
+
+MC -> ES: sendMealConfirmation(user, student, date)
+activate ES
+ES -> ES: Construir email HTML
+ES -> ES: Enviar vía SMTP
+ES --> MC: OK (o error silenciado)
+deactivate ES
+
+MC --> API: 200 {message, attendance, mealsRemaining}
+API --> FE: 200 OK
+deactivate API
+
+FE --> sup: "Almuerzo registrado exitosamente"
+note right: Muestra: estudiante, hora,\nalmuerzos restantes
+
+deactivate MC
+deactivate FE
+
+@enduml

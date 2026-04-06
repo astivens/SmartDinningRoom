@@ -1,0 +1,213 @@
+@startuml
+title Diagrama de Clases Detallado - SmartComedor
+
+skinparam classAttributeIconSize 0
+skinparam classFontSize 12
+skinparam packageFontSize 14
+
+' ========================================
+' Paquete: Autenticación y Usuarios
+' ========================================
+package "Autenticación" {
+  class User {
+    - id: UUID
+    - email: STRING(30) {unique}
+    - password: STRING(255)
+    - name: STRING(20)
+    - lastName: STRING(20)
+    - role: ENUM{admin, supervisor, student}
+    - isActive: BOOLEAN
+    - isAuthorized: BOOLEAN
+    - resetPasswordToken: STRING(255)
+    - resetPasswordExpires: DATE
+    - createdAt: DATE
+    - updatedAt: DATE
+    --
+    + validatePassword(password: string): Promise<boolean>
+  }
+}
+
+' ========================================
+' Paquete: Estudiantes
+' ========================================
+package "Estudiantes" {
+  class Student {
+    - id: UUID
+    - userId: UUID {FK}
+    - cedula: STRING(12) {unique}
+    - carrera: STRING(25)
+    - semestre: INTEGER
+    - categoriaSisben: STRING(10)
+    - archivoSisben: STRING(255)
+    - direccion: STRING(100)
+    - barrio: STRING(50)
+    - telefono: STRING(15)
+    - trabaja: BOOLEAN
+    - etnia: STRING(30)
+    - desplazado: BOOLEAN
+    - trabajadorUniversitario: BOOLEAN
+    - diasComedor: JSONB
+    - qrCode: TEXT
+    - qrCodeSecret: STRING(255)
+    - isValidatedSisben: BOOLEAN
+    - createdAt: DATE
+    - updatedAt: DATE
+  }
+}
+
+' ========================================
+' Paquete: Pagos
+' ========================================
+package "Pagos" {
+  class Payment {
+    - id: UUID
+    - studentId: UUID {FK}
+    - amount: INTEGER
+    - mealsIncluded: INTEGER
+    - mealsUsed: INTEGER
+    - comprobantePath: STRING(255)
+    - isVerified: BOOLEAN
+    - verifiedBy: UUID {FK}
+    - createdAt: DATE
+    - updatedAt: DATE
+  }
+}
+
+' ========================================
+' Paquete: Comedor
+' ========================================
+package "Comedor" {
+  class MealAttendance {
+    - id: UUID
+    - studentId: UUID {FK}
+    - supervisorId: UUID {FK}
+    - date: DATEONLY
+    - hora: STRING(10)
+    - createdAt: DATE
+    - updatedAt: DATE
+  }
+
+  class SupervisorLog {
+    - id: UUID
+    - supervisorId: UUID {FK}
+    - studentId: UUID {FK}
+    - action: STRING(100)
+    - hora: STRING(10)
+    - createdAt: DATE
+    - updatedAt: DATE
+  }
+}
+
+' ========================================
+' Paquete: Comunicación
+' ========================================
+package "Comunicación" {
+  class Rating {
+    - id: UUID
+    - studentId: UUID {FK}
+    - stars: INTEGER {1-5}
+    - comment: TEXT
+    - createdAt: DATE
+    - updatedAt: DATE
+  }
+
+  class Complaint {
+    - id: UUID
+    - studentId: UUID {FK}
+    - type: ENUM{queja, sugerencia, comentario}
+    - content: TEXT
+    - isAnonymous: BOOLEAN
+    - response: TEXT
+    - respondedBy: UUID {FK}
+    - isResolved: BOOLEAN
+    - createdAt: DATE
+    - updatedAt: DATE
+  }
+
+  class News {
+    - id: UUID
+    - title: STRING(100)
+    - content: TEXT
+    - imageUrl: STRING(255)
+    - isActive: BOOLEAN
+    - createdAt: DATE
+    - updatedAt: DATE
+  }
+}
+
+' ========================================
+' Paquete: Auditoría y Asignaciones
+' ========================================
+package "Auditoría" {
+  class AuditLog {
+    - id: UUID
+    - userId: UUID {FK}
+    - userEmail: STRING(100)
+    - action: STRING(100)
+    - details: TEXT
+    - ipAddress: STRING(45)
+    - createdAt: DATE
+    - updatedAt: DATE
+  }
+
+  class SupervisorAssignment {
+    - id: UUID
+    - supervisorId: UUID {FK}
+    - studentId: UUID {FK}
+    - createdAt: DATE
+    - updatedAt: DATE
+  }
+}
+
+' ========================================
+' Relaciones entre clases
+' ========================================
+User "1" *-- "1" Student : tiene
+User "1" --> "0..*" Payment : verifica
+User "1" --> "0..*" MealAttendance : registra
+User "1" --> "0..*" SupervisorLog : genera
+User "1" --> "0..*" AuditLog : genera
+User "1" --> "0..*" Complaint : responde
+
+Student "1" --> "0..*" Payment : tiene
+Student "1" --> "0..*" MealAttendance : asiste
+Student "1" --> "0..*" Rating : califica
+Student "1" --> "0..*" Complaint : envía
+
+SupervisorAssignment "0..*" --> "1" User : supervisor
+SupervisorAssignment "0..*" --> "1" Student : estudiante
+
+MealAttendance "0..*" --> "1" Student : estudiante
+MealAttendance "0..*" --> "1" User : supervisor
+
+SupervisorLog "0..*" --> "1" User : supervisor
+SupervisorLog "0..*" --> "1" Student : estudiante
+
+' Notas
+note top of User
+  **Enumeración UserRole:**
+  - admin
+  - supervisor
+  - student
+end note
+
+note bottom of Payment
+  **Regla de negocio:**
+  mealsIncluded = floor(amount / 2000)
+  
+  Ejemplo:
+  - $2000 = 1 almuerzo
+  - $10000 = 5 almuerzos
+  - $4500 = 2 almuerzos (residuo $500)
+end note
+
+note right of Student
+  **diasComedor** contiene:
+  ["Lunes", "Martes", "Miércoles", ...]
+  
+  Máximos:
+  - cedula: 6-12 dígitos
+  - carrera: 25 caracteres
+end note
+
+@enduml

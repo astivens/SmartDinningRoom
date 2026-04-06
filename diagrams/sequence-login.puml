@@ -1,0 +1,96 @@
+@startuml
+title Diagrama de Secuencia - Login de Usuario
+
+actor Usuario as user
+participant "Frontend\n(React)" as FE
+participant "API Gateway\n(Express)" as API
+participant "Auth\nController" as AC
+participant "User\nModel" as UM
+participant "Audit\nService" as AS
+database "PostgreSQL" as DB
+
+== Flujo de Login ==
+
+user -> FE: Ingresa email, password y rol
+activate FE
+
+FE -> API: POST /api/auth/login\n{email, password, role}
+activate API
+
+API -> AC: login(req, res)
+activate AC
+
+AC -> AC: Validar campos requeridos
+note right: - email\n- password\n- role
+
+alt Campos faltantes
+  AC --> FE: 400 "Email, contraseña y rol son requeridos"
+  FE --> user: Mostrar error
+end
+
+AC -> UM: findOne({ where: {email} })
+activate UM
+UM -> DB: SELECT * FROM users WHERE email = ?
+DB --> UM: User o null
+UM --> AC: User
+deactivate UM
+
+alt Usuario no existe
+  AC --> API: 401 "Credenciales inválidas"
+  API --> FE: 401
+  FE --> user: Error de credenciales
+end
+
+AC -> AC: user.validatePassword(password)
+
+alt Contraseña incorrecta
+  AC --> API: 401 "Credenciales inválidas"
+  API --> FE: 401
+  FE --> user: Error de credenciales
+end
+
+AC -> AC: Verificar isActive
+
+alt Usuario inactivo
+  AC --> API: 401 "Usuario inactivo"
+  API --> FE: 401
+  FE --> user: Cuenta deshabilitada
+end
+
+AC -> AC: Verificar rol coincide
+
+alt Rol no coincide
+  AC --> API: 403 "Usted no está autorizado"
+  API --> FE: 403
+  FE --> user: No autorizado para este rol
+end
+
+AC -> AC: Verificar isAuthorized\n(solo admin/supervisor)
+
+alt No autorizado
+  AC --> API: 403 "Usted no está autorizado"
+  API --> FE: 403
+  FE --> user: No autorizado
+end
+
+AC -> AC: generateTokens(user)
+note right: Genera:\n- accessToken (15min)\n- refreshToken (7d)
+
+AC -> AS: logAction('LOGIN')
+activate AS
+AS -> DB: INSERT audit_log
+DB --> AS: OK
+AS --> AC: OK
+deactivate AS
+
+AC --> API: 200 {user, accessToken, refreshToken}
+API --> FE: 200 OK
+deactivate API
+
+FE -> FE: Guardar tokens en localStorage
+FE --> user: Redirigir al Dashboard
+
+deactivate AC
+deactivate FE
+
+@enduml

@@ -1,0 +1,84 @@
+version: '3.8'
+
+services:
+
+  # ── Database (always available) ──────────────────────────────────────────────
+  postgres:
+    image: postgres:14-alpine
+    container_name: smart_comedor_db
+    environment:
+      POSTGRES_DB:       ${DB_NAME:-smart_comedor}
+      POSTGRES_USER:     ${DB_USER:-postgres}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-postgres}
+    ports:
+      - "${DB_PORT:-5433}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-postgres}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  # ── Backend – Production ─────────────────────────────────────────────────────
+  server:
+    build:
+      context: ./server
+      target: production
+    container_name: smart_comedor_server
+    env_file: ./server/.env
+    environment:
+      DB_HOST: postgres
+    ports:
+      - "${PORT:-3002}:3002"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    profiles: [prod]
+
+  # ── Backend – Development (hot-reload) ───────────────────────────────────────
+  server-dev:
+    build:
+      context: ./server
+      target: development
+    container_name: smart_comedor_server_dev
+    env_file: ./server/.env
+    environment:
+      DB_HOST: postgres
+    ports:
+      - "${PORT:-3002}:3002"
+    volumes:
+      - ./server/src:/app/src
+    depends_on:
+      postgres:
+        condition: service_healthy
+    profiles: [dev]
+
+  # ── Frontend – Production (nginx) ────────────────────────────────────────────
+  client:
+    build:
+      context: ./client
+      target: production
+    container_name: smart_comedor_client
+    ports:
+      - "80:80"
+    depends_on:
+      - server
+    profiles: [prod]
+
+  # ── Frontend – Development (Vite HMR) ───────────────────────────────────────
+  client-dev:
+    build:
+      context: ./client
+      target: development
+    container_name: smart_comedor_client_dev
+    ports:
+      - "5174:5174"
+    volumes:
+      - ./client/src:/app/src
+    depends_on:
+      - server-dev
+    profiles: [dev]
+
+volumes:
+  postgres_data:

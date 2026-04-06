@@ -1,0 +1,108 @@
+@startuml
+title Diagrama de Secuencia - Creación de Pago
+
+actor Estudiante as user
+participant "Frontend\n(React)" as FE
+participant "API Gateway\n(Express)" as API
+participant "Payments\nController" as PC
+participant "Student\nModel" as SM
+participant "Payment\nModel" as PM
+database "PostgreSQL" as DB
+
+== Flujo de Creación de Pago ==
+
+user -> FE: Selecciona monto y adjunta recibo
+activate FE
+
+FE -> FE: Calcular almuerzos\n(monto / 2000)
+note right: Ejemplo: $10,000 / 2000 = 5
+
+FE -> API: POST /api/payments\n{studentId, amount, comprobantePath}
+activate API
+
+API -> PC: createPayment(req, res)
+activate PC
+
+PC -> PC: Obtener datos del body\n(studentId, amount, comprobantePath)
+
+PC -> SM: findByPk(studentId)
+activate SM
+SM -> DB: SELECT * FROM students WHERE id = ?
+DB --> SM: Student
+SM --> PC: student
+deactivate SM
+
+alt Estudiante no existe
+  PC --> API: 404 "Estudiante no encontrado"
+  API --> FE: 404
+  FE --> user: Error
+end
+
+PC -> PC: Calcular mealsIncluded\n= Math.floor(amount / 2000)
+
+note right: **Regla de negocio:**\n- $2000 = 1 almuerzo\n- $10000 = 5 almuerzos\n- $4500 = 2 almuerzos (residuo $500)\n- $1999 = 0 almuerzos
+
+PC -> PM: create({...})
+activate PM
+PM -> DB: INSERT INTO payments
+note right: - mealsIncluded calculado\n- mealsUsed = 0\n- isVerified = false
+DB --> PM: Payment
+PM --> PC: newPayment
+deactivate PM
+
+PC --> API: 201 {message, payment, mealsIncluded}
+API --> FE: 201 Created
+
+FE --> user: "Pago registrado"\nMuestra: monto, almuerzos incluídos
+note right: El pago queda pendiente\nde verificación por admin
+
+deactivate PC
+deactivate API
+deactivate FE
+
+== Flujo de Verificación de Pago (Admin) ==
+
+actor Admin as admin
+participant "Admin\nDashboard" as AD
+
+admin -> AD: Ver pagos pendientes
+AD -> API: GET /api/payments?isVerified=false
+API --> AD: [Pagos pendientes]
+
+admin -> AD: Click "Verificar" en pago
+
+AD -> API: PATCH /api/payments/:id/verify
+activate API
+
+API -> API: authenticate + authorize(ADMIN)
+API -> PC: verifyPayment(req, res)
+activate PC
+
+PC -> PM: findByPk(id)
+activate PM
+PM -> DB: SELECT * FROM payments WHERE id = ?
+DB --> PM: Payment
+PM --> PC: payment
+deactivate PM
+
+alt Pago no existe
+  PC --> API: 404 "Pago no encontrado"
+end
+
+PC -> PM: update({isVerified: true, verifiedBy: adminId})
+activate PM
+PM -> DB: UPDATE payments SET...
+DB --> PM: OK
+PM --> PC: OK
+deactivate PM
+
+PC --> API: 200 {message, pago verificado}
+API --> AD: 200 OK
+
+AD --> admin: "Pago verificado"
+note right: El estudiante ya puede\nusar los almuerzos
+
+deactivate PC
+deactivate API
+
+@enduml

@@ -1,0 +1,144 @@
+@startuml
+title Diagrama de Casos de Uso - SmartComedor
+
+left to right direction
+skinparam actorStyle awesome
+skinparam packageStyle rectangle
+
+actor "Estudiante" as Student
+actor "Administrador" as Admin
+actor "Supervisor" as Supervisor
+
+rectangle "Sistema SmartComedor" {
+
+  ' ========================================
+  ' Casos de uso generales (todos los roles)
+  ' ========================================
+  package "Autenticación" {
+    usecase "Iniciar Sesión" as UC1
+    usecase "Recuperar Contraseña" as UC2
+    usecase "Ver Perfil" as UC3
+    usecase "Actualizar Perfil" as UC4
+  }
+
+  ' ========================================
+  ' Casos de uso del Estudiante
+  ' ========================================
+  package "Funcionalidades Estudiante" {
+    usecase "Registrar Cuenta (con SISBEN)" as UC5
+    usecase "Validación SISBEN" as UC5a
+    usecase "Subir Comprobante de Pago" as UC6
+    usecase "Ver Almuerzos Disponibles" as UC7
+    usecase "Calificar Servicio (1-5)" as UC8
+    usecase "Ver Noticias" as UC9
+    usecase "Enviar Queja/Sugerencia" as UC10
+    usecase "Configurar 2FA" as UC11
+  }
+
+  ' ========================================
+  ' Casos de uso del Administrador
+  ' ========================================
+  package "Funcionalidades Administrador" {
+    usecase "Gestionar Supervisores" as UC12
+    usecase "Crear Supervisor" as UC12a
+    usecase "Habilitar/Inhabilitar Supervisor" as UC12b
+    usecase "Generar Link de Invitación" as UC12c
+    usecase "Importar Estudiantes (Excel)" as UC13
+    usecase "Gestionar Estudiantes" as UC14
+    usecase "Agregar Estudiante" as UC14a
+    usecase "Editar Estudiante" as UC14b
+    usecase "Deshabilitar Estudiante" as UC14c
+    usecase "Verificar Pago" as UC15
+    usecase "Validar Datos SISBEN" as UC16
+    usecase "Asignar Est. a Supervisor" as UC17
+    usecase "Generar Reportes" as UC18
+    usecase "Gestionar Noticias" as UC19
+    usecase "Responder Quejas" as UC20
+    usecase "Ver Logs de Auditoría" as UC21
+  }
+
+  ' ========================================
+  ' Casos de uso del Supervisor
+  ' ========================================
+  package "Funcionalidades Supervisor" {
+    usecase "Buscar Estudiante" as UC22
+    usecase "Ver Datos del Estudiante" as UC23
+    usecase "Registrar Almuerzo" as UC24
+    usecase "Ver Historial de Asistencia" as UC25
+  }
+}
+
+' Relaciones Estudiante
+Student --> UC1
+Student --> UC2
+Student --> UC3
+Student --> UC4
+Student --> UC5
+UC5 <.. UC5a : <<include>>
+Student --> UC6
+Student --> UC7
+Student --> UC8
+Student --> UC9
+Student --> UC10
+Student --> UC11
+
+' Relaciones Administrador
+Admin --> UC1
+Admin --> UC2
+Admin --> UC3
+Admin --> UC12
+UC12 <.. UC12a : <<include>>
+UC12 <.. UC12b : <<include>>
+UC12 <.. UC12c : <<include>>
+Admin --> UC13
+Admin --> UC14
+UC14 <.. UC14a : <<include>>
+UC14 <.. UC14b : <<include>>
+UC14 <.. UC14c : <<include>>
+Admin --> UC15
+Admin --> UC16
+Admin --> UC17
+Admin --> UC18
+Admin --> UC19
+Admin --> UC20
+Admin --> UC21
+
+' Relaciones Supervisor
+Supervisor --> UC1
+Supervisor --> UC22
+Supervisor --> UC23
+Supervisor --> UC24
+Supervisor --> UC25
+
+' Relaciones de generalización
+UC12a --|> UC14 : extiende
+UC13 --|> UC14 : extiende
+
+' Notas
+note right of UC5
+  **RF3**: Registro con:
+  - Email (max 30)
+  - Nombre (max 20)
+  - Apellido (max 20)
+  - Cédula (6-12 dígitos)
+  - Password (8 caracteres)
+  - Carrera (max 25)
+  - Archivo SISBEN (PDF/JPG)
+end note
+
+note right of UC24
+  **RF13**: El supervisor confirma
+  el uso del comedor mediante
+  el botón "Firmar"
+  
+  **RF14**: Se envía email
+  automático de confirmación
+end note
+
+note bottom of UC15
+  **RF9**: Regla del negocio:
+  $2000 COP = 1 almuerzo
+  Ej: $10,000 = 5 almuerzos
+end note
+
+@enduml
