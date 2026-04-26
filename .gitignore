@@ -28,3 +28,9 @@ Thumbs.db
 # Editor
 .vscode/settings.json
 .idea/
+
+# Coverage and generated test reports
+server/coverage-unit/
+server/coverage-integration/
+tests/security/browserstack/test-results/
+tests/security/jmeter/results/
