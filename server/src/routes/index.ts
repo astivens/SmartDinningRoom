@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import authRoutes from './authRoutes';
 import studentRoutes from './studentRoutes';
+import cycleRoutes from './cycleRoutes';
 import supervisorRoutes from './supervisorRoutes';
 import mealRoutes from './mealRoutes';
 import paymentRoutes from './paymentRoutes';
@@ -13,6 +14,7 @@ const router = Router();
 
 router.use('/auth', authRoutes);
 router.use('/students', studentRoutes);
+router.use('/cycles', cycleRoutes);
 router.use('/supervisors', supervisorRoutes);
 router.use('/meals', mealRoutes);
 router.use('/payments', paymentRoutes);

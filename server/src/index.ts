@@ -5,6 +5,8 @@ import path from 'path';
 import routes from './routes';
 import { connectDB } from './config/database';
 import { startBackupScheduler } from './services/backupService';
+import { startCycleAutomationScheduler } from './services/cycleAutomationService';
+import { auditHttpEvents } from './middleware/eventAudit';
 import './models';
 
 dotenv.config();
@@ -21,6 +23,7 @@ app.use(express.urlencoded({ extended: true }));
 
 app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 
+app.use('/api', auditHttpEvents);
 app.use('/api', routes);
 
 app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
@@ -37,6 +40,7 @@ const startServer = async () => {
     }
 
     startBackupScheduler();
+    startCycleAutomationScheduler();
 
     app.listen(PORT, () => {
       console.log(`Server running on port ${PORT}`);

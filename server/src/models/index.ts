@@ -1,5 +1,6 @@
 export { User, UserRole } from './User';
 export { Student } from './Student';
+export { Cycle } from './Cycle';
 export { Payment } from './Payment';
 export { MealAttendance } from './MealAttendance';
 export { SupervisorLog } from './SupervisorLog';
