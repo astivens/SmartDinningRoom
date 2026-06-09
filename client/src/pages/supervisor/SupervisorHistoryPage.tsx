@@ -18,6 +18,8 @@ import RestaurantIcon from '@mui/icons-material/Restaurant';
 import Layout from '../../components/layout/Layout';
 import { mealService } from '../../api/servicesApi';
 import { useAuth } from '../../auth/AuthProvider';
+import DataSectionCard from '../../components/DataSectionCard';
+import FeedbackState from '../../components/FeedbackState';
 
 export default function SupervisorHistoryPage() {
   const { user } = useAuth();
@@ -25,13 +27,20 @@ export default function SupervisorHistoryPage() {
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
   const [todayCount, setTodayCount] = useState(0);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
 
   const fetchHistory = async () => {
+    setLoading(true);
+    setError('');
     try {
       const data = await mealService.getMealHistory(undefined, startDate || undefined, endDate || undefined);
       setLogs(data ?? []);
-    } catch (error) {
-      console.error('Error fetching history:', error);
+    } catch (err: any) {
+      console.error('Error fetching history:', err);
+      setError(err.response?.data?.message ?? 'No se pudo cargar el historial.');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -65,16 +74,15 @@ export default function SupervisorHistoryPage() {
         Historial de Almuerzos Registrados
       </Typography>
 
-      <Paper sx={{ p: 2, mb: 3, display: 'flex', alignItems: 'center', gap: 2 }}>
+      <DataSectionCard sx={{ mb: 3, display: 'flex', alignItems: 'center', gap: 2 }}>
         <RestaurantIcon color="primary" />
         <Box>
           <Typography variant="body2" color="text.secondary">Almuerzos registrados hoy</Typography>
           <Typography variant="h4" color="primary" fontWeight={700}>{todayCount}</Typography>
         </Box>
-      </Paper>
+      </DataSectionCard>
 
-      <Paper sx={{ p: 3, mb: 3 }}>
-        <Typography variant="subtitle1" gutterBottom fontWeight={600}>Filtrar por fecha</Typography>
+      <DataSectionCard title="Filtrar por fecha" sx={{ mb: 3 }}>
         <Grid container spacing={2} alignItems="center">
           <Grid item xs={12} sm={4}>
             <TextField
@@ -101,7 +109,7 @@ export default function SupervisorHistoryPage() {
             <Button variant="outlined" onClick={handleClearFilter}>Limpiar</Button>
           </Grid>
         </Grid>
-      </Paper>
+      </DataSectionCard>
 
       <TableContainer component={Paper}>
         <Table>
@@ -114,10 +122,24 @@ export default function SupervisorHistoryPage() {
             </TableRow>
           </TableHead>
           <TableBody>
-            {logs.length === 0 ? (
+            {loading ? (
               <TableRow>
-                <TableCell colSpan={4} align="center" sx={{ py: 4, color: 'text.secondary' }}>
-                  No hay registros para mostrar
+                <TableCell colSpan={4}>
+                  <FeedbackState type="loading" compact description="Cargando historial..." />
+                </TableCell>
+              </TableRow>
+            ) : null}
+            {!loading && error ? (
+              <TableRow>
+                <TableCell colSpan={4}>
+                  <FeedbackState type="error" title="Error al cargar historial" description={error} />
+                </TableCell>
+              </TableRow>
+            ) : null}
+            {!loading && !error && logs.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={4}>
+                  <FeedbackState type="empty" title="No hay registros para mostrar" />
                 </TableCell>
               </TableRow>
             ) : (

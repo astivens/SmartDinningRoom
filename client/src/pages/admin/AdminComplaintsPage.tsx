@@ -27,6 +27,8 @@ import ReplyIcon from '@mui/icons-material/Reply';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import Layout from '../../components/layout/Layout';
 import { complaintService } from '../../api/servicesApi';
+import DataSectionCard from '../../components/DataSectionCard';
+import FeedbackState from '../../components/FeedbackState';
 
 const typeLabels: Record<string, string> = {
   queja: 'Queja',
@@ -50,15 +52,22 @@ export default function AdminComplaintsPage() {
   const [responseText, setResponseText] = useState('');
   const [saving, setSaving] = useState(false);
   const [saveMsg, setSaveMsg] = useState('');
+  const [loadingComplaints, setLoadingComplaints] = useState(false);
+  const [tableError, setTableError] = useState('');
 
   const fetchComplaints = async () => {
+    setLoadingComplaints(true);
+    setTableError('');
     try {
       const isResolved = resolvedFilter === '' ? undefined : resolvedFilter === 'true';
       const data = await complaintService.getComplaints(typeFilter || undefined, isResolved, page, 20);
       setComplaints(data.complaints ?? data ?? []);
       setTotal(data.total ?? (data.complaints ?? data ?? []).length);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error fetching complaints:', error);
+      setTableError(error.response?.data?.message ?? 'No se pudieron cargar las quejas y sugerencias.');
+    } finally {
+      setLoadingComplaints(false);
     }
   };
 
@@ -98,26 +107,26 @@ export default function AdminComplaintsPage() {
 
       <Grid container spacing={2} sx={{ mb: 3 }}>
         <Grid item xs={12} sm={4}>
-          <Paper sx={{ p: 2, textAlign: 'center' }}>
+          <DataSectionCard sx={{ textAlign: 'center' }}>
             <Typography variant="h3" color="primary" fontWeight={700}>{total}</Typography>
             <Typography variant="body2" color="text.secondary">Total</Typography>
-          </Paper>
+          </DataSectionCard>
         </Grid>
         <Grid item xs={12} sm={4}>
-          <Paper sx={{ p: 2, textAlign: 'center' }}>
+          <DataSectionCard sx={{ textAlign: 'center' }}>
             <Typography variant="h3" color="warning.main" fontWeight={700}>{pendingCount}</Typography>
             <Typography variant="body2" color="text.secondary">Pendientes</Typography>
-          </Paper>
+          </DataSectionCard>
         </Grid>
         <Grid item xs={12} sm={4}>
-          <Paper sx={{ p: 2, textAlign: 'center' }}>
+          <DataSectionCard sx={{ textAlign: 'center' }}>
             <Typography variant="h3" color="success.main" fontWeight={700}>{resolvedCount}</Typography>
             <Typography variant="body2" color="text.secondary">Resueltas</Typography>
-          </Paper>
+          </DataSectionCard>
         </Grid>
       </Grid>
 
-      <Paper sx={{ p: 2, mb: 3 }}>
+      <DataSectionCard sx={{ mb: 3 }}>
         <Grid container spacing={2}>
           <Grid item xs={12} sm={6}>
             <FormControl fullWidth size="small">
@@ -141,7 +150,7 @@ export default function AdminComplaintsPage() {
             </FormControl>
           </Grid>
         </Grid>
-      </Paper>
+      </DataSectionCard>
 
       <TableContainer component={Paper}>
         <Table>
@@ -156,10 +165,34 @@ export default function AdminComplaintsPage() {
             </TableRow>
           </TableHead>
           <TableBody>
-            {complaints.length === 0 ? (
+            {loadingComplaints ? (
               <TableRow>
-                <TableCell colSpan={6} align="center" sx={{ py: 4, color: 'text.secondary' }}>
-                  No hay registros
+                <TableCell colSpan={6}>
+                  <FeedbackState type="loading" compact description="Cargando quejas y sugerencias..." />
+                </TableCell>
+              </TableRow>
+            ) : null}
+            {!loadingComplaints && tableError ? (
+              <TableRow>
+                <TableCell colSpan={6}>
+                  <FeedbackState
+                    type="error"
+                    title="No se pudo cargar la tabla"
+                    description={tableError}
+                    actionLabel="Reintentar"
+                    onAction={fetchComplaints}
+                  />
+                </TableCell>
+              </TableRow>
+            ) : null}
+            {!loadingComplaints && !tableError && complaints.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={6}>
+                  <FeedbackState
+                    type="empty"
+                    title="No hay registros"
+                    description="No existen quejas o sugerencias para los filtros seleccionados."
+                  />
                 </TableCell>
               </TableRow>
             ) : (

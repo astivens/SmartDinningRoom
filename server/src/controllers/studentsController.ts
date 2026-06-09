@@ -4,10 +4,11 @@ import { Student, User, Payment, MealAttendance, UserRole } from '../models';
 import { Op } from 'sequelize';
 import * as XLSX from 'xlsx';
 import { logAction } from '../services/auditService';
+import { validateSisbenAgainstCedula } from '../services/sisbenValidationService';
 
 export const getStudents = async (req: AuthRequest, res: Response) => {
   try {
-    const { search, page = 1, limit = 10 } = req.query;
+    const { search, page = 1, limit = 10, onlyActive } = req.query;
     const offset = (Number(page) - 1) * Number(limit);
 
     const where: any = {};
@@ -20,8 +21,13 @@ export const getStudents = async (req: AuthRequest, res: Response) => {
       ];
     }
 
+    const userWhere: any = { role: 'student' };
+    if (onlyActive === 'true') {
+      userWhere.isActive = true;
+    }
+
     const { count, rows } = await User.findAndCountAll({
-      where: { role: 'student' },
+      where: userWhere,
       include: [{
         model: Student,
         as: 'student',
@@ -326,7 +332,7 @@ export const importStudentsFromExcel = async (req: AuthRequest, res: Response) =
 
 export const searchStudents = async (req: AuthRequest, res: Response) => {
   try {
-    const { cedula, nombre, apellido, carrera, dia } = req.query;
+    const { cedula, nombre, apellido, carrera, dia, uid, q } = req.query;
 
     const where: any = { role: 'student' };
     const studentWhere: any = {};
@@ -334,6 +340,23 @@ export const searchStudents = async (req: AuthRequest, res: Response) => {
     if (cedula) studentWhere.cedula = { [Op.iLike]: `%${cedula}%` };
     if (carrera) studentWhere.carrera = { [Op.iLike]: `%${carrera}%` };
     if (dia) studentWhere.diasComedor = { [Op.contains]: [dia] };
+    if (uid) {
+      where.id = uid;
+    }
+
+    if (q) {
+      const query = String(q);
+      where[Op.or] = [
+        { uid: { [Op.iLike]: `%${query}%` } },
+        { id: { [Op.iLike]: `%${query}%` } },
+        { name: { [Op.iLike]: `%${query}%` } },
+        { lastName: { [Op.iLike]: `%${query}%` } }
+      ];
+      studentWhere[Op.or] = [
+        { cedula: { [Op.iLike]: `%${query}%` } },
+        { id: { [Op.iLike]: `%${query}%` } }
+      ];
+    }
 
     if (nombre) {
       where.name = { [Op.iLike]: `%${nombre}%` };
@@ -363,6 +386,8 @@ export const searchStudents = async (req: AuthRequest, res: Response) => {
 
       return {
         id: student.id,
+        uid: student.uid,
+        studentId: studentData.id,
         nombre: student.name,
         apellido: student.lastName,
         cedula: studentData.cedula,
@@ -382,7 +407,6 @@ export const searchStudents = async (req: AuthRequest, res: Response) => {
 export const validateSisben = async (req: AuthRequest, res: Response) => {
   try {
     const { id } = req.params;
-    const { cedula, name, lastName } = req.body;
 
     const user = await User.findOne({
       where: { id, role: 'student' },
@@ -394,24 +418,30 @@ export const validateSisben = async (req: AuthRequest, res: Response) => {
     }
 
     const student = (user as any).student;
+    if (!student.archivoSisben || !student.cedulaFrontalPath) {
+      return res.status(400).json({ message: 'El estudiante no tiene evidencias SISBEN y cédula frontal completas' });
+    }
 
-    const cedulaMatch = student.cedula === cedula?.toString().trim();
-    const nameMatch = user.name.toLowerCase().trim() === name?.toLowerCase().trim();
-    const lastNameMatch = user.lastName.toLowerCase().trim() === lastName?.toLowerCase().trim();
+    const comparison = await validateSisbenAgainstCedula(student.archivoSisben, student.cedulaFrontalPath, {
+      cedula: student.cedula,
+      name: user.name,
+      lastName: user.lastName
+    });
 
-    if (cedulaMatch && nameMatch && lastNameMatch) {
-      await student.update({ isValidatedSisben: true });
-      return res.json({ validated: true, message: 'Datos SISBEN validados correctamente' });
+    await student.update({
+      isValidatedSisben: comparison.validated,
+      sisbenAutoValidated: comparison.validated,
+      sisbenValidationDetails: comparison
+    });
+
+    if (comparison.validated) {
+      return res.json({ validated: true, message: 'Documento aprobado por administrador con validación automática consistente', mismatches: comparison.mismatches });
     }
 
     res.json({
       validated: false,
-      message: 'Los datos no coinciden con el registro del estudiante',
-      mismatches: {
-        cedula: !cedulaMatch,
-        name: !nameMatch,
-        lastName: !lastNameMatch
-      }
+      message: 'La revisión automática detecta inconsistencias entre SISBEN y cédula',
+      mismatches: comparison.mismatches
     });
   } catch (error) {
     console.error('Validate SISBEN error:', error);
@@ -422,7 +452,14 @@ export const validateSisben = async (req: AuthRequest, res: Response) => {
 export const getAvailableMeals = async (req: AuthRequest, res: Response) => {
   try {
     const { id } = req.params;
-    const student = await Student.findOne({ where: { userId: id } });
+    const student = await Student.findOne({
+      where: {
+        [Op.or]: [
+          { userId: id },
+          { id }
+        ]
+      }
+    });
 
     if (!student) {
       return res.status(404).json({ message: 'Estudiante no encontrado' });
@@ -443,5 +480,34 @@ export const getAvailableMeals = async (req: AuthRequest, res: Response) => {
   } catch (error) {
     console.error('Get available meals error:', error);
     res.status(500).json({ message: 'Error del servidor' });
+  }
+};
+
+export const updateStudentCycle = async (req: AuthRequest, res: Response) => {
+  try {
+    const { id } = req.params;
+    const { currentCycle, cycleRevalidationDueAt, cycleDisabledAt } = req.body;
+    const student = await Student.findOne({ where: { userId: id } });
+    if (!student) {
+      return res.status(404).json({ message: 'Estudiante no encontrado' });
+    }
+
+    await student.update({
+      currentCycle: currentCycle ?? student.currentCycle,
+      cycleRevalidationDueAt: cycleRevalidationDueAt ?? student.cycleRevalidationDueAt,
+      cycleDisabledAt: cycleDisabledAt ?? student.cycleDisabledAt
+    });
+
+    if (cycleDisabledAt && new Date(cycleDisabledAt).getTime() <= Date.now()) {
+      const user = await User.findByPk(id);
+      if (user) {
+        await user.update({ isActive: false });
+      }
+    }
+
+    return res.json({ message: 'Ciclo actualizado', student });
+  } catch (error) {
+    console.error('Update student cycle error:', error);
+    return res.status(500).json({ message: 'Error del servidor' });
   }
 };

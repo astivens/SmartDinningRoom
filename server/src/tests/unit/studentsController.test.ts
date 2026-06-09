@@ -44,6 +44,13 @@ jest.mock('../../services/auditService', () => ({
   logAction: jest.fn().mockResolvedValue(undefined),
 }));
 
+jest.mock('../../services/sisbenValidationService', () => ({
+  validateSisbenAgainstCedula: jest.fn().mockResolvedValue({
+    validated: true,
+    mismatches: { cedula: false, name: false, lastName: false, cedulaDocument: false },
+  }),
+}));
+
 jest.mock('xlsx', () => ({
   readFile: jest.fn(),
   utils: { sheet_to_json: jest.fn() },
@@ -434,38 +441,55 @@ describe('studentsController', () => {
     it('TC-SISBEN-001: Validación exitosa - todos los datos coinciden', async () => {
       const mockUser = {
         id: 'user-1',
-        name: ' Juan ',
+        name: 'Juan',
         lastName: 'Perez',
-        student: { cedula: '12345678', update: jest.fn().mockResolvedValue(true) },
+        student: {
+          cedula: '12345678',
+          archivoSisben: 'uploads/sisben.pdf',
+          cedulaFrontalPath: 'uploads/cedula.pdf',
+          update: jest.fn().mockResolvedValue(true),
+        },
       };
       (User.findOne as jest.Mock).mockResolvedValue(mockUser);
 
-      const req = mockRequest(
-        { cedula: '12345678', name: 'juan', lastName: 'PEREZ' },
-        { id: 'user-1' }, {}, { id: 'admin-1' }
-      );
+      const { validateSisbenAgainstCedula } = require('../../services/sisbenValidationService');
+      (validateSisbenAgainstCedula as jest.Mock).mockResolvedValue({
+        validated: true,
+        mismatches: { cedula: false, name: false, lastName: false, cedulaDocument: false },
+      });
+
+      const req = mockRequest({}, { id: 'user-1' }, {}, { id: 'admin-1' });
       const res = mockResponse();
 
       await validateSisben(req as AuthRequest, res as Response);
 
-      expect(mockUser.student.update).toHaveBeenCalledWith({ isValidatedSisben: true });
-      expect(res.json).toHaveBeenCalledWith({
+      expect(mockUser.student.update).toHaveBeenCalledWith(expect.objectContaining({
+        isValidatedSisben: true,
+      }));
+      expect(res.json).toHaveBeenCalledWith(expect.objectContaining({
         validated: true,
-        message: 'Datos SISBEN validados correctamente',
-      });
+      }));
     });
 
     it('TC-SISBEN-002: Validación fallida - cédula no coincide', async () => {
       const mockUser = {
         id: 'user-1', name: 'Juan', lastName: 'Perez',
-        student: { cedula: '12345678', update: jest.fn() },
+        student: {
+          cedula: '12345678',
+          archivoSisben: 'uploads/sisben.pdf',
+          cedulaFrontalPath: 'uploads/cedula.pdf',
+          update: jest.fn(),
+        },
       };
       (User.findOne as jest.Mock).mockResolvedValue(mockUser);
 
-      const req = mockRequest(
-        { cedula: '99999999', name: 'Juan', lastName: 'Perez' },
-        { id: 'user-1' }, {}, { id: 'admin-1' }
-      );
+      const { validateSisbenAgainstCedula } = require('../../services/sisbenValidationService');
+      (validateSisbenAgainstCedula as jest.Mock).mockResolvedValue({
+        validated: false,
+        mismatches: { cedula: true, name: false, lastName: false, cedulaDocument: false },
+      });
+
+      const req = mockRequest({}, { id: 'user-1' }, {}, { id: 'admin-1' });
       const res = mockResponse();
 
       await validateSisben(req as AuthRequest, res as Response);
@@ -543,6 +567,7 @@ describe('studentsController', () => {
       await searchStudents(req as AuthRequest, res as Response);
 
       expect(res.json).toHaveBeenCalledWith([expect.objectContaining({
+        studentId: 's1',
         nombre: 'Juan',
         cedula: '123456',
         almuerzosDisponibles: 7,

@@ -9,6 +9,7 @@ import {
   Alert,
   InputAdornment,
   IconButton,
+  Link,
 } from '@mui/material';
 import { Visibility, VisibilityOff } from '@mui/icons-material';
 import { authService } from '../../api/authApi';
@@ -128,9 +129,9 @@ export default function ResetPasswordPage() {
 
         <Box sx={{ mt: 2, textAlign: 'center' }}>
           <Typography variant="body2">
-            <RouterLink to="/login" style={{ textDecoration: 'none' }}>
+            <Link component={RouterLink} to="/login" underline="hover" sx={{ fontWeight: 600 }}>
               Volver a Iniciar Sesión
-            </RouterLink>
+            </Link>
           </Typography>
         </Box>
       </Paper>

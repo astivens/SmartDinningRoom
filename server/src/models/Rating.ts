@@ -1,8 +1,11 @@
 import { DataTypes, Model, Optional } from 'sequelize';
 import { sequelize } from '../config/database';
+import { Student } from './Student';
+import { generateUid } from '../utils/uidGenerator';
 
 export interface RatingAttributes {
   id: string;
+  uid: string;
   studentId: string;
   stars: number;
   comment?: string;
@@ -10,10 +13,11 @@ export interface RatingAttributes {
   updatedAt?: Date;
 }
 
-interface RatingCreationAttributes extends Optional<RatingAttributes, 'id' | 'comment'> {}
+interface RatingCreationAttributes extends Optional<RatingAttributes, 'id' | 'uid' | 'comment'> {}
 
 export class Rating extends Model<RatingAttributes, RatingCreationAttributes> implements RatingAttributes {
   declare id: string;
+  declare uid: string;
   declare studentId: string;
   declare stars: number;
   declare comment?: string;
@@ -27,6 +31,11 @@ Rating.init(
       type: DataTypes.UUID,
       defaultValue: DataTypes.UUIDV4,
       primaryKey: true
+    },
+    uid: {
+      type: DataTypes.STRING(20),
+      unique: true,
+      allowNull: false
     },
     studentId: {
       type: DataTypes.UUID,
@@ -48,8 +57,16 @@ Rating.init(
   {
     sequelize,
     modelName: 'Rating',
-    tableName: 'ratings'
+    tableName: 'ratings',
+    hooks: {
+      beforeValidate: (rating: Rating) => {
+        rating.uid = generateUid('RTG');
+      }
+    }
   }
 );
+
+Student.hasMany(Rating, { foreignKey: 'studentId', as: 'ratings' });
+Rating.belongsTo(Student, { foreignKey: 'studentId', as: 'student' });
 
 export default Rating;

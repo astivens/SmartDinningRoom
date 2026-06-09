@@ -28,8 +28,10 @@ import BlockIcon from '@mui/icons-material/Block';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import AddIcon from '@mui/icons-material/Add';
 import VerifiedIcon from '@mui/icons-material/Verified';
+import AutoFixHighIcon from '@mui/icons-material/AutoFixHigh';
 import Layout from '../../components/layout/Layout';
 import { studentService } from '../../api/studentApi';
+import FeedbackState from '../../components/FeedbackState';
 
 const emptyForm = {
   email: '',
@@ -56,20 +58,26 @@ export default function StudentsPage() {
   const [formError, setFormError] = useState('');
   const [validateOpen, setValidateOpen] = useState(false);
   const [validateStudent, setValidateStudent] = useState<any>(null);
-  const [validateForm, setValidateForm] = useState({ cedula: '', name: '', lastName: '' });
   const [validateMsg, setValidateMsg] = useState({ type: '', text: '' });
+  const [loadingStudents, setLoadingStudents] = useState(false);
+  const [listError, setListError] = useState('');
 
   useEffect(() => {
     fetchStudents();
   }, [page, search]);
 
   const fetchStudents = async () => {
+    setLoadingStudents(true);
+    setListError('');
     try {
       const data = await studentService.getStudents(search, page, 10);
       setStudents(data.students ?? []);
       setTotal(data.total ?? 0);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error fetching students:', error);
+      setListError(error.response?.data?.message ?? 'No se pudo cargar la lista de estudiantes.');
+    } finally {
+      setLoadingStudents(false);
     }
   };
 
@@ -154,14 +162,13 @@ export default function StudentsPage() {
 
   const handleOpenValidate = (user: any) => {
     setValidateStudent(user);
-    setValidateForm({ cedula: '', name: '', lastName: '' });
     setValidateMsg({ type: '', text: '' });
     setValidateOpen(true);
   };
 
   const handleValidateSisben = async () => {
     try {
-      const data = await studentService.validateSisben(validateStudent.id, validateForm);
+      const data = await studentService.validateSisben(validateStudent.id);
       if (data.validated) {
         setValidateMsg({ type: 'success', text: data.message });
         fetchStudents();
@@ -202,6 +209,7 @@ export default function StudentsPage() {
         <Table>
           <TableHead>
             <TableRow>
+              <TableCell>UID</TableCell>
               <TableCell>Nombre</TableCell>
               <TableCell>Apellido</TableCell>
               <TableCell>Cédula</TableCell>
@@ -213,8 +221,45 @@ export default function StudentsPage() {
             </TableRow>
           </TableHead>
           <TableBody>
-            {students.map((user: any) => (
+            {loadingStudents ? (
+              <TableRow>
+                <TableCell colSpan={9}>
+                  <FeedbackState type="loading" compact description="Cargando estudiantes..." />
+                </TableCell>
+              </TableRow>
+            ) : null}
+
+            {!loadingStudents && listError ? (
+              <TableRow>
+                <TableCell colSpan={9}>
+                  <FeedbackState
+                    type="error"
+                    title="Error al cargar estudiantes"
+                    description={listError}
+                    actionLabel="Reintentar"
+                    onAction={fetchStudents}
+                  />
+                </TableCell>
+              </TableRow>
+            ) : null}
+
+            {!loadingStudents && !listError && students.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={9}>
+                  <FeedbackState
+                    type="empty"
+                    title="No hay estudiantes para mostrar"
+                    description="Prueba ajustando los filtros o crea un nuevo estudiante."
+                  />
+                </TableCell>
+              </TableRow>
+            ) : null}
+
+            {!loadingStudents && !listError && students.map((user: any) => (
               <TableRow key={user.id}>
+                <TableCell>
+                  <Typography variant="caption" sx={{ fontFamily: 'monospace' }}>{user.uid}</Typography>
+                </TableCell>
                 <TableCell>{user.name}</TableCell>
                 <TableCell>{user.lastName}</TableCell>
                 <TableCell>{user.student?.cedula}</TableCell>
@@ -225,6 +270,9 @@ export default function StudentsPage() {
                     <Chip icon={<VerifiedIcon />} label="Validado" color="success" size="small" />
                   ) : (
                     <Chip label="Sin validar" color="warning" size="small" />
+                  )}
+                  {user.student?.sisbenAutoValidated && (
+                    <Chip icon={<AutoFixHighIcon />} label="Auto" color="info" size="small" sx={{ ml: 1 }} />
                   )}
                 </TableCell>
                 <TableCell>
@@ -311,32 +359,51 @@ export default function StudentsPage() {
         </DialogActions>
       </Dialog>
 
-      {/* Dialog validar SISBEN */}
+      {/* Dialog validar SISBEN — automático */}
       <Dialog open={validateOpen} onClose={() => setValidateOpen(false)} maxWidth="sm" fullWidth>
         <DialogTitle>Validar SISBEN — {validateStudent?.name} {validateStudent?.lastName}</DialogTitle>
         <DialogContent>
           <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-            Ingresa los datos tal como aparecen en el documento SISBEN del estudiante.
+            La comparación automática cruzará los datos del SISBEN, la cédula frontal y el número de cédula registrado.
+            Confirma con el botón de validación.
           </Typography>
           {validateMsg.text && (
             <Alert severity={validateMsg.type as any} sx={{ mb: 2 }}>{validateMsg.text}</Alert>
           )}
-          <Grid container spacing={2}>
-            <Grid item xs={12}>
-              <TextField label="Cédula del documento SISBEN" value={validateForm.cedula} onChange={(e) => setValidateForm({ ...validateForm, cedula: e.target.value })} fullWidth />
-            </Grid>
-            <Grid item xs={12} sm={6}>
-              <TextField label="Nombre en SISBEN" value={validateForm.name} onChange={(e) => setValidateForm({ ...validateForm, name: e.target.value })} fullWidth />
-            </Grid>
-            <Grid item xs={12} sm={6}>
-              <TextField label="Apellido en SISBEN" value={validateForm.lastName} onChange={(e) => setValidateForm({ ...validateForm, lastName: e.target.value })} fullWidth />
-            </Grid>
-          </Grid>
+          <Box sx={{ bgcolor: 'grey.50', p: 2, borderRadius: 1, mb: 2 }}>
+            <Typography variant="body2" sx={{ mb: 1 }}>
+              <strong>Archivo SISBEN:</strong>{' '}
+              {validateStudent?.student?.archivoSisben ? (
+                <Chip label="Adjunto disponible" color="info" size="small" />
+              ) : (
+                <Chip label="No adjunto" color="default" size="small" />
+              )}
+            </Typography>
+            <Typography variant="body2" sx={{ mb: 1 }}>
+              <strong>Cédula frontal:</strong>{' '}
+              {validateStudent?.student?.cedulaFrontalPath ? (
+                <Chip label="Adjunto disponible" color="info" size="small" />
+              ) : (
+                <Chip label="No adjunto" color="default" size="small" />
+              )}
+            </Typography>
+            <Typography variant="body2">
+              <strong>Estado actual:</strong>{' '}
+              {validateStudent?.student?.isValidatedSisben ? (
+                <Chip label="Validado" color="success" size="small" />
+              ) : (
+                <Chip label="Sin validar" color="warning" size="small" />
+              )}
+              {validateStudent?.student?.sisbenAutoValidated && (
+                <Chip label="Auto" color="info" size="small" sx={{ ml: 1 }} />
+              )}
+            </Typography>
+          </Box>
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setValidateOpen(false)}>Cerrar</Button>
           <Button variant="contained" onClick={handleValidateSisben} startIcon={<VerifiedIcon />}>
-            Validar
+            Validar automáticamente
           </Button>
         </DialogActions>
       </Dialog>

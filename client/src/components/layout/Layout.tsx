@@ -32,6 +32,7 @@ import StarIcon from '@mui/icons-material/Star';
 import CampaignIcon from '@mui/icons-material/Campaign';
 import RateReviewIcon from '@mui/icons-material/RateReview';
 import AccountCircleIcon from '@mui/icons-material/AccountCircle';
+import VirtualAssistant from '../VirtualAssistant';
 
 const drawerWidth = 256;
 
@@ -47,12 +48,15 @@ const menuItems = {
     { text: 'Cargar Excel', icon: <AssessmentIcon />, path: '/admin/import' },
     { text: 'Pagos', icon: <PaymentIcon />, path: '/admin/payments' },
     { text: 'Reportes', icon: <AssessmentIcon />, path: '/admin/reports' },
+    { text: 'Actividad Supervisores', icon: <RestaurantIcon />, path: '/admin/supervisor-activity' },
     { text: 'Quejas y Sugerencias', icon: <RateReviewIcon />, path: '/admin/complaints' },
     { text: 'Noticias', icon: <CampaignIcon />, path: '/admin/news' },
   ],
   supervisor: [
     { text: 'Registrar Almuerzo', icon: <RestaurantIcon />, path: '/supervisor' },
-    { text: 'Historial', icon: <AssessmentIcon />, path: '/supervisor/history' },
+  ],
+  external_auditor: [
+    { text: 'Supervisión General', icon: <AssessmentIcon />, path: '/auditor' },
   ],
   student: [
     { text: 'Mi Perfil', icon: <PersonIcon />, path: '/student' },
@@ -83,8 +87,15 @@ export default function Layout({ children }: LayoutProps) {
   };
 
   const handleLogout = () => {
+    const roleLoginPath = user?.role === 'admin'
+      ? '/login/admin'
+      : user?.role === 'supervisor'
+        ? '/login/supervisor'
+        : user?.role === 'external_auditor'
+          ? '/login/auditor'
+          : '/login/student';
     logout();
-    navigate('/login');
+    navigate(roleLoginPath);
   };
 
   const items = user ? menuItems[user.role] ?? [] : [];
@@ -107,7 +118,8 @@ export default function Layout({ children }: LayoutProps) {
             width: 32,
             height: 32,
             borderRadius: '50%',
-            background: 'linear-gradient(135deg, #4285f4 0%, #34a853 50%, #ea4335 100%)',
+            background: (theme) =>
+              `linear-gradient(135deg, ${theme.palette.primary.light} 0%, ${theme.palette.primary.main} 60%, ${theme.palette.secondary.main} 100%)`,
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
@@ -122,7 +134,7 @@ export default function Layout({ children }: LayoutProps) {
           sx={{
             fontWeight: 400,
             fontSize: '1.1rem',
-            color: '#202124',
+            color: 'text.primary',
             letterSpacing: 0,
           }}
         >
@@ -167,7 +179,7 @@ export default function Layout({ children }: LayoutProps) {
           <IconButton
             edge="start"
             onClick={handleDrawerToggle}
-            sx={{ display: { sm: 'none' }, color: '#5f6368', mr: 1 }}
+            sx={{ display: { sm: 'none' }, color: 'text.secondary', mr: 1 }}
           >
             <MenuIcon />
           </IconButton>
@@ -175,7 +187,7 @@ export default function Layout({ children }: LayoutProps) {
           <Box sx={{ flexGrow: 1 }} />
 
           {/* Search icon (decorativo, Google siempre lo tiene) */}
-          <IconButton sx={{ color: '#5f6368' }}>
+          <IconButton sx={{ color: 'text.secondary' }}>
             <SearchIcon />
           </IconButton>
 
@@ -206,7 +218,8 @@ export default function Layout({ children }: LayoutProps) {
                 minWidth: 280,
                 borderRadius: 3,
                 mt: 0.5,
-                border: '1px solid #dadce0',
+                border: (theme) => `1px solid ${theme.palette.divider}`,
+                bgcolor: 'background.paper',
               },
             }}
           >
@@ -224,10 +237,10 @@ export default function Layout({ children }: LayoutProps) {
               >
                 {user?.name?.charAt(0)?.toUpperCase()}
               </Avatar>
-              <Typography variant="subtitle1" sx={{ fontWeight: 500, color: '#202124', lineHeight: 1.3 }}>
+              <Typography variant="subtitle1" sx={{ fontWeight: 500, color: 'text.primary', lineHeight: 1.3 }}>
                 {user?.name} {user?.lastName}
               </Typography>
-              <Typography variant="caption" sx={{ color: '#5f6368' }}>
+              <Typography variant="caption" sx={{ color: 'text.secondary' }}>
                 {user?.email}
               </Typography>
             </Box>
@@ -238,8 +251,8 @@ export default function Layout({ children }: LayoutProps) {
               onClick={handleClose}
               sx={{ gap: 1.5, py: 1.5, px: 2.5 }}
             >
-              <AccountCircleIcon sx={{ color: '#5f6368', fontSize: 20 }} />
-              <Typography variant="body2" sx={{ color: '#202124' }}>
+              <AccountCircleIcon sx={{ color: 'text.secondary', fontSize: 20 }} />
+              <Typography variant="body2" sx={{ color: 'text.primary' }}>
                 Gestionar cuenta
               </Typography>
             </MenuItem>
@@ -248,8 +261,8 @@ export default function Layout({ children }: LayoutProps) {
               onClick={handleLogout}
               sx={{ gap: 1.5, py: 1.5, px: 2.5 }}
             >
-              <LogoutIcon sx={{ color: '#5f6368', fontSize: 20 }} />
-              <Typography variant="body2" sx={{ color: '#202124' }}>
+              <LogoutIcon sx={{ color: 'text.secondary', fontSize: 20 }} />
+              <Typography variant="body2" sx={{ color: 'text.primary' }}>
                 Cerrar sesión
               </Typography>
             </MenuItem>
@@ -296,6 +309,7 @@ export default function Layout({ children }: LayoutProps) {
         }}
       >
         {children}
+        {user?.role === 'student' && <VirtualAssistant />}
       </Box>
     </Box>
   );

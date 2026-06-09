@@ -2,7 +2,6 @@ import { useState } from 'react';
 import {
   Box,
   Typography,
-  Paper,
   TextField,
   Button,
   Alert,
@@ -14,6 +13,8 @@ import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import Layout from '../../components/layout/Layout';
 import { useAuth } from '../../auth/AuthProvider';
 import { paymentService } from '../../api/servicesApi';
+import FeedbackState from '../../components/FeedbackState';
+import DataSectionCard from '../../components/DataSectionCard';
 
 const MEAL_PRICE = 2000;
 
@@ -48,12 +49,11 @@ export default function StudentPaymentPage() {
       const formData = new FormData();
       formData.append('comprobante', file);
       formData.append('amount', amount);
-      formData.append('studentId', user?.id || '');
 
       const data = await paymentService.uploadComprobante(formData);
       setResult(data);
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Error al subir comprobante');
+      setError(err.response?.data?.message ?? 'Error al subir comprobante');
     } finally {
       setLoading(false);
     }
@@ -67,7 +67,7 @@ export default function StudentPaymentPage() {
 
       <Grid container spacing={3}>
         <Grid item xs={12} md={8}>
-          <Paper sx={{ p: 3 }}>
+          <DataSectionCard>
             <Typography variant="body1" paragraph>
               Sube tu comprobante de pago para recargar almuerzos.
               <br />
@@ -75,9 +75,9 @@ export default function StudentPaymentPage() {
             </Typography>
 
             {error && (
-              <Alert severity="error" sx={{ mb: 2 }}>
-                {error}
-              </Alert>
+              <Box sx={{ mb: 2 }}>
+                <FeedbackState type="error" title="No se pudo subir el comprobante" description={error} />
+              </Box>
             )}
 
             {result && (
@@ -103,7 +103,7 @@ export default function StudentPaymentPage() {
                 component="label"
                 startIcon={<CloudUploadIcon />}
                 fullWidth
-                sx={{ mt: 2, mb: 1 }}
+                sx={{ mt: 2, mb: 1, borderStyle: 'dashed' }}
               >
                 Seleccionar Comprobante
                 <input
@@ -114,9 +114,9 @@ export default function StudentPaymentPage() {
                 />
               </Button>
               {file && (
-                <Typography variant="body2" sx={{ mb: 2 }}>
+                <Alert severity="info" sx={{ mb: 2 }}>
                   Archivo seleccionado: {file.name}
-                </Typography>
+                </Alert>
               )}
 
               <Button
@@ -128,11 +128,11 @@ export default function StudentPaymentPage() {
                 {loading ? 'Subiendo...' : 'Subir Comprobante'}
               </Button>
             </form>
-          </Paper>
+          </DataSectionCard>
         </Grid>
 
         <Grid item xs={12} md={4}>
-          <Card sx={{ bgcolor: 'primary.light', color: 'white' }}>
+          <Card sx={{ bgcolor: 'primary.main', color: 'primary.contrastText' }}>
             <CardContent>
               <Typography variant="h6" gutterBottom>
                 Calculadora
@@ -146,9 +146,9 @@ export default function StudentPaymentPage() {
                 </Typography>
               </Box>
               <Typography variant="body2" sx={{ mt: 2, opacity: 0.9 }}>
-                Monto: ${parseInt(amount || '0').toLocaleString()}
+                Monto: ${parseInt(amount || '0', 10).toLocaleString()}
                 <br />
-                Restante: ${(parseInt(amount || '0') % MEAL_PRICE).toLocaleString()}
+                Restante: ${(parseInt(amount || '0', 10) % MEAL_PRICE).toLocaleString()}
               </Typography>
             </CardContent>
           </Card>

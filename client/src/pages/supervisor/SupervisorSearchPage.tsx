@@ -20,6 +20,7 @@ import {
   Divider,
   IconButton,
   Collapse,
+  ButtonBase,
 } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
@@ -31,6 +32,7 @@ import ExpandLessIcon from '@mui/icons-material/ExpandLess';
 import Layout from '../../components/layout/Layout';
 import { studentService } from '../../api/studentApi';
 import { mealService } from '../../api/servicesApi';
+import FeedbackState from '../../components/FeedbackState';
 
 const DIAS_ES = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
 
@@ -46,19 +48,23 @@ export default function SupervisorSearchPage() {
   const [todayStudents, setTodayStudents] = useState<any[]>([]);
   const [todayLoading, setTodayLoading] = useState(false);
 
-  const [search, setSearch] = useState({ cedula: '', nombre: '', apellido: '', carrera: '' });
+  const [searchText, setSearchText] = useState('');
   const [results, setResults] = useState<any[]>([]);
   const [searchLoading, setSearchLoading] = useState(false);
   const [rowStatus, setRowStatus] = useState<Record<string, RowStatus>>({});
   const [searchOpen, setSearchOpen] = useState(false);
+  const [todayError, setTodayError] = useState('');
+  const [searchError, setSearchError] = useState('');
 
   const loadTodayStudents = useCallback(async () => {
     setTodayLoading(true);
+    setTodayError('');
     try {
       const data = await studentService.searchStudents({ dia: hoy });
       setTodayStudents(data);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error cargando estudiantes de hoy:', error);
+      setTodayError(error.response?.data?.message ?? 'No se pudo cargar la lista de habilitados de hoy.');
     } finally {
       setTodayLoading(false);
     }
@@ -70,11 +76,13 @@ export default function SupervisorSearchPage() {
 
   const handleSearch = async () => {
     setSearchLoading(true);
+    setSearchError('');
     try {
-      const data = await studentService.searchStudents(search);
+      const data = await studentService.searchStudents({ q: searchText });
       setResults(data);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error:', error);
+      setSearchError(error.response?.data?.message ?? 'Error al buscar estudiantes.');
     } finally {
       setSearchLoading(false);
     }
@@ -85,25 +93,26 @@ export default function SupervisorSearchPage() {
   };
 
   const handleRegisterDirect = async (student: any) => {
-    setRowStatus((prev) => ({ ...prev, [student.id]: { loading: true } }));
+    const targetStudentId = student.studentId ?? student.id;
+    setRowStatus((prev) => ({ ...prev, [targetStudentId]: { loading: true } }));
     try {
-      const mealsData = await studentService.getAvailableMeals(student.id);
+      const mealsData = await studentService.getAvailableMeals(targetStudentId);
       if (mealsData.availableMeals <= 0) {
         setRowStatus((prev) => ({
           ...prev,
-          [student.id]: { loading: false, result: 'no-meals', message: 'Sin almuerzos disponibles' },
+          [targetStudentId]: { loading: false, result: 'no-meals', message: 'Sin almuerzos disponibles' },
         }));
         return;
       }
-      await mealService.registerMeal(student.id);
+      await mealService.registerMeal(targetStudentId);
       setRowStatus((prev) => ({
         ...prev,
-        [student.id]: { loading: false, result: 'success', message: 'Registrado' },
+        [targetStudentId]: { loading: false, result: 'success', message: 'Registrado' },
       }));
     } catch (error: any) {
       setRowStatus((prev) => ({
         ...prev,
-        [student.id]: {
+        [targetStudentId]: {
           loading: false,
           result: 'error',
           message: error.response?.data?.message ?? 'Error al registrar',
@@ -115,7 +124,8 @@ export default function SupervisorSearchPage() {
   const registrados = Object.values(rowStatus).filter((s) => s.result === 'success').length;
 
   const renderActionCell = (student: any) => {
-    const status = rowStatus[student.id];
+    const targetStudentId = student.studentId ?? student.id;
+    const status = rowStatus[targetStudentId];
     if (status?.result === 'success') {
       return <Chip icon={<CheckCircleIcon />} label="Registrado" color="success" size="small" />;
     }
@@ -145,7 +155,7 @@ export default function SupervisorSearchPage() {
         onClick={() => handleRegisterDirect(student)}
         disabled={status?.loading}
       >
-        Registrar
+        Firmar
       </Button>
     );
   };
@@ -187,13 +197,27 @@ export default function SupervisorSearchPage() {
       </Box>
 
       {todayLoading && todayStudents.length === 0 ? (
-        <Box sx={{ display: 'flex', justifyContent: 'center', py: 6 }}>
-          <CircularProgress />
+        <Box sx={{ py: 4 }}>
+          <FeedbackState type="loading" compact description="Cargando habilitados de hoy..." />
+        </Box>
+      ) : todayError ? (
+        <Box sx={{ mb: 3 }}>
+          <FeedbackState
+            type="error"
+            title="No se pudo cargar la lista diaria"
+            description={todayError}
+            actionLabel="Reintentar"
+            onAction={loadTodayStudents}
+          />
         </Box>
       ) : todayStudents.length === 0 ? (
-        <Alert severity="info" sx={{ mb: 3 }}>
-          No hay estudiantes habilitados para el día de hoy ({hoy}).
-        </Alert>
+        <Box sx={{ mb: 3 }}>
+          <FeedbackState
+            type="empty"
+            title="Sin estudiantes habilitados hoy"
+            description={`No hay estudiantes habilitados para el día ${hoy}.`}
+          />
+        </Box>
       ) : (
         <TableContainer component={Paper} sx={{ mb: 4 }}>
           <Table size="small">
@@ -201,10 +225,10 @@ export default function SupervisorSearchPage() {
             <TableBody>
               {todayStudents.map((student) => (
                 <TableRow
-                  key={student.id}
+                  key={student.studentId ?? student.id}
                   sx={{
                     bgcolor:
-                      rowStatus[student.id]?.result === 'success'
+                      rowStatus[student.studentId ?? student.id]?.result === 'success'
                         ? 'success.50'
                         : undefined,
                   }}
@@ -232,8 +256,8 @@ export default function SupervisorSearchPage() {
       <Divider sx={{ mb: 3 }} />
 
       {/* ── Búsqueda manual ── */}
-      <Box
-        sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2, cursor: 'pointer', width: 'fit-content' }}
+      <ButtonBase
+        sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2, width: 'fit-content', borderRadius: 2, px: 0.5, py: 0.5 }}
         onClick={() => setSearchOpen((v) => !v)}
       >
         <SearchIcon color="action" fontSize="small" />
@@ -241,16 +265,16 @@ export default function SupervisorSearchPage() {
           Buscar estudiante manualmente
         </Typography>
         {searchOpen ? <ExpandLessIcon fontSize="small" /> : <ExpandMoreIcon fontSize="small" />}
-      </Box>
+      </ButtonBase>
 
       <Collapse in={searchOpen}>
         <Paper sx={{ p: 3, mb: 3 }}>
           <Grid container spacing={2}>
-            <Grid item xs={12} sm={6} md={3}>
+            <Grid item xs={12}>
               <TextField
-                label="Cédula"
-                value={search.cedula}
-                onChange={(e) => setSearch({ ...search, cedula: e.target.value })}
+                label="Buscar por nombre, apellido o UID"
+                value={searchText}
+                onChange={(e) => setSearchText(e.target.value)}
                 onKeyDown={handleKeyDown}
                 autoFocus={searchOpen}
                 fullWidth
@@ -261,33 +285,6 @@ export default function SupervisorSearchPage() {
                     </InputAdornment>
                   ),
                 }}
-              />
-            </Grid>
-            <Grid item xs={12} sm={6} md={3}>
-              <TextField
-                label="Nombre"
-                value={search.nombre}
-                onChange={(e) => setSearch({ ...search, nombre: e.target.value })}
-                onKeyDown={handleKeyDown}
-                fullWidth
-              />
-            </Grid>
-            <Grid item xs={12} sm={6} md={3}>
-              <TextField
-                label="Apellido"
-                value={search.apellido}
-                onChange={(e) => setSearch({ ...search, apellido: e.target.value })}
-                onKeyDown={handleKeyDown}
-                fullWidth
-              />
-            </Grid>
-            <Grid item xs={12} sm={6} md={3}>
-              <TextField
-                label="Carrera"
-                value={search.carrera}
-                onChange={(e) => setSearch({ ...search, carrera: e.target.value })}
-                onKeyDown={handleKeyDown}
-                fullWidth
               />
             </Grid>
             <Grid item xs={12}>
@@ -302,6 +299,21 @@ export default function SupervisorSearchPage() {
             </Grid>
           </Grid>
         </Paper>
+        {searchError ? (
+          <Box sx={{ mb: 2 }}>
+            <FeedbackState type="error" title="Error en la búsqueda" description={searchError} />
+          </Box>
+        ) : null}
+        {!searchLoading && searchText.trim() !== '' && results.length === 0 && !searchError ? (
+          <Box sx={{ mb: 2 }}>
+            <FeedbackState
+              type="empty"
+              compact
+              title="Sin resultados"
+              description="No encontramos estudiantes con ese criterio."
+            />
+          </Box>
+        ) : null}
 
         {results.length > 0 && (
           <TableContainer component={Paper} sx={{ mb: 3 }}>
@@ -309,7 +321,7 @@ export default function SupervisorSearchPage() {
               {studentsTableHead}
               <TableBody>
                 {results.map((student) => (
-                  <TableRow key={student.id}>
+                  <TableRow key={student.studentId ?? student.id}>
                     <TableCell>{student.nombre}</TableCell>
                     <TableCell>{student.apellido}</TableCell>
                     <TableCell>{student.cedula}</TableCell>

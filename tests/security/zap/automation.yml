@@ -1,0 +1,131 @@
+---
+env:
+  contexts:
+    - name: "SmartDiningRoom API"
+      urls:
+        - "http://localhost:3002"
+      includePaths:
+        - "http://localhost:3002/api/.*"
+      excludePaths:
+        - "http://localhost:3002/api/auth/logout"
+      authentication:
+        method: "json"
+        parameters:
+          loginPageUrl: "http://localhost:3002/api/auth/login"
+          loginRequestData: '{"email":"{%username%}","password":"{%password%}"}'
+          loginPageWait: 0
+        verification:
+          method: "response"
+          loggedInRegex: "\"token\""
+          loggedOutRegex: "\"error\""
+      sessionManagement:
+        method: "headers"
+        parameters:
+          headerName: "Authorization"
+          headerValue: "Bearer {%json_response_token%}"
+      users:
+        - name: "test-user"
+          credentials:
+            username: "${ZAP_TEST_EMAIL}"
+            password: "${ZAP_TEST_PASSWORD}"
+
+    - name: "SmartDiningRoom Frontend"
+      urls:
+        - "http://localhost:5174"
+      includePaths:
+        - "http://localhost:5174/.*"
+
+  parameters:
+    failOnError: true
+    failOnWarning: false
+    progressToStdout: true
+
+jobs:
+  # ── Configuración del escáner pasivo ──────────────────────────────────────
+  - type: passiveScan-config
+    parameters:
+      maxAlertsPerRule: 10
+      scanOnlyInScope: true
+      enableTags: false
+
+  # ── Spider sobre el frontend ──────────────────────────────────────────────
+  - type: spider
+    name: "Spider Frontend"
+    parameters:
+      context: "SmartDiningRoom Frontend"
+      url: "http://localhost:5174"
+      maxDuration: 3
+      maxDepth: 5
+      acceptCookies: true
+    tests:
+      - name: "Al menos 10 URLs encontradas"
+        type: "stats"
+        statistic: "automation.spider.urls.added"
+        operator: ">="
+        value: 10
+        onFail: "warn"
+
+  # ── Escaneo pasivo del frontend (esperar cola) ────────────────────────────
+  - type: passiveScan-wait
+    name: "Esperar escaneo pasivo Frontend"
+    parameters:
+      maxDuration: 5
+
+  # ── Spider sobre la API ───────────────────────────────────────────────────
+  - type: spider
+    name: "Spider API"
+    parameters:
+      context: "SmartDiningRoom API"
+      url: "http://localhost:3002/api"
+      maxDuration: 2
+      maxDepth: 3
+      acceptCookies: true
+
+  # ── Escaneo pasivo de la API ──────────────────────────────────────────────
+  - type: passiveScan-wait
+    name: "Esperar escaneo pasivo API"
+    parameters:
+      maxDuration: 5
+
+  # ── Alertas de seguridad a verificar (reglas del escáner pasivo) ──────────
+  - type: alertFilter
+    name: "Filtros de alertas"
+    parameters:
+      deleteGlobalAlerts: false
+    rules:
+      # Ignorar aviso de falta de HTTPS en entorno dev local
+      - ruleId: 10017
+        newRisk: "False Positive"
+        context: "SmartDiningRoom API"
+        url: "http://localhost:.*"
+        urlRegex: true
+
+  # ── Reporte HTML ──────────────────────────────────────────────────────────
+  - type: report
+    name: "Reporte HTML"
+    parameters:
+      template: "traditional-html"
+      reportDir: "/zap/reports"
+      reportFile: "zap-security-report"
+      reportTitle: "SmartDiningRoom - Reporte de Seguridad"
+      reportDescription: "Escaneo baseline pasivo del sistema"
+      displayReport: false
+    risks:
+      - high
+      - medium
+      - low
+
+  # ── Reporte JSON (para CI/CD) ─────────────────────────────────────────────
+  - type: report
+    name: "Reporte JSON"
+    parameters:
+      template: "traditional-json-plus"
+      reportDir: "/zap/reports"
+      reportFile: "zap-security-report-json"
+      displayReport: false
+
+  # ── Verificar umbrales de riesgo ──────────────────────────────────────────
+  - type: exitStatus
+    parameters:
+      errorLevel: "High"
+      warnLevel: "Medium"

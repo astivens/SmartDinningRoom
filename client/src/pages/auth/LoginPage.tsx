@@ -19,17 +19,35 @@ import { Visibility, VisibilityOff, Restaurant } from '@mui/icons-material';
 import { useAuth } from '../../auth/AuthProvider';
 import { LoginData } from '../../api/authApi';
 
-export default function LoginPage() {
+type LoginRole = LoginData['role'];
+
+interface LoginPageProps {
+  fixedRole?: LoginRole;
+}
+
+const roleLabels: Record<LoginRole, string> = {
+  student: 'Estudiantes',
+  supervisor: 'Supervisores',
+  admin: 'Administradores',
+  external_auditor: 'Auditoría Externa',
+};
+
+export default function LoginPage({ fixedRole }: LoginPageProps) {
   const navigate = useNavigate();
   const { login } = useAuth();
   const [formData, setFormData] = useState<LoginData>({
     email: '',
     password: '',
-    role: 'student',
+    role: fixedRole ?? 'student',
   });
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [twoFactorRequired, setTwoFactorRequired] = useState(false);
+  const [twoFactorCode, setTwoFactorCode] = useState('');
+  const [twoFactorToken, setTwoFactorToken] = useState('');
+
+  const effectiveRole = fixedRole ?? formData.role;
 
   const handleChange = (e: any) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -41,8 +59,25 @@ export default function LoginPage() {
     setLoading(true);
 
     try {
-      await login(formData);
-      navigate(`/${formData.role}`);
+      const response = await login({
+        ...formData,
+        role: effectiveRole,
+        twoFactorCode: twoFactorRequired ? twoFactorCode : undefined,
+        twoFactorToken: twoFactorRequired ? twoFactorToken : undefined
+      });
+
+      if (response.requiresTwoFactor && response.twoFactorToken) {
+        setTwoFactorRequired(true);
+        setTwoFactorToken(response.twoFactorToken);
+        setError('Ingresa el codigo de tu app autenticadora para completar el acceso.');
+        return;
+      }
+
+      if (effectiveRole === 'external_auditor') {
+        navigate('/auditor');
+      } else {
+        navigate(`/${effectiveRole}`);
+      }
     } catch (err: any) {
       setError(err.response?.data?.message ?? 'Error al iniciar sesión. Verifica tus datos.');
     } finally {
@@ -58,7 +93,7 @@ export default function LoginPage() {
         flexDirection: 'column',
         alignItems: 'center',
         justifyContent: 'center',
-        bgcolor: '#f8f9fa',
+        bgcolor: 'background.default',
         p: 2,
       }}
     >
@@ -69,9 +104,9 @@ export default function LoginPage() {
           p: { xs: 4, sm: '48px 40px 36px' },
           width: '100%',
           maxWidth: 448,
-          borderRadius: 3,
-          border: '1px solid #dadce0',
-          bgcolor: '#ffffff',
+          borderRadius: 6,
+          border: (theme) => `1px solid ${theme.palette.divider}`,
+          bgcolor: 'background.paper',
         }}
       >
         {/* Logo + Título */}
@@ -81,7 +116,8 @@ export default function LoginPage() {
               width: 48,
               height: 48,
               borderRadius: '50%',
-              background: 'linear-gradient(135deg, #4285f4 0%, #34a853 50%, #ea4335 100%)',
+              background: (theme) =>
+                `linear-gradient(135deg, ${theme.palette.primary.light} 0%, ${theme.palette.primary.main} 60%, ${theme.palette.secondary.main} 100%)`,
               display: 'inline-flex',
               alignItems: 'center',
               justifyContent: 'center',
@@ -96,7 +132,7 @@ export default function LoginPage() {
             sx={{
               fontSize: '1.5rem',
               fontWeight: 400,
-              color: '#202124',
+              color: 'text.primary',
               letterSpacing: 0,
               mb: 0.5,
             }}
@@ -106,16 +142,21 @@ export default function LoginPage() {
 
           <Typography
             variant="body2"
-            sx={{ color: '#5f6368', fontSize: '1rem', fontWeight: 400 }}
+            sx={{ color: 'text.secondary', fontSize: '1rem', fontWeight: 400 }}
           >
-            para continuar en{' '}
-            <Typography
-              component="span"
-              variant="body2"
-              sx={{ color: '#202124', fontWeight: 500, fontSize: '1rem' }}
-            >
-              SmartComedor
-            </Typography>
+            {fixedRole ? `Portal de ${roleLabels[fixedRole]}` : 'para continuar en '}
+            {!fixedRole ? (
+              <>
+                {' '}
+                <Typography
+                  component="span"
+                  variant="body2"
+                  sx={{ color: 'text.primary', fontWeight: 500, fontSize: '1rem' }}
+                >
+                  SmartComedor
+                </Typography>
+              </>
+            ) : null}
           </Typography>
         </Box>
 
@@ -165,7 +206,7 @@ export default function LoginPage() {
                     onClick={() => setShowPassword(!showPassword)}
                     edge="end"
                     size="small"
-                    sx={{ color: '#5f6368' }}
+                    sx={{ color: 'text.secondary' }}
                   >
                     {showPassword ? <VisibilityOff /> : <Visibility />}
                   </IconButton>
@@ -174,20 +215,36 @@ export default function LoginPage() {
             }}
           />
 
-          <FormControl fullWidth size="medium" sx={{ mb: 3 }}>
-            <InputLabel sx={{ fontSize: '1rem' }}>Tipo de cuenta</InputLabel>
-            <Select
-              name="role"
-              value={formData.role}
-              label="Tipo de cuenta"
-              onChange={handleChange}
-              sx={{ borderRadius: '4px', fontSize: '1rem' }}
-            >
-              <MenuItem value="student">Estudiante</MenuItem>
-              <MenuItem value="supervisor">Supervisor</MenuItem>
-              <MenuItem value="admin">Administrador</MenuItem>
-            </Select>
-          </FormControl>
+          {!fixedRole ? (
+            <FormControl fullWidth size="medium" sx={{ mb: 3 }}>
+              <InputLabel sx={{ fontSize: '1rem' }}>Tipo de cuenta</InputLabel>
+              <Select
+                name="role"
+                value={formData.role}
+                label="Tipo de cuenta"
+                onChange={handleChange}
+                sx={{ borderRadius: '4px', fontSize: '1rem' }}
+              >
+                <MenuItem value="student">Estudiante</MenuItem>
+                <MenuItem value="supervisor">Supervisor</MenuItem>
+                <MenuItem value="admin">Administrador</MenuItem>
+                <MenuItem value="external_auditor">Auditor Externo</MenuItem>
+              </Select>
+            </FormControl>
+          ) : null}
+
+          {twoFactorRequired && (
+            <TextField
+              label="Codigo 2FA (6 digitos)"
+              name="twoFactorCode"
+              value={twoFactorCode}
+              onChange={(e) => setTwoFactorCode(e.target.value)}
+              required
+              fullWidth
+              sx={{ mb: 2 }}
+              inputProps={{ maxLength: 6 }}
+            />
+          )}
 
           {/* Links */}
           <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 3 }}>
@@ -198,11 +255,11 @@ export default function LoginPage() {
               size="small"
               sx={{
                 fontSize: '0.875rem',
-                color: '#1a73e8',
+                color: 'primary.main',
                 fontWeight: 500,
                 p: '6px 8px',
                 borderRadius: 2,
-                '&:hover': { bgcolor: 'rgba(26,115,232,0.04)' },
+                '&:hover': { bgcolor: (theme) => theme.palette.action.hover },
               }}
             >
               ¿Olvidaste tu contraseña?
@@ -213,21 +270,14 @@ export default function LoginPage() {
               variant="contained"
               disabled={loading}
               sx={{
-                bgcolor: '#1a73e8',
                 color: 'white',
                 fontWeight: 500,
                 fontSize: '0.875rem',
                 px: 3,
                 py: 1,
-                borderRadius: 1,
-                boxShadow: 'none',
-                '&:hover': {
-                  bgcolor: '#1765cc',
-                  boxShadow: '0 1px 3px rgba(60,64,67,.3)',
-                },
+                borderRadius: 999,
                 '&:disabled': {
-                  bgcolor: '#c2d7f8',
-                  color: 'white',
+                  color: '#ffffff',
                 },
               }}
             >
@@ -235,30 +285,28 @@ export default function LoginPage() {
             </Button>
           </Box>
 
-          <Divider sx={{ mb: 2 }} />
+          {effectiveRole === 'student' ? (
+            <>
+              <Divider sx={{ mb: 2 }} />
 
-          <Box sx={{ textAlign: 'center' }}>
-            <Button
-              component={RouterLink}
-              to="/register"
-              variant="outlined"
-              fullWidth
-              sx={{
-                borderColor: '#dadce0',
-                color: '#1a73e8',
-                fontWeight: 500,
-                fontSize: '0.875rem',
-                py: 1,
-                borderRadius: 1,
-                '&:hover': {
-                  borderColor: '#1a73e8',
-                  bgcolor: 'rgba(26,115,232,0.04)',
-                },
-              }}
-            >
-              Crear cuenta
-            </Button>
-          </Box>
+              <Box sx={{ textAlign: 'center' }}>
+                <Button
+                  component={RouterLink}
+                  to="/register"
+                  variant="outlined"
+                  fullWidth
+                  sx={{
+                    fontWeight: 500,
+                    fontSize: '0.875rem',
+                    py: 1,
+                    borderRadius: 999,
+                  }}
+                >
+                  Crear cuenta
+                </Button>
+              </Box>
+            </>
+          ) : null}
         </Box>
       </Paper>
 
@@ -277,10 +325,10 @@ export default function LoginPage() {
             key={label}
             variant="caption"
             sx={{
-              color: '#5f6368',
+              color: 'text.secondary',
               fontSize: '0.75rem',
               cursor: 'pointer',
-              '&:hover': { color: '#1a73e8', textDecoration: 'underline' },
+              '&:hover': { color: 'primary.main', textDecoration: 'underline' },
             }}
           >
             {label}

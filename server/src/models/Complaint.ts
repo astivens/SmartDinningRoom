@@ -1,5 +1,7 @@
 import { DataTypes, Model, Optional } from 'sequelize';
 import { sequelize } from '../config/database';
+import { Student } from './Student';
+import { generateUid } from '../utils/uidGenerator';
 
 export enum ComplaintType {
   QUEJA = 'queja',
@@ -9,6 +11,7 @@ export enum ComplaintType {
 
 export interface ComplaintAttributes {
   id: string;
+  uid: string;
   studentId?: string;
   type: ComplaintType;
   content: string;
@@ -20,10 +23,11 @@ export interface ComplaintAttributes {
   updatedAt?: Date;
 }
 
-interface ComplaintCreationAttributes extends Optional<ComplaintAttributes, 'id' | 'isResolved'> {}
+interface ComplaintCreationAttributes extends Optional<ComplaintAttributes, 'id' | 'uid' | 'isResolved'> {}
 
 export class Complaint extends Model<ComplaintAttributes, ComplaintCreationAttributes> implements ComplaintAttributes {
   declare id: string;
+  declare uid: string;
   declare studentId?: string;
   declare type: ComplaintType;
   declare content: string;
@@ -41,6 +45,11 @@ Complaint.init(
       type: DataTypes.UUID,
       defaultValue: DataTypes.UUIDV4,
       primaryKey: true
+    },
+    uid: {
+      type: DataTypes.STRING(20),
+      unique: true,
+      allowNull: false
     },
     studentId: {
       type: DataTypes.UUID,
@@ -74,8 +83,16 @@ Complaint.init(
   {
     sequelize,
     modelName: 'Complaint',
-    tableName: 'complaints'
+    tableName: 'complaints',
+    hooks: {
+      beforeValidate: (complaint: Complaint) => {
+        complaint.uid = generateUid('CMP');
+      }
+    }
   }
 );
+
+Student.hasMany(Complaint, { foreignKey: 'studentId', as: 'complaints' });
+Complaint.belongsTo(Student, { foreignKey: 'studentId', as: 'student' });
 
 export default Complaint;

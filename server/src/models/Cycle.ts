@@ -1,9 +1,11 @@
 import { DataTypes, Model, Optional } from 'sequelize';
 import { sequelize } from '../config/database';
 import { Student } from './Student';
+import { generateUid } from '../utils/uidGenerator';
 
 export interface CycleAttributes {
   id: string;
+  uid: string;
   name: string;
   startDate: Date;
   endDate: Date;
@@ -14,11 +16,12 @@ export interface CycleAttributes {
 
 interface CycleCreationAttributes extends Optional<
   CycleAttributes,
-  'id' | 'status'
+  'id' | 'uid' | 'status'
 > {}
 
 export class Cycle extends Model<CycleAttributes, CycleCreationAttributes> implements CycleAttributes {
   declare id: string;
+  declare uid: string;
   declare name: string;
   declare startDate: Date;
   declare endDate: Date;
@@ -33,6 +36,11 @@ Cycle.init(
       type: DataTypes.UUID,
       defaultValue: DataTypes.UUIDV4,
       primaryKey: true
+    },
+    uid: {
+      type: DataTypes.STRING(20),
+      unique: true,
+      allowNull: false
     },
     name: {
       type: DataTypes.STRING(50),
@@ -56,7 +64,12 @@ Cycle.init(
   {
     sequelize,
     modelName: 'Cycle',
-    tableName: 'cycles'
+    tableName: 'cycles',
+    hooks: {
+      beforeValidate: (cycle: Cycle) => {
+        cycle.uid = generateUid('CYC');
+      }
+    }
   }
 );
 

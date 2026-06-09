@@ -26,6 +26,7 @@ import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import Layout from '../../components/layout/Layout';
 import { newsService } from '../../api/servicesApi';
+import FeedbackState from '../../components/FeedbackState';
 
 const emptyForm = { title: '', content: '', imageUrl: '' };
 
@@ -36,13 +37,20 @@ export default function AdminNewsPage() {
   const [formData, setFormData] = useState({ ...emptyForm });
   const [saving, setSaving] = useState(false);
   const [formError, setFormError] = useState('');
+  const [loadingNews, setLoadingNews] = useState(false);
+  const [tableError, setTableError] = useState('');
 
   const fetchNews = async () => {
+    setLoadingNews(true);
+    setTableError('');
     try {
       const data = await newsService.getNews();
       setNews(data ?? []);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error fetching news:', error);
+      setTableError(error.response?.data?.message ?? 'No se pudo cargar la lista de noticias.');
+    } finally {
+      setLoadingNews(false);
     }
   };
 
@@ -130,10 +138,34 @@ export default function AdminNewsPage() {
             </TableRow>
           </TableHead>
           <TableBody>
-            {news.length === 0 ? (
+            {loadingNews ? (
               <TableRow>
-                <TableCell colSpan={6} align="center" sx={{ py: 4, color: 'text.secondary' }}>
-                  No hay noticias publicadas
+                <TableCell colSpan={6}>
+                  <FeedbackState type="loading" compact description="Cargando noticias..." />
+                </TableCell>
+              </TableRow>
+            ) : null}
+            {!loadingNews && tableError ? (
+              <TableRow>
+                <TableCell colSpan={6}>
+                  <FeedbackState
+                    type="error"
+                    title="Error al cargar noticias"
+                    description={tableError}
+                    actionLabel="Reintentar"
+                    onAction={fetchNews}
+                  />
+                </TableCell>
+              </TableRow>
+            ) : null}
+            {!loadingNews && !tableError && news.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={6}>
+                  <FeedbackState
+                    type="empty"
+                    title="No hay noticias publicadas"
+                    description="Crea una noticia para informar novedades del comedor."
+                  />
                 </TableCell>
               </TableRow>
             ) : (

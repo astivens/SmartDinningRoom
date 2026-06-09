@@ -140,6 +140,7 @@ export default function CyclesPage() {
         <Table>
           <TableHead>
             <TableRow>
+              <TableCell>UID</TableCell>
               <TableCell>Nombre</TableCell>
               <TableCell>Inicio</TableCell>
               <TableCell>Fin</TableCell>
@@ -150,7 +151,7 @@ export default function CyclesPage() {
           <TableBody>
             {loading ? (
               <TableRow>
-                <TableCell colSpan={5}>
+                <TableCell colSpan={6}>
                   <FeedbackState type="loading" compact description="Cargando ciclos..." />
                 </TableCell>
               </TableRow>
@@ -158,7 +159,7 @@ export default function CyclesPage() {
 
             {!loading && listError ? (
               <TableRow>
-                <TableCell colSpan={5}>
+                <TableCell colSpan={6}>
                   <FeedbackState
                     type="error"
                     title="Error al cargar ciclos"
@@ -172,7 +173,7 @@ export default function CyclesPage() {
 
             {!loading && !listError && filteredCycles.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={5}>
+                <TableCell colSpan={6}>
                   <FeedbackState
                     type="empty"
                     title="No hay ciclos para mostrar"
@@ -184,6 +185,9 @@ export default function CyclesPage() {
 
             {!loading && !listError && filteredCycles.map((cycle) => (
               <TableRow key={cycle.id}>
+                <TableCell>
+                  <Typography variant="caption" sx={{ fontFamily: 'monospace' }}>{(cycle as any).uid}</Typography>
+                </TableCell>
                 <TableCell>{cycle.name}</TableCell>
                 <TableCell>{new Date(cycle.startDate).toLocaleDateString('es-CO')}</TableCell>
                 <TableCell>{new Date(cycle.endDate).toLocaleDateString('es-CO')}</TableCell>

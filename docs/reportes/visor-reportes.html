@@ -1,0 +1,163 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Visor de Reportes - SmartDiningRoom</title>
+  <style>
+    :root {
+      color-scheme: light dark;
+      --bg: #0b1020;
+      --panel: #151c33;
+      --muted: #9fb0d8;
+      --text: #e8eeff;
+      --accent: #5ea1ff;
+      --ok: #22c55e;
+      --warn: #f59e0b;
+      --err: #ef4444;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      background: linear-gradient(180deg, #090f1e 0%, #0b1020 100%);
+      color: var(--text);
+    }
+    .wrap {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+    .title {
+      margin: 0 0 8px;
+      font-size: 28px;
+    }
+    .subtitle {
+      margin: 0 0 20px;
+      color: var(--muted);
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 12px;
+      margin-bottom: 18px;
+    }
+    .card {
+      background: var(--panel);
+      border: 1px solid #26345a;
+      border-radius: 10px;
+      padding: 12px;
+    }
+    .card h3 {
+      margin: 0 0 6px;
+      font-size: 16px;
+    }
+    .card p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.4;
+    }
+    .chips { margin-top: 8px; }
+    .chip {
+      display: inline-block;
+      border-radius: 999px;
+      padding: 2px 8px;
+      font-size: 12px;
+      margin-right: 6px;
+      background: #1f2a4a;
+      border: 1px solid #344574;
+    }
+    .toolbar {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 10px;
+    }
+    button {
+      background: #1f2a4a;
+      color: #dbe6ff;
+      border: 1px solid #3a4d80;
+      border-radius: 8px;
+      padding: 8px 12px;
+      cursor: pointer;
+      font-size: 13px;
+    }
+    button:hover { border-color: var(--accent); }
+    .legend {
+      margin: 0 0 10px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+    iframe {
+      width: 100%;
+      min-height: 72vh;
+      border: 1px solid #33456f;
+      border-radius: 10px;
+      background: #fff;
+    }
+    .note {
+      margin-top: 10px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+    .ok { color: var(--ok); }
+    .warn { color: var(--warn); }
+    .err { color: var(--err); }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1 class="title">Visor de Reportes SmartDiningRoom</h1>
+    <p class="subtitle">Vista unificada para entender mejor resultados sin modificar datos originales.</p>
+
+    <div class="grid">
+      <section class="card">
+        <h3>Unitarias (Jest Coverage)</h3>
+        <p>Enfocarse en <strong>Statements</strong> y <strong>Branches</strong>. Si una carpeta baja, abrir su detalle para ver funciones no cubiertas.</p>
+        <div class="chips"><span class="chip ok">Meta sugerida: >=80%</span></div>
+      </section>
+      <section class="card">
+        <h3>Integracion (Jest Ejecucion)</h3>
+        <p>Este reporte muestra pass/fail y duracion por suite. Reemplaza el Unknown% de coverage para facilitar lectura real.</p>
+        <div class="chips"><span class="chip ok">Ver tests fallidos directamente</span></div>
+      </section>
+      <section class="card">
+        <h3>JMeter (Sistema: carga/estres)</h3>
+        <p>Leer primero <strong>Requests Summary</strong>, luego <strong>Response Codes</strong> y por ultimo errores por sampler.</p>
+        <div class="chips"><span class="chip err">Error % alto = endpoint o assertion</span></div>
+      </section>
+      <section class="card">
+        <h3>ZAP (Sistema: seguridad)</h3>
+        <p>Diferenciar hallazgos reales de ruido por rutas 404. Priorizar Medium/High y headers de seguridad faltantes.</p>
+        <div class="chips"><span class="chip warn">Revisar WARN-NEW</span></div>
+      </section>
+    </div>
+
+    <div class="toolbar">
+      <button onclick="loadReport('../../server/coverage-unit/lcov-report/index.html')">Abrir Unitarias</button>
+      <button onclick="loadReport('../../server/coverage-integration/integration-report.html')">Abrir Integracion</button>
+      <button onclick="loadReport('../../tests/security/jmeter/results/html-report-load-full/index.html')">Abrir JMeter Carga</button>
+      <button onclick="loadReport('../../tests/security/jmeter/results/html-report-latest/index.html')">Abrir JMeter Ultima</button>
+      <button onclick="loadReport('../../tests/security/zap/zap-baseline.html')">Abrir ZAP Baseline</button>
+    </div>
+
+    <p class="legend">
+      <strong>Lectura rapida:</strong>
+      <span class="ok">verde</span> aceptable,
+      <span class="warn">amarillo/naranja</span> revisar,
+      <span class="err">rojo</span> prioridad alta.
+    </p>
+
+    <iframe id="reportFrame" src="../../server/coverage-unit/lcov-report/index.html" title="Reporte"></iframe>
+    <p class="note">Nota: este visor no altera ningun reporte ni metrica, solo facilita la navegacion y contexto.</p>
+  </div>
+
+  <script>
+    function loadReport(path) {
+      const frame = document.getElementById('reportFrame');
+      frame.src = path;
+    }
+  </script>
+</body>
+</html>

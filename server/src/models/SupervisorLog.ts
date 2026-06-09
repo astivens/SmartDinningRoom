@@ -1,8 +1,12 @@
 import { DataTypes, Model, Optional } from 'sequelize';
 import { sequelize } from '../config/database';
+import { User } from './User';
+import { Student } from './Student';
+import { generateUid } from '../utils/uidGenerator';
 
 export interface SupervisorLogAttributes {
   id: string;
+  uid: string;
   supervisorId: string;
   studentId: string;
   action: string;
@@ -11,10 +15,11 @@ export interface SupervisorLogAttributes {
   updatedAt?: Date;
 }
 
-interface SupervisorLogCreationAttributes extends Optional<SupervisorLogAttributes, 'id'> {}
+interface SupervisorLogCreationAttributes extends Optional<SupervisorLogAttributes, 'id' | 'uid'> {}
 
 export class SupervisorLog extends Model<SupervisorLogAttributes, SupervisorLogCreationAttributes> implements SupervisorLogAttributes {
   declare id: string;
+  declare uid: string;
   declare supervisorId: string;
   declare studentId: string;
   declare action: string;
@@ -29,6 +34,11 @@ SupervisorLog.init(
       type: DataTypes.UUID,
       defaultValue: DataTypes.UUIDV4,
       primaryKey: true
+    },
+    uid: {
+      type: DataTypes.STRING(20),
+      unique: true,
+      allowNull: false
     },
     supervisorId: {
       type: DataTypes.UUID,
@@ -50,8 +60,16 @@ SupervisorLog.init(
   {
     sequelize,
     modelName: 'SupervisorLog',
-    tableName: 'supervisor_logs'
+    tableName: 'supervisor_logs',
+    hooks: {
+      beforeValidate: (log: SupervisorLog) => {
+        log.uid = generateUid('SPL');
+      }
+    }
   }
 );
 
 export default SupervisorLog;
+
+SupervisorLog.belongsTo(User, { foreignKey: 'supervisorId', as: 'supervisor' });
+SupervisorLog.belongsTo(Student, { foreignKey: 'studentId', as: 'student' });

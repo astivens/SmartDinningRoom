@@ -4,10 +4,12 @@ import crypto from 'crypto';
 import speakeasy from 'speakeasy';
 import QRCode from 'qrcode';
 import { Op } from 'sequelize';
-import { User, UserRole } from '../models';
+import { Student, User, UserRole } from '../models';
 import { AuthRequest } from '../middleware/auth';
 import { sendPasswordResetEmail } from '../services/emailService';
 import { logAction } from '../services/auditService';
+import { extractSisbenText, validateSisbenAgainstCedula } from '../services/sisbenValidationService';
+import { VALID_CARRERAS, VALID_SEMESTERS, VALID_SISBEN_CATEGORIES } from '../constants';
 
 const generateTokens = (user: User) => {
   const accessToken = jwt.sign(
@@ -25,9 +27,15 @@ const generateTokens = (user: User) => {
   return { accessToken, refreshToken };
 };
 
+const generateTwoFactorToken = (user: User) => jwt.sign(
+  { id: user.id, email: user.email, role: user.role, purpose: 'login-2fa' },
+  process.env.JWT_SECRET || 'secret',
+  { expiresIn: '10m' }
+);
+
 export const login = async (req: Request, res: Response) => {
   try {
-    const { email, password, role } = req.body;
+    const { email, password, role, twoFactorCode, twoFactorToken } = req.body;
 
     if (!email || !password || !role) {
       return res.status(400).json({ message: 'Email, contraseña y rol son requeridos' });
@@ -51,8 +59,47 @@ export const login = async (req: Request, res: Response) => {
       return res.status(403).json({ message: 'Usted no está autorizado' });
     }
 
-    if ((role === UserRole.ADMIN || role === UserRole.SUPERVISOR) && !user.isAuthorized) {
+    if ((role === UserRole.ADMIN || role === UserRole.SUPERVISOR || role === UserRole.EXTERNAL_AUDITOR) && !user.isAuthorized) {
       return res.status(403).json({ message: 'Usted no está autorizado' });
+    }
+
+    if (role === UserRole.STUDENT) {
+      const student = await Student.findOne({ where: { userId: user.id } });
+      const twoFactorEnabled = student?.qrCode === 'enabled' && !!student?.qrCodeSecret;
+      if (twoFactorEnabled) {
+        if (!twoFactorToken) {
+          return res.status(200).json({
+            requiresTwoFactor: true,
+            twoFactorToken: generateTwoFactorToken(user),
+            message: 'Se requiere código de autenticación en dos factores'
+          });
+        }
+
+        let decoded: { id: string; email: string; role: UserRole; purpose: string };
+        try {
+          decoded = jwt.verify(twoFactorToken, process.env.JWT_SECRET || 'secret') as { id: string; email: string; role: UserRole; purpose: string };
+        } catch {
+          return res.status(401).json({ message: 'Token 2FA inválido o expirado' });
+        }
+
+        if (decoded.purpose !== 'login-2fa' || decoded.id !== user.id || decoded.email !== user.email) {
+          return res.status(401).json({ message: 'Token 2FA inválido o expirado' });
+        }
+
+        if (!twoFactorCode) {
+          return res.status(400).json({ message: 'Código 2FA requerido' });
+        }
+
+        const isValid2FA = speakeasy.totp.verify({
+          secret: student.qrCodeSecret!,
+          encoding: 'base32',
+          token: String(twoFactorCode),
+          window: 1
+        });
+        if (!isValid2FA) {
+          return res.status(400).json({ message: 'Código 2FA inválido o expirado' });
+        }
+      }
     }
 
     const tokens = generateTokens(user);
@@ -63,6 +110,7 @@ export const login = async (req: Request, res: Response) => {
       message: 'Login exitoso',
       user: {
         id: user.id,
+        uid: user.uid,
         email: user.email,
         name: user.name,
         lastName: user.lastName,
@@ -91,16 +139,62 @@ export const register = async (req: Request, res: Response) => {
       barrio,
       telefono,
       trabaja,
+      trabajaEstudia,
+      estudiaSolo,
       etnia,
       desplazado,
       trabajadorUniversitario,
       diasComedor
     } = req.body;
 
-    const archivoSisbenPath = (req as any).file?.path ?? '';
+    const files = (req as Request & {
+      files?: { [fieldname: string]: Express.Multer.File[] } | Express.Multer.File[];
+    }).files;
+    const fieldFiles = files && !Array.isArray(files) ? files : {};
+    const sisbenFile = fieldFiles?.archivoSisben?.[0];
+    const cedulaFrontalFile = fieldFiles?.cedulaFrontal?.[0];
+    const horarioPdfFile = fieldFiles?.horarioPdf?.[0];
+    const reciboFile = fieldFiles?.reciboPago?.[0];
+    const archivoSisbenPath = sisbenFile?.path ?? '';
+    const cedulaFrontalPath = cedulaFrontalFile?.path ?? '';
+    const horarioPdfPath = horarioPdfFile?.path ?? '';
+    const reciboPagoPath = reciboFile?.path ?? '';
 
-    if (!archivoSisbenPath) {
-      return res.status(400).json({ message: 'El archivo SISBEN es obligatorio (PDF o JPG)' });
+    if (!archivoSisbenPath || !cedulaFrontalPath || !horarioPdfPath) {
+      return res.status(400).json({ message: 'SISBEN, cédula frontal y horario PDF son obligatorios' });
+    }
+
+    if (typeof email !== 'string' || email.trim().length === 0 || email.length > 30) {
+      return res.status(400).json({ message: 'Correo inválido (máximo 30 caracteres)' });
+    }
+    if (typeof name !== 'string' || name.trim().length === 0 || name.length > 20) {
+      return res.status(400).json({ message: 'Nombre inválido (máximo 20 caracteres)' });
+    }
+    if (typeof lastName !== 'string' || lastName.trim().length === 0 || lastName.length > 20) {
+      return res.status(400).json({ message: 'Apellido inválido (máximo 20 caracteres)' });
+    }
+    const cedulaString = String(cedula ?? '').trim();
+    if (!/^\d{6,12}$/.test(cedulaString)) {
+      return res.status(400).json({ message: 'Cédula inválida (entre 6 y 12 dígitos)' });
+    }
+    if (typeof password !== 'string' || password.length !== 8) {
+      return res.status(400).json({ message: 'La contraseña debe tener exactamente 8 caracteres' });
+    }
+    if (typeof carrera !== 'string' || !VALID_CARRERAS.has(carrera)) {
+      return res.status(400).json({ message: 'Carrera inválida, debe pertenecer al catálogo permitido' });
+    }
+    const semestreNumber = Number(semestre);
+    if (!VALID_SEMESTERS.has(semestreNumber)) {
+      return res.status(400).json({ message: 'Semestre inválido, debe estar entre 1 y 12' });
+    }
+    if (typeof categoriaSisben !== 'string' || !VALID_SISBEN_CATEGORIES.has(categoriaSisben)) {
+      return res.status(400).json({ message: 'Categoría SISBEN inválida' });
+    }
+    if (typeof barrio !== 'string' || barrio.trim().length === 0) {
+      return res.status(400).json({ message: 'Barrio es obligatorio' });
+    }
+    if (typeof telefono !== 'string' || telefono.trim().length === 0) {
+      return res.status(400).json({ message: 'Número de contacto es obligatorio' });
     }
 
     const existingUser = await User.findOne({ where: { email } });
@@ -120,22 +214,54 @@ export const register = async (req: Request, res: Response) => {
 
     const parsedDias = typeof diasComedor === 'string' ? JSON.parse(diasComedor) : (diasComedor ?? []);
 
-    const { Student } = await import('../models');
+    let sisbenValidation = {
+      validated: false,
+      mismatches: { cedula: true, name: true, lastName: true, cedulaDocument: true }
+    };
+    try {
+      sisbenValidation = await validateSisbenAgainstCedula(archivoSisbenPath, cedulaFrontalPath, {
+        cedula: cedulaString,
+        name,
+        lastName
+      });
+    } catch (sisbenError) {
+      console.error('SISBEN validation error:', sisbenError);
+    }
+
+    let horarioExtract = '';
+    try {
+      const horarioText = await extractSisbenText(horarioPdfPath);
+      horarioExtract = horarioText.trim().slice(0, 5000);
+    } catch (horarioError) {
+      console.error('Horario extraction error:', horarioError);
+    }
+
     await Student.create({
       userId: user.id,
-      cedula,
+      cedula: cedulaString,
       carrera,
-      semestre: parseInt(semestre),
+      semestre: semestreNumber,
       categoriaSisben,
       archivoSisben: archivoSisbenPath,
+      cedulaFrontalPath,
+      horarioPdfPath,
+      reciboPagoPath,
       direccion,
       barrio,
       telefono,
       trabaja: trabaja === 'true' || trabaja === true,
+      trabajaEstudia: trabajaEstudia === 'true' || trabajaEstudia === true,
+      estudiaSolo: estudiaSolo === 'true' || estudiaSolo === true,
       etnia,
       desplazado: desplazado === 'true' || desplazado === true,
       trabajadorUniversitario: trabajadorUniversitario === 'true' || trabajadorUniversitario === true,
-      diasComedor: parsedDias
+      diasComedor: parsedDias,
+      isValidatedSisben: false,
+      sisbenAutoValidated: sisbenValidation.validated,
+      sisbenValidationDetails: {
+        ...sisbenValidation,
+        horarioExtract
+      }
     });
 
     const tokens = generateTokens(user);
@@ -144,11 +270,13 @@ export const register = async (req: Request, res: Response) => {
       message: 'Registro exitoso',
       user: {
         id: user.id,
+        uid: user.uid,
         email: user.email,
         name: user.name,
         lastName: user.lastName,
         role: user.role
       },
+      sisbenValidation,
       ...tokens
     });
   } catch (error) {

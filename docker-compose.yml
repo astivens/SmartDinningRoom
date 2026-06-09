@@ -11,7 +11,7 @@ services:
       POSTGRES_USER:     ${DB_USER:-postgres}
       POSTGRES_PASSWORD: ${DB_PASSWORD:-postgres}
     ports:
-      - "${DB_PORT:-5433}:5432"
+      - "5433:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
@@ -29,6 +29,7 @@ services:
     env_file: ./server/.env
     environment:
       DB_HOST: postgres
+      DB_PORT: 5432
     ports:
       - "${PORT:-3002}:3002"
     depends_on:
@@ -45,10 +46,12 @@ services:
     env_file: ./server/.env
     environment:
       DB_HOST: postgres
+      DB_PORT: 5432
     ports:
       - "${PORT:-3002}:3002"
     volumes:
       - ./server/src:/app/src
+      - ./server/uploads:/app/uploads
     depends_on:
       postgres:
         condition: service_healthy
@@ -72,13 +75,36 @@ services:
       context: ./client
       target: development
     container_name: smart_comedor_client_dev
+    environment:
+      API_PROXY_TARGET: http://server-dev:3002
     ports:
       - "5174:5174"
     volumes:
       - ./client/src:/app/src
+      - ./client/vite.config.ts:/app/vite.config.ts
     depends_on:
       - server-dev
     profiles: [dev]
 
+  backup:
+    image: postgres:14-alpine
+    container_name: smart_comedor_backup
+    environment:
+      PGPASSWORD: ${DB_PASSWORD:-postgres}
+    volumes:
+      - db_backups:/backups
+    command: >
+      sh -c "while true; do
+        TS=$$(date +%Y-%m-%d_%H-%M-%S);
+        pg_dump -h postgres -p 5432 -U ${DB_USER:-postgres} ${DB_NAME:-smart_comedor} | gzip > /backups/backup_$$TS.sql.gz;
+        find /backups -type f -name 'backup_*.sql.gz' -mtime +30 -delete;
+        sleep 86400;
+      done"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    profiles: [prod, dev]
+
 volumes:
   postgres_data:
+  db_backups:

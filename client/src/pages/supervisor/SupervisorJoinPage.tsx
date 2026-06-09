@@ -10,6 +10,7 @@ import {
   InputAdornment,
   IconButton,
   Grid,
+  Link,
 } from '@mui/material';
 import { Visibility, VisibilityOff } from '@mui/icons-material';
 import { supervisorService } from '../../api/supervisorApi';
@@ -19,7 +20,7 @@ export default function SupervisorJoinPage() {
   const navigate = useNavigate();
   const token = searchParams.get('token') ?? '';
 
-  const [formData, setFormData] = useState({ email: '', name: '', lastName: '', password: '', confirmPassword: '' });
+  const [formData, setFormData] = useState({ email: '', name: '', lastName: '', telefono: '', password: '', confirmPassword: '' });
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [message, setMessage] = useState('');
@@ -56,6 +57,7 @@ export default function SupervisorJoinPage() {
         email: formData.email,
         name: formData.name,
         lastName: formData.lastName,
+        telefono: formData.telefono,
         password: formData.password,
       });
       setMessage(data.message);
@@ -99,6 +101,9 @@ export default function SupervisorJoinPage() {
             </Grid>
             <Grid item xs={12}>
               <TextField label="Correo electrónico" name="email" type="email" value={formData.email} onChange={handleChange} required fullWidth inputProps={{ maxLength: 30 }} />
+            </Grid>
+            <Grid item xs={12}>
+              <TextField label="Teléfono" name="telefono" value={formData.telefono} onChange={handleChange} fullWidth inputProps={{ maxLength: 15 }} />
             </Grid>
             <Grid item xs={12} sm={6}>
               <TextField
@@ -152,9 +157,9 @@ export default function SupervisorJoinPage() {
 
         <Box sx={{ mt: 2, textAlign: 'center' }}>
           <Typography variant="body2">
-            <RouterLink to="/login" style={{ textDecoration: 'none' }}>
+            <Link component={RouterLink} to="/login" underline="hover" sx={{ fontWeight: 600 }}>
               Volver a Iniciar Sesión
-            </RouterLink>
+            </Link>
           </Typography>
         </Box>
       </Paper>

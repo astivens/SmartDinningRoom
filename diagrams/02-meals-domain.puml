@@ -1,0 +1,104 @@
+@startuml meals-domain
+skinparam classAttributeIconSize 0
+skinparam monochrome false
+skinparam backgroundColor #FEFEFE
+skinparam ArrowColor #333333
+skinparam ClassBorderColor #555555
+skinparam ClassBackgroundColor #F8F9FA
+skinparam nodesep 60
+skinparam ranksep 50
+left to right direction
+
+title 2/4 — Comedor: Pagos, Almuerzos y Asignaciones
+
+class Student {
+  +UUID id
+  +String uid «STD-»
+  +String[] diasComedor
+}
+class User {
+  +UUID id
+  +String name
+}
+
+class Payment {
+  +UUID id
+  +String uid «PAY-»
+  +UUID studentId FK
+  +Integer amount
+  +Integer mealsIncluded
+  +Integer mealsUsed
+  +String comprobantePath
+  +String universityReceiptPath?
+  +String bankReceiptPath?
+  +Boolean isVerified
+  +UUID verifiedBy? FK
+  +Date verifiedAt?
+}
+
+class MealAttendance {
+  +UUID id
+  +String uid «MLA-»
+  +UUID studentId FK
+  +UUID supervisorId FK
+  +Date date
+  +String hora
+}
+
+class SupervisorAssignment {
+  +UUID id
+  +String uid «SPA-»
+  +UUID supervisorId FK
+  +UUID studentId FK
+}
+
+class SupervisorLog {
+  +UUID id
+  +String uid «SPL-»
+  +UUID supervisorId FK
+  +UUID studentId FK
+  +String action
+  +String hora
+}
+
+' Relaciones
+Student "1" -- "0..*" Payment : payments
+Student "1" -- "0..*" MealAttendance : attendances
+Student "1" -- "0..*" SupervisorAssignment : assigned
+Student "1" -- "0..*" SupervisorLog : logs
+
+User "1" -- "0..*" MealAttendance : supervisor
+User "1" -- "0..*" SupervisorAssignment : supervisor
+User "1" -- "0..*" SupervisorLog : supervisor
+Payment "0..*" -- "0..1" User : verifiedBy
+
+note top of Payment
+  <b>Regla de negocio</b>
+  mealsIncluded = floor(amount / 2000)
+
+  Ejemplos:
+  $2000 → 1 almuerzo
+  $10000 → 5 almuerzos
+  $4500 → 2 almuerzos (residuo $500)
+
+  <b>Verificación</b>
+  Al verificar se borran los archivos
+  de recibo del disco (GDPR)
+end note
+
+note top of MealAttendance
+  <b>Validaciones al registrar</b>
+  1. Día autorizado (diasComedor)
+  2. No haya comido hoy (date)
+  3. Tenga almuerzos disponibles
+
+  mealsUsed se incrementa en el
+  último Payment verificado
+end note
+
+note bottom of SupervisorAssignment
+  Índice único compuesto:
+  (supervisor_id, student_id)
+end note
+
+@enduml

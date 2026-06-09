@@ -6,7 +6,16 @@ import { upload } from '../middleware/upload';
 const router = Router();
 
 router.post('/login', login);
-router.post('/register', upload.single('archivoSisben'), register);
+router.post(
+  '/register',
+  upload.fields([
+    { name: 'archivoSisben', maxCount: 1 },
+    { name: 'cedulaFrontal', maxCount: 1 },
+    { name: 'horarioPdf', maxCount: 1 },
+    { name: 'reciboPago', maxCount: 1 }
+  ]),
+  register
+);
 router.post('/refresh-token', refreshToken);
 router.post('/forgot-password', forgotPassword);
 router.post('/reset-password', resetPassword);

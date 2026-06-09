@@ -6,7 +6,7 @@ export const supervisorService = {
     return response.data;
   },
 
-  createSupervisor: async (data: { email: string; name: string; lastName: string }) => {
+  createSupervisor: async (data: { email: string; name: string; lastName: string; telefono?: string }) => {
     const response = await api.post('/supervisors', data);
     return response.data;
   },
@@ -36,7 +36,7 @@ export const supervisorService = {
     return response.data;
   },
 
-  joinWithInvite: async (data: { token: string; email: string; name: string; lastName: string; password: string }) => {
+  joinWithInvite: async (data: { token: string; email: string; name: string; lastName: string; telefono?: string; password: string }) => {
     const response = await api.post('/supervisors/join', data);
     return response.data;
   },

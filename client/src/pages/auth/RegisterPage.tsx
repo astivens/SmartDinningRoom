@@ -21,13 +21,13 @@ import {
   StepLabel,
   Chip,
   CircularProgress,
+  Link,
 } from '@mui/material';
 import { Visibility, VisibilityOff, CheckCircle, QrCode2 } from '@mui/icons-material';
 import { authService, RegisterData } from '../../api/authApi';
-
-const days = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes'];
-const etnicities = ['Ninguna', 'Indígena', 'Afrodescendiente', 'Raizal', 'Palenquero', 'ROM', 'Otro'];
-const sisbenCategories = ['A1', 'A2', 'A3', 'A4', 'A5', 'B1', 'B2', 'B3', 'B4', 'B5', 'B6', 'B7', 'C1', 'C2', 'C3'];
+import FeedbackState from '../../components/FeedbackState';
+import FileUploadField from '../../components/FileUploadField';
+import { DAYS_COMEDOR, ETNIAS, SISBEN_CATEGORIES, SEMESTERS, CARRERAS } from '../../constants';
 
 const steps = [
   'Datos de Cuenta',
@@ -45,6 +45,10 @@ export default function RegisterPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [confirmPassword, setConfirmPassword] = useState('');
   const [sisbenFile, setSisbenFile] = useState<File | null>(null);
+  const [cedulaFrontalFile, setCedulaFrontalFile] = useState<File | null>(null);
+  const [horarioPdfFile, setHorarioPdfFile] = useState<File | null>(null);
+  const [paymentReceiptFile, setPaymentReceiptFile] = useState<File | null>(null);
+  const [sisbenValidated, setSisbenValidated] = useState<boolean | null>(null);
 
   // Estado del paso 2FA
   const [qrCodeDataUrl, setQrCodeDataUrl] = useState('');
@@ -54,7 +58,7 @@ export default function RegisterPage() {
   const [twoFaError, setTwoFaError] = useState('');
   const [registeredTokens, setRegisteredTokens] = useState<{ accessToken: string; refreshToken: string } | null>(null);
 
-  const [formData, setFormData] = useState<Omit<RegisterData, 'archivoSisben'>>({
+  const [formData, setFormData] = useState<Omit<RegisterData, 'archivoSisben' | 'cedulaFrontal' | 'horarioPdf' | 'reciboPago'>>({
     email: '',
     password: '',
     name: '',
@@ -67,6 +71,8 @@ export default function RegisterPage() {
     barrio: '',
     telefono: '',
     trabaja: false,
+    trabajaEstudia: false,
+    estudiaSolo: true,
     etnia: 'Ninguna',
     desplazado: false,
     trabajadorUniversitario: false,
@@ -93,6 +99,21 @@ export default function RegisterPage() {
     setSisbenFile(file);
   };
 
+  const handleCedulaFrontalFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0] ?? null;
+    setCedulaFrontalFile(file);
+  };
+
+  const handleHorarioPdfFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0] ?? null;
+    setHorarioPdfFile(file);
+  };
+
+  const handlePaymentReceiptFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0] ?? null;
+    setPaymentReceiptFile(file);
+  };
+
   const handleNextStep = () => {
     if (activeStep === 0) {
       if (formData.password.length !== 8) {
@@ -104,8 +125,8 @@ export default function RegisterPage() {
         return;
       }
     }
-    if (activeStep === 2 && !sisbenFile) {
-      setError('El archivo SISBEN es obligatorio');
+    if (activeStep === 2 && (!sisbenFile || !cedulaFrontalFile || !horarioPdfFile)) {
+      setError('SISBEN, cédula frontal y horario PDF son obligatorios');
       return;
     }
     setError('');
@@ -114,16 +135,27 @@ export default function RegisterPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!sisbenFile) {
-      setError('El archivo SISBEN es obligatorio');
+    if (!sisbenFile || !cedulaFrontalFile || !horarioPdfFile) {
+      setError('SISBEN, cédula frontal y horario PDF son obligatorios');
       return;
     }
     setError('');
     setLoading(true);
 
     try {
-      const result = await authService.register({ ...formData, archivoSisben: sisbenFile });
-      setRegisteredTokens({ accessToken: result.accessToken, refreshToken: result.refreshToken });
+      const result = await authService.register({
+        ...formData,
+        archivoSisben: sisbenFile,
+        cedulaFrontal: cedulaFrontalFile,
+        horarioPdf: horarioPdfFile,
+        reciboPago: paymentReceiptFile
+      });
+      if (result.accessToken && result.refreshToken) {
+        setRegisteredTokens({ accessToken: result.accessToken, refreshToken: result.refreshToken });
+      } else {
+        setRegisteredTokens(null);
+      }
+      setSisbenValidated(result.sisbenValidation?.validated ?? false);
       // Avanza al paso 2FA
       setActiveStep(4);
     } catch (err: any) {
@@ -213,6 +245,11 @@ export default function RegisterPage() {
             <Alert severity="success" sx={{ mb: 2 }}>
               ¡Registro exitoso! Ahora puedes configurar la autenticación de dos factores (opcional).
             </Alert>
+            {sisbenValidated !== null && (
+              <Alert severity={sisbenValidated ? 'success' : 'warning'} sx={{ mb: 2 }}>
+                {sisbenValidated ? 'SISBEN validado automaticamente.' : 'No se pudo validar automaticamente el SISBEN. Un administrador lo revisara.'}
+              </Alert>
+            )}
 
             {!twoFaVerified ? (
               <>
@@ -247,7 +284,7 @@ export default function RegisterPage() {
                       fullWidth
                       sx={{ mb: 2 }}
                     />
-                    {twoFaError && <Alert severity="error" sx={{ mb: 2 }}>{twoFaError}</Alert>}
+                    {twoFaError ? <Alert severity="error" sx={{ mb: 2 }}>{twoFaError}</Alert> : null}
                     <Button
                       variant="contained"
                       onClick={handleVerify2FA}
@@ -266,7 +303,7 @@ export default function RegisterPage() {
             )}
 
             <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 3 }}>
-              <Button variant="outlined" onClick={handleFinish}>
+                    <Button variant="outlined" onClick={handleFinish}>
                 {twoFaVerified ? 'Ir al inicio de sesión' : 'Omitir y continuar'}
               </Button>
             </Box>
@@ -366,27 +403,24 @@ export default function RegisterPage() {
                   />
                 </Grid>
                 <Grid item xs={12} sm={6}>
-                  <TextField
-                    label="Carrera"
-                    name="carrera"
-                    value={formData.carrera}
-                    onChange={handleChange}
-                    required
-                    fullWidth
-                    inputProps={{ maxLength: 25 }}
-                  />
+                  <FormControl fullWidth required>
+                    <InputLabel>Carrera</InputLabel>
+                    <Select name="carrera" value={formData.carrera} label="Carrera" onChange={handleChange}>
+                      {CARRERAS.map((career) => (
+                        <MenuItem key={career} value={career}>{career}</MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
                 </Grid>
                 <Grid item xs={12} sm={6}>
-                  <TextField
-                    label="Semestre Actual"
-                    name="semestre"
-                    type="number"
-                    value={formData.semestre}
-                    onChange={handleChange}
-                    required
-                    fullWidth
-                    inputProps={{ min: 1, max: 20 }}
-                  />
+                  <FormControl fullWidth required>
+                    <InputLabel>Semestre Actual</InputLabel>
+                    <Select name="semestre" value={formData.semestre} label="Semestre Actual" onChange={handleChange}>
+                      {SEMESTERS.map((semester) => (
+                        <MenuItem key={semester} value={semester}>{semester}</MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
                 </Grid>
                 <Grid item xs={12} sm={6}>
                   <TextField
@@ -431,43 +465,57 @@ export default function RegisterPage() {
                       label="Categoría SISBEN"
                       onChange={handleChange}
                     >
-                      {sisbenCategories.map((cat) => (
+                      {SISBEN_CATEGORIES.map((cat) => (
                         <MenuItem key={cat} value={cat}>{cat}</MenuItem>
                       ))}
                     </Select>
                   </FormControl>
                 </Grid>
                 <Grid item xs={12} sm={6}>
-                  <Box>
-                    <Typography variant="body2" gutterBottom>
-                      Archivo SISBEN (PDF o JPG) *
-                    </Typography>
-                    <Button variant="outlined" component="label" fullWidth>
-                      {sisbenFile ? sisbenFile.name : 'Seleccionar archivo'}
-                      <input
-                        type="file"
-                        hidden
-                        accept=".pdf,.jpg,.jpeg"
-                        onChange={handleFileChange}
-                      />
-                    </Button>
-                    {sisbenFile && (
-                      <Chip
-                        label={sisbenFile.name}
-                        color="success"
-                        size="small"
-                        sx={{ mt: 1 }}
-                        onDelete={() => setSisbenFile(null)}
-                      />
-                    )}
-                  </Box>
+                  <FileUploadField
+                    label="Archivo SISBEN (PDF o JPG) *"
+                    buttonLabel="Seleccionar archivo"
+                    file={sisbenFile}
+                    accept=".pdf,.jpg,.jpeg"
+                    onChange={handleFileChange}
+                    onClear={() => setSisbenFile(null)}
+                  />
+                  {sisbenValidated ? (
+                    <Chip
+                      icon={<CheckCircle />}
+                      label="SISBEN validado"
+                      color="success"
+                      size="small"
+                      sx={{ mt: 1, ml: 1 }}
+                    />
+                  ) : null}
+                </Grid>
+                <Grid item xs={12}>
+                  <FileUploadField
+                    label="Cédula frontal (PDF/JPG/PNG) *"
+                    buttonLabel="Seleccionar cédula frontal"
+                    file={cedulaFrontalFile}
+                    accept=".pdf,.jpg,.jpeg,.png"
+                    onChange={handleCedulaFrontalFileChange}
+                    onClear={() => setCedulaFrontalFile(null)}
+                  />
+                </Grid>
+                <Grid item xs={12}>
+                  <FileUploadField
+                    label="Horario académico (PDF) *"
+                    buttonLabel="Seleccionar horario PDF"
+                    file={horarioPdfFile}
+                    accept=".pdf"
+                    onChange={handleHorarioPdfFileChange}
+                    onClear={() => setHorarioPdfFile(null)}
+                  />
                 </Grid>
                 <Grid item xs={12}>
                   <Typography variant="body2" gutterBottom>
                     Días de uso del comedor:
                   </Typography>
                   <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
-                    {days.map((day) => (
+                    {DAYS_COMEDOR.map((day) => (
                       <FormControlLabel
                         key={day}
                         control={
@@ -497,6 +545,22 @@ export default function RegisterPage() {
                 <Grid item xs={12} sm={6}>
                   <FormControlLabel
                     control={
+                      <Checkbox name="trabajaEstudia" checked={formData.trabajaEstudia} onChange={handleChange} />
+                    }
+                    label="¿Trabaja y estudia?"
+                  />
+                </Grid>
+                <Grid item xs={12} sm={6}>
+                  <FormControlLabel
+                    control={
+                      <Checkbox name="estudiaSolo" checked={formData.estudiaSolo} onChange={handleChange} />
+                    }
+                    label="¿Estudia solamente?"
+                  />
+                </Grid>
+                <Grid item xs={12} sm={6}>
+                  <FormControlLabel
+                    control={
                       <Checkbox name="desplazado" checked={formData.desplazado} onChange={handleChange} />
                     }
                     label="¿Desplazado o víctima del conflicto?"
@@ -515,6 +579,16 @@ export default function RegisterPage() {
                   />
                 </Grid>
                 <Grid item xs={12} sm={6}>
+                  <FileUploadField
+                    label="Adjuntar recibo de pago (opcional en primer registro)"
+                    buttonLabel="Seleccionar recibo"
+                    file={paymentReceiptFile}
+                    accept=".pdf,.jpg,.jpeg,.png"
+                    onChange={handlePaymentReceiptFileChange}
+                    onClear={() => setPaymentReceiptFile(null)}
+                  />
+                </Grid>
+                <Grid item xs={12} sm={6}>
                   <FormControl fullWidth>
                     <InputLabel>Etnia</InputLabel>
                     <Select
@@ -523,7 +597,7 @@ export default function RegisterPage() {
                       label="Etnia"
                       onChange={handleChange}
                     >
-                      {etnicities.map((e) => (
+                      {ETNIAS.map((e) => (
                         <MenuItem key={e} value={e}>{e}</MenuItem>
                       ))}
                     </Select>
@@ -553,13 +627,18 @@ export default function RegisterPage() {
           <Box sx={{ mt: 2, textAlign: 'center' }}>
             <Typography variant="body2">
               ¿Ya tienes cuenta?{' '}
-              <RouterLink to="/login" style={{ textDecoration: 'none' }}>
+              <Link component={RouterLink} to="/login" underline="hover" sx={{ fontWeight: 600 }}>
                 Iniciar Sesión
-              </RouterLink>
+              </Link>
             </Typography>
           </Box>
         )}
       </Paper>
+      {loading && activeStep < 4 ? (
+        <Box sx={{ width: '100%', maxWidth: 700, mt: 1 }}>
+          <FeedbackState type="loading" compact description="Enviando registro..." />
+        </Box>
+      ) : null}
     </Box>
   );
 }

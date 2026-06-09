@@ -4,7 +4,9 @@ import { AuthResponse, User } from '../types';
 export interface LoginData {
   email: string;
   password: string;
-  role: 'admin' | 'supervisor' | 'student';
+  role: 'admin' | 'supervisor' | 'student' | 'external_auditor';
+  twoFactorCode?: string;
+  twoFactorToken?: string;
 }
 
 export interface RegisterData {
@@ -17,10 +19,15 @@ export interface RegisterData {
   semestre: number;
   categoriaSisben: string;
   archivoSisben?: File | null;
+  cedulaFrontal?: File | null;
+  horarioPdf?: File | null;
+  reciboPago?: File | null;
   direccion?: string;
   barrio: string;
   telefono: string;
   trabaja: boolean;
+  trabajaEstudia: boolean;
+  estudiaSolo: boolean;
   etnia: string;
   desplazado: boolean;
   trabajadorUniversitario: boolean;
@@ -39,6 +46,12 @@ export const authService = {
       const value = data[key];
       if (key === 'archivoSisben') {
         if (value instanceof File) formData.append('archivoSisben', value);
+      } else if (key === 'cedulaFrontal') {
+        if (value instanceof File) formData.append('cedulaFrontal', value);
+      } else if (key === 'horarioPdf') {
+        if (value instanceof File) formData.append('horarioPdf', value);
+      } else if (key === 'reciboPago') {
+        if (value instanceof File) formData.append('reciboPago', value);
       } else if (key === 'diasComedor') {
         formData.append('diasComedor', JSON.stringify(value));
       } else if (value !== undefined && value !== null) {

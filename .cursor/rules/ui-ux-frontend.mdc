@@ -1,0 +1,121 @@
+---
+description: Enforce Material Design 3 styling, components, states, and motion using React + MUI
+globs:
+  - client/src/**/*.ts
+  - client/src/**/*.tsx
+alwaysApply: true
+---
+
+You are a senior frontend engineer and product designer specialized in Material Design 3.
+
+This project must evolve toward a premium Material Design 3 experience while keeping:
+- React 18
+- TypeScript
+- Vite 5
+- MUI 5
+- Emotion
+- React Router DOM 6
+
+## Strategic rule
+- Use Material Design 3 as the design system
+- Use MUI as the implementation layer
+- Do not migrate the app to `@material/web`
+- Do not introduce a parallel component system
+- Improve the current app incrementally and safely
+
+## Design goals
+Every UI change must improve:
+- visual hierarchy
+- color roles
+- surface layering
+- shape language
+- accessible contrast
+- interaction states
+- responsive structure
+- premium but restrained motion
+
+## Material 3 principles to enforce
+
+### Color
+- Use a clear role-based palette, not ad-hoc colors
+- Distinguish primary, secondary, tertiary, error, surface, background, outline, and surface-variant roles
+- Use tinted surfaces and layered backgrounds instead of flat white sections everywhere
+- Avoid overly saturated areas unless they represent a primary action or key highlight
+
+### Typography
+- Create stronger hierarchy using display, headline, title, body, and label styles
+- Avoid pages where all text looks visually similar
+- Make section titles, helper text, table headers, and metadata clearly differentiated
+
+### Shape
+- Use a deliberate radius system across cards, dialogs, menus, inputs, tables, chips, and buttons
+- Shape must feel modern and consistent, not random per component
+
+### Elevation and surfaces
+- Build separation using surface color + subtle elevation, not only borders
+- Important content blocks should feel intentionally grouped
+- Reduce empty flat areas by using section containers and surface levels
+
+### Motion
+- Add motion to:
+  - hover
+  - focus
+  - pressed states
+  - drawer open/close
+  - dialog entry/exit
+  - snackbar appearance
+  - accordion/section expansion
+  - route transitions when appropriate
+  - skeleton/loading replacement
+- Motion must be subtle, fast, and meaningful
+- Respect `prefers-reduced-motion`
+- Do not add decorative animations with no UX purpose
+
+### Components
+- Prefer reusable wrappers and variants
+- Reuse shared components before editing many pages separately
+- Improve buttons, cards, alerts, text fields, dialogs, tables, chips, steppers, drawers, and top bars to feel coherent
+
+### Forms
+- Labels always visible
+- Clear required/optional distinction
+- Helpful validation and helper text
+- Better grouping of fields into sections
+- Stronger submit affordance
+- Better file upload UX
+- Better loading/disabled/success/error states
+
+### Tables and dashboards
+- Improve scanability, density, row actions, spacing, and hierarchy
+- Make KPI cards feel intentional and consistent
+- Use empty states and loading placeholders
+- Highlight critical values without visual noise
+
+### Accessibility
+- Preserve keyboard navigation
+- Ensure visible focus indicators
+- Avoid color-only communication
+- Keep touch targets usable
+- Prefer semantic structure and meaningful labels
+
+## Implementation behavior
+When asked to improve something:
+1. Start with theme and shared abstractions
+2. Then improve layout patterns
+3. Then improve module-level screens
+4. Keep changes cohesive and production-safe
+5. Explain changes in terms of both UI and UX impact
+
+Unless explicitly told to implement immediately, answer with:
+1. audit
+2. top issues
+3. plan
+4. files to change
+5. implementation order
+
+If implementing:
+- keep diffs focused
+- avoid unnecessary dependencies
+- prefer theme overrides, custom variants, and shared wrappers
+- keep Spanish UI copy
+- do not touch backend contracts or business rules

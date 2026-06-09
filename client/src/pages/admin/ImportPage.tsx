@@ -15,6 +15,9 @@ import {
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import Layout from '../../components/layout/Layout';
 import { studentService } from '../../api/studentApi';
+import FileUploadField from '../../components/FileUploadField';
+import DataSectionCard from '../../components/DataSectionCard';
+import FeedbackState from '../../components/FeedbackState';
 
 export default function ImportPage() {
   const [file, setFile] = useState<File | null>(null);
@@ -43,7 +46,7 @@ export default function ImportPage() {
       const data = await studentService.importStudents(formData);
       setResult(data);
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Error al importar archivo');
+      setError(err.response?.data?.message ?? 'Error al importar archivo');
     } finally {
       setLoading(false);
     }
@@ -55,7 +58,7 @@ export default function ImportPage() {
         Cargar Base de Datos - Excel
       </Typography>
 
-      <Paper sx={{ p: 3, mb: 3 }}>
+      <DataSectionCard sx={{ mb: 3 }}>
         <Typography variant="body1" paragraph>
           Sube un archivo Excel (.xlsx o .xls) con la información de los estudiantes.
         </Typography>
@@ -68,48 +71,42 @@ export default function ImportPage() {
           <br />- Los almuerzos se calculan: $2000 = 1 almuerzo
         </Typography>
 
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-          <Button
-            variant="outlined"
-            component="label"
-            startIcon={<CloudUploadIcon />}
-          >
-            Seleccionar Archivo
-            <input
-              type="file"
-              hidden
+        <Box sx={{ display: 'flex', alignItems: 'flex-end', gap: 2, flexWrap: 'wrap' }}>
+          <Box sx={{ minWidth: 300, flex: 1 }}>
+            <FileUploadField
+              label="Archivo Excel (.xlsx/.xls)"
+              buttonLabel="Seleccionar archivo"
+              file={file}
               accept=".xlsx,.xls"
               onChange={handleFileChange}
+              onClear={() => setFile(null)}
             />
-          </Button>
-          {file && <Typography>{file.name}</Typography>}
+          </Box>
           <Button
             variant="contained"
             onClick={handleUpload}
             disabled={!file || loading}
+            startIcon={<CloudUploadIcon />}
           >
             {loading ? 'Importando...' : 'Importar'}
           </Button>
         </Box>
 
-        {error && (
-          <Alert severity="error" sx={{ mt: 2 }}>
-            {error}
-          </Alert>
-        )}
+        {error ? (
+          <Box sx={{ mt: 2 }}>
+            <FeedbackState type="error" title="No se pudo importar el archivo" description={error} />
+          </Box>
+        ) : null}
 
         {result && (
           <Alert severity="success" sx={{ mt: 2 }}>
             Importación completada: {result.created} creados, {result.updated} actualizados
           </Alert>
         )}
-      </Paper>
+      </DataSectionCard>
 
       {result?.errors && result.errors.length > 0 && (
-        <Paper sx={{ p: 3 }}>
-          <Typography variant="h6" gutterBottom>
-            Errores:
-          </Typography>
+        <DataSectionCard title="Errores de importación">
           <TableContainer>
             <Table size="small">
               <TableHead>
@@ -126,7 +123,7 @@ export default function ImportPage() {
               </TableBody>
             </Table>
           </TableContainer>
-        </Paper>
+        </DataSectionCard>
       )}
     </Layout>
   );

@@ -1,0 +1,243 @@
+@startuml domain-model
+skinparam classAttributeIconSize 0
+skinparam monochrome false
+skinparam backgroundColor #FEFEFE
+skinparam ArrowColor #333333
+skinparam ClassBorderColor #555555
+skinparam ClassBackgroundColor #F8F9FA
+skinparam packageBorderColor #888888
+skinparam packageBackgroundColor #FCFCFC
+skinparam nodesep 50
+skinparam ranksep 60
+
+title Modelo de Dominio — SmartDiningRoom
+
+enum UserRole {
+  ADMIN
+  SUPERVISOR
+  STUDENT
+  EXTERNAL_AUDITOR
+}
+
+enum ComplaintType {
+  QUEJA
+  SUGERENCIA
+  COMENTARIO
+}
+
+enum CycleStatus {
+  Activo
+  Cerrado
+}
+
+' ═══ Núcleo: User ← Student → Cycle ═══
+
+class User {
+  +UUID id
+  +String uid «USR-»
+  +String email
+  +String password
+  +String name
+  +String lastName
+  +String telefono?
+  +UserRole role
+  +Boolean isActive
+  +Boolean isAuthorized
+  +String resetPasswordToken?
+  +Date resetPasswordExpires?
+  +Date createdAt
+  +Date updatedAt
+  --
+  +validatePassword(password): Promise~Boolean~
+}
+
+class Student {
+  +UUID id
+  +String uid «STD-»
+  +UUID userId FK
+  +String cedula
+  +String carrera
+  +Integer semestre
+  +String categoriaSisben
+  +String archivoSisben
+  +String cedulaFrontalPath?
+  +String horarioPdfPath?
+  +String reciboPagoPath?
+  +String direccion?
+  +String barrio
+  +String telefono
+  +Boolean trabaja
+  +Boolean trabajaEstudia
+  +Boolean estudiaSolo
+  +String etnia
+  +Boolean desplazado
+  +Boolean trabajadorUniversitario
+  +String[] diasComedor
+  +String qrCode?
+  +String qrCodeSecret?
+  +Boolean isValidatedSisben
+  +Boolean sisbenAutoValidated
+  +JSON sisbenValidationDetails?
+  +String currentCycle FK
+  +Date cycleRevalidationDueAt?
+  +Date cycleDisabledAt?
+  +Date createdAt
+  +Date updatedAt
+}
+
+class Cycle {
+  +UUID id
+  +String uid «CYC-»
+  +String name
+  +Date startDate
+  +Date endDate
+  +String status
+  +Date createdAt
+  +Date updatedAt
+}
+
+User "1" -- "0..1" Student : hasOne
+Student "0..*" -left- "0..1" Cycle : currentCycle
+
+' ═══ Pagos ═══
+
+class Payment {
+  +UUID id
+  +String uid «PAY-»
+  +UUID studentId FK
+  +Integer amount
+  +Integer mealsIncluded
+  +Integer mealsUsed
+  +String comprobantePath
+  +String universityReceiptPath?
+  +String bankReceiptPath?
+  +Boolean isVerified
+  +UUID verifiedBy? FK
+  +Date verifiedAt?
+  +Date createdAt
+  +Date updatedAt
+}
+
+' ═══ Comedor ═══
+
+class MealAttendance {
+  +UUID id
+  +String uid «MLA-»
+  +UUID studentId FK
+  +UUID supervisorId FK
+  +Date date
+  +String hora
+  +Date createdAt
+  +Date updatedAt
+}
+
+class SupervisorAssignment {
+  +UUID id
+  +String uid «SPA-»
+  +UUID supervisorId FK
+  +UUID studentId FK
+  +Date createdAt
+  +Date updatedAt
+}
+
+class SupervisorLog {
+  +UUID id
+  +String uid «SPL-»
+  +UUID supervisorId FK
+  +UUID studentId FK
+  +String action
+  +String hora
+  +Date createdAt
+  +Date updatedAt
+}
+
+' ═══ Feedback ═══
+
+class Rating {
+  +UUID id
+  +String uid «RTG-»
+  +UUID studentId FK
+  +Integer stars
+  +String comment?
+  +Date createdAt
+  +Date updatedAt
+}
+
+class Complaint {
+  +UUID id
+  +String uid «CMP-»
+  +UUID studentId? FK
+  +ComplaintType type
+  +String content
+  +Boolean isAnonymous
+  +String response?
+  +UUID respondedBy? FK
+  +Boolean isResolved
+  +Date createdAt
+  +Date updatedAt
+}
+
+class News {
+  +UUID id
+  +String uid «NWS-»
+  +String title
+  +String content
+  +String imageUrl?
+  +Boolean isActive
+  +Date createdAt
+  +Date updatedAt
+}
+
+' ═══ Auditoría ═══
+
+class AuditLog {
+  +UUID id
+  +String uid «AUD-»
+  +UUID userId
+  +String userEmail
+  +String action
+  +String details?
+  +String ipAddress?
+  +Date createdAt
+  +Date updatedAt
+}
+
+' ═══════════════════════════════════════
+' ASOCIACIONES (ordenadas radialmente desde Student)
+' ═══════════════════════════════════════
+
+Student "1" -down- "0..*" Payment : payments
+Student "1" -down- "0..*" MealAttendance : attendances
+Student "1" -right- "0..*" Rating : ratings
+Student "1" -right- "0..*" Complaint : complaints
+Student "1" -down- "0..*" SupervisorAssignment : assignments
+Student "1" -down- "0..*" SupervisorLog : logs
+
+User "1" -down- "0..*" MealAttendance : supervisor
+User "1" -down- "0..*" SupervisorAssignment : supervisor
+User "1" -down- "0..*" SupervisorLog : supervisor
+
+Payment "0..*" -up- "0..1" User : verifiedBy
+
+' Notas de negocio
+
+note right of Payment
+  <b>Regla de negocio</b>
+  mealsIncluded = floor(amount / 2000)
+  $2000 = 1 almuerzo
+  $10000 = 5 almuerzos
+end note
+
+note bottom of Student
+  <b>Documentos de registro</b>
+  • archivoSisben (PDF)
+  • cedulaFrontal (JPG/PNG)
+  • horarioPdf (PDF)
+  • reciboPago (opcional)
+  --
+  <b>Validación SISBEN</b>
+  • isValidatedSisben (manual admin)
+  • sisbenAutoValidated (OCR automático)
+end note
+
+@enduml

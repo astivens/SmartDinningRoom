@@ -1,0 +1,1037 @@
+{
+    "@programName": "ZAP",
+    "@version": "2.17.0",
+    "@generated": "Thu, 9 Apr 2026 21:19:27",
+	"created": "2026-04-09T21:19:27.139670928Z",
+	"insights":[
+		{
+			"level": "Info",
+			"reason": "Informational",
+			"site": "http://localhost:3002",
+			"key": "insight.code.4xx",
+			"description": "Percentage of responses with status code 4xx",
+			"statistic": "100"
+		},
+		{
+			"level": "Info",
+			"reason": "Informational",
+			"site": "http://localhost:3002",
+			"key": "insight.endpoint.ctype.text/html",
+			"description": "Percentage of endpoints with content type text/html",
+			"statistic": "100"
+		},
+		{
+			"level": "Info",
+			"reason": "Informational",
+			"site": "http://localhost:3002",
+			"key": "insight.endpoint.method.GET",
+			"description": "Percentage of endpoints with method GET",
+			"statistic": "100"
+		},
+		{
+			"level": "Info",
+			"reason": "Informational",
+			"site": "http://localhost:3002",
+			"key": "insight.endpoint.total",
+			"description": "Count of total endpoints",
+			"statistic": "3"
+		},
+		{
+			"level": "Info",
+			"reason": "Informational",
+			"site": "http://localhost:5174",
+			"key": "insight.code.2xx",
+			"description": "Percentage of responses with status code 2xx",
+			"statistic": "100"
+		},
+		{
+			"level": "Info",
+			"reason": "Informational",
+			"site": "http://localhost:5174",
+			"key": "insight.endpoint.ctype.text/html",
+			"description": "Percentage of endpoints with content type text/html",
+			"statistic": "60"
+		},
+		{
+			"level": "Info",
+			"reason": "Informational",
+			"site": "http://localhost:5174",
+			"key": "insight.endpoint.ctype.text/javascript",
+			"description": "Percentage of endpoints with content type text/javascript",
+			"statistic": "40"
+		},
+		{
+			"level": "Info",
+			"reason": "Informational",
+			"site": "http://localhost:5174",
+			"key": "insight.endpoint.method.GET",
+			"description": "Percentage of endpoints with method GET",
+			"statistic": "100"
+		},
+		{
+			"level": "Info",
+			"reason": "Informational",
+			"site": "http://localhost:5174",
+			"key": "insight.endpoint.total",
+			"description": "Count of total endpoints",
+			"statistic": "5"
+		}
+    ],
+	"site":[ 
+        {
+            "@name": "http://localhost:3002",
+            "@host": "localhost",
+            "@port": "3002",
+            "@ssl": "false",
+            "alerts": [ 
+                {
+                    "pluginid": "10055",
+                    "alertRef": "10055-13",
+                    "alert": "CSP: Failure to Define Directive with No Fallback",
+                    "name": "CSP: Failure to Define Directive with No Fallback",
+                    "riskcode": "2",
+                    "confidence": "3",
+                    "riskdesc": "Medium (High)",
+                    "desc": "<p>The Content Security Policy fails to define one of the directives that has no fallback. Missing/excluding them is the same as allowing anything.</p>",
+                    "instances":[ 
+                        {
+                            "id": "29",
+                            "uri": "http://localhost:3002",
+                            "nodeName": "http:\/\/localhost:3002",
+                            "method": "GET",
+                            "param": "Content-Security-Policy",
+                            "attack": "",
+                            "evidence": "default-src 'none'",
+                            "otherinfo": "The directive(s): frame-ancestors, form-action is/are among the directives that do not fallback to default-src.",
+                            "request-header": "GET http://localhost:3002 HTTP/1.1\r\nhost: localhost:3002\r\nuser-agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36\r\npragma: no-cache\r\ncache-control: no-cache\r\n\r\n",
+                            "request-body": "",
+                            "response-header": "HTTP/1.1 404 Not Found\r\nX-Powered-By: Express\r\nAccess-Control-Allow-Origin: http://localhost:5176\r\nVary: Origin\r\nAccess-Control-Allow-Credentials: true\r\nContent-Security-Policy: default-src 'none'\r\nX-Content-Type-Options: nosniff\r\nContent-Type: text/html; charset=utf-8\r\nContent-Length: 139\r\nDate: Thu, 09 Apr 2026 21:19:26 GMT\r\nConnection: keep-alive\r\nKeep-Alive: timeout=5\r\n\r\n",
+                            "response-body": "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n<meta charset=\"utf-8\">\n<title>Error</title>\n</head>\n<body>\n<pre>Cannot GET /</pre>\n</body>\n</html>\n"
+                        },
+                        {
+                            "id": "30",
+                            "uri": "http://localhost:3002/api",
+                            "nodeName": "http:\/\/localhost:3002\/api",
+                            "method": "GET",
+                            "param": "Content-Security-Policy",
+                            "attack": "",
+                            "evidence": "default-src 'none'",
+                            "otherinfo": "The directive(s): frame-ancestors, form-action is/are among the directives that do not fallback to default-src.",
+                            "request-header": "GET http://localhost:3002/api HTTP/1.1\r\nhost: localhost:3002\r\nuser-agent: \r\npragma: no-cache\r\ncache-control: no-cache\r\n\r\n",
+                            "request-body": "",
+                            "response-header": "HTTP/1.1 404 Not Found\r\nX-Powered-By: Express\r\nAccess-Control-Allow-Origin: http://localhost:5176\r\nVary: Origin\r\nAccess-Control-Allow-Credentials: true\r\nContent-Security-Policy: default-src 'none'\r\nX-Content-Type-Options: nosniff\r\nContent-Type: text/html; charset=utf-8\r\nContent-Length: 142\r\nDate: Thu, 09 Apr 2026 21:19:26 GMT\r\nConnection: keep-alive\r\nKeep-Alive: timeout=5\r\n\r\n",
+                            "response-body": "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n<meta charset=\"utf-8\">\n<title>Error</title>\n</head>\n<body>\n<pre>Cannot GET /api</pre>\n</body>\n</html>\n"
+                        },
+                        {
+                            "id": "31",
+                            "uri": "http://localhost:3002/robots.txt",
+                            "nodeName": "http:\/\/localhost:3002\/robots.txt",
+                            "method": "GET",
+                            "param": "Content-Security-Policy",
+                            "attack": "",
+                            "evidence": "default-src 'none'",
+                            "otherinfo": "The directive(s): frame-ancestors, form-action is/are among the directives that do not fallback to default-src.",
+                            "request-header": "GET http://localhost:3002/robots.txt HTTP/1.1\r\nhost: localhost:3002\r\nuser-agent: \r\npragma: no-cache\r\ncache-control: no-cache\r\n\r\n",
+                            "request-body": "",
+                            "response-header": "HTTP/1.1 404 Not Found\r\nX-Powered-By: Express\r\nAccess-Control-Allow-Origin: http://localhost:5176\r\nVary: Origin\r\nAccess-Control-Allow-Credentials: true\r\nContent-Security-Policy: default-src 'none'\r\nX-Content-Type-Options: nosniff\r\nContent-Type: text/html; charset=utf-8\r\nContent-Length: 149\r\nDate: Thu, 09 Apr 2026 21:19:26 GMT\r\nConnection: keep-alive\r\nKeep-Alive: timeout=5\r\n\r\n",
+                            "response-body": "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n<meta charset=\"utf-8\">\n<title>Error</title>\n</head>\n<body>\n<pre>Cannot GET /robots.txt</pre>\n</body>\n</html>\n"
+                        },
+                        {
+                            "id": "27",
+                            "uri": "http://localhost:3002/sitemap.xml",
+                            "nodeName": "http:\/\/localhost:3002\/sitemap.xml",
+                            "method": "GET",
+                            "param": "Content-Security-Policy",
+                            "attack": "",
+                            "evidence": "default-src 'none'",
+                            "otherinfo": "The directive(s): frame-ancestors, form-action is/are among the directives that do not fallback to default-src.",
+                            "request-header": "GET http://localhost:3002/sitemap.xml HTTP/1.1\r\nhost: localhost:3002\r\nuser-agent: \r\npragma: no-cache\r\ncache-control: no-cache\r\n\r\n",
+                            "request-body": "",
+                            "response-header": "HTTP/1.1 404 Not Found\r\nX-Powered-By: Express\r\nAccess-Control-Allow-Origin: http://localhost:5176\r\nVary: Origin\r\nAccess-Control-Allow-Credentials: true\r\nContent-Security-Policy: default-src 'none'\r\nX-Content-Type-Options: nosniff\r\nContent-Type: text/html; charset=utf-8\r\nContent-Length: 150\r\nDate: Thu, 09 Apr 2026 21:19:26 GMT\r\nConnection: keep-alive\r\nKeep-Alive: timeout=5\r\n\r\n",
+                            "response-body": "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n<meta charset=\"utf-8\">\n<title>Error</title>\n</head>\n<body>\n<pre>Cannot GET /sitemap.xml</pre>\n</body>\n</html>\n"
+                        }
+                    ],
+                    "count": "4",
+                    "systemic": true,
+                    "solution": "<p>Ensure that your web server, application server, load balancer, etc. is properly configured to set the Content-Security-Policy header.</p>",
+                    "otherinfo": "<p>The directive(s): frame-ancestors, form-action is/are among the directives that do not fallback to default-src.</p>",
+                    "reference": "<p>https://www.w3.org/TR/CSP/</p><p>https://caniuse.com/#search=content+security+policy</p><p>https://content-security-policy.com/</p><p>https://github.com/HtmlUnit/htmlunit-csp</p><p>https://web.dev/articles/csp#resource-options</p>",
+                    "cweid": "693",
+                    "wascid": "15",
+                    "sourceid": "17",
+                    "tags":[ 
+                        {
+                            "tag": "OWASP_2021_A05",
+                            "link": "https:\/\/owasp.org\/Top10\/A05_2021-Security_Misconfiguration\/"
+                        },
+                        {
+                            "tag": "POLICY_QA_STD",
+                            "link": ""
+                        },
+                        {
+                            "tag": "POLICY_PENTEST",
+                            "link": ""
+                        },
+                        {
+                            "tag": "SYSTEMIC",
+                            "link": "https:\/\/www.zaproxy.org\/docs\/desktop\/addons\/common-library\/alerttags\/#systemic"
+                        },
+                        {
+                            "tag": "CWE-693",
+                            "link": "https:\/\/cwe.mitre.org\/data\/definitions\/693.html"
+                        },
+                        {
+                            "tag": "OWASP_2017_A06",
+                            "link": "https:\/\/owasp.org\/www-project-top-ten\/2017\/A6_2017-Security_Misconfiguration.html"
+                        },
+                        {
+                            "tag": "POLICY_DEV_STD",
+                            "link": ""
+                        }
+                    ]
+                },
+                {
+                    "pluginid": "10037",
+                    "alertRef": "10037",
+                    "alert": "Server Leaks Information via \"X-Powered-By\" HTTP Response Header Field(s)",
+                    "name": "Server Leaks Information via \"X-Powered-By\" HTTP Response Header Field(s)",
+                    "riskcode": "1",
+                    "confidence": "2",
+                    "riskdesc": "Low (Medium)",
+                    "desc": "<p>The web/application server is leaking information via one or more \"X-Powered-By\" HTTP response headers. Access to such information may facilitate attackers identifying other frameworks/components your web application is reliant upon and the vulnerabilities such components may be subject to.</p>",
+                    "instances":[ 
+                        {
+                            "id": "33",
+                            "uri": "http://localhost:3002",
+                            "nodeName": "http:\/\/localhost:3002",
+                            "method": "GET",
+                            "param": "",
+                            "attack": "",
+                            "evidence": "X-Powered-By: Express",
+                            "otherinfo": "",
+                            "request-header": "GET http://localhost:3002 HTTP/1.1\r\nhost: localhost:3002\r\nuser-agent: \r\npragma: no-cache\r\ncache-control: no-cache\r\n\r\n",
+                            "request-body": "",
+                            "response-header": "HTTP/1.1 404 Not Found\r\nX-Powered-By: Express\r\nAccess-Control-Allow-Origin: http://localhost:5176\r\nVary: Origin\r\nAccess-Control-Allow-Credentials: true\r\nContent-Security-Policy: default-src 'none'\r\nX-Content-Type-Options: nosniff\r\nContent-Type: text/html; charset=utf-8\r\nContent-Length: 139\r\nDate: Thu, 09 Apr 2026 21:19:26 GMT\r\nConnection: keep-alive\r\nKeep-Alive: timeout=5\r\n\r\n",
+                            "response-body": "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n<meta charset=\"utf-8\">\n<title>Error</title>\n</head>\n<body>\n<pre>Cannot GET /</pre>\n</body>\n</html>\n"
+                        },
+                        {
+                            "id": "36",
+                            "uri": "http://localhost:3002/api",
+                            "nodeName": "http:\/\/localhost:3002\/api",
+                            "method": "GET",
+                            "param": "",
+                            "attack": "",
+                            "evidence": "X-Powered-By: Express",
+                            "otherinfo": "",
+                            "request-header": "GET http://localhost:3002/api HTTP/1.1\r\nhost: localhost:3002\r\nuser-agent: \r\npragma: no-cache\r\ncache-control: no-cache\r\n\r\n",
+                            "request-body": "",
+                            "response-header": "HTTP/1.1 404 Not Found\r\nX-Powered-By: Express\r\nAccess-Control-Allow-Origin: http://localhost:5176\r\nVary: Origin\r\nAccess-Control-Allow-Credentials: true\r\nContent-Security-Policy: default-src 'none'\r\nX-Content-Type-Options: nosniff\r\nContent-Type: text/html; charset=utf-8\r\nContent-Length: 142\r\nDate: Thu, 09 Apr 2026 21:19:26 GMT\r\nConnection: keep-alive\r\nKeep-Alive: timeout=5\r\n\r\n",
+                            "response-body": "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n<meta charset=\"utf-8\">\n<title>Error</title>\n</head>\n<body>\n<pre>Cannot GET /api</pre>\n</body>\n</html>\n"
+                        },
+                        {
+                            "id": "35",
+                            "uri": "http://localhost:3002/robots.txt",
+                            "nodeName": "http:\/\/localhost:3002\/robots.txt",
+                            "method": "GET",
+                            "param": "",
+                            "attack": "",
+                            "evidence": "X-Powered-By: Express",
+                            "otherinfo": "",
+                            "request-header": "GET http://localhost:3002/robots.txt HTTP/1.1\r\nhost: localhost:3002\r\nuser-agent: \r\npragma: no-cache\r\ncache-control: no-cache\r\n\r\n",
+                            "request-body": "",
+                            "response-header": "HTTP/1.1 404 Not Found\r\nX-Powered-By: Express\r\nAccess-Control-Allow-Origin: http://localhost:5176\r\nVary: Origin\r\nAccess-Control-Allow-Credentials: true\r\nContent-Security-Policy: default-src 'none'\r\nX-Content-Type-Options: nosniff\r\nContent-Type: text/html; charset=utf-8\r\nContent-Length: 149\r\nDate: Thu, 09 Apr 2026 21:19:26 GMT\r\nConnection: keep-alive\r\nKeep-Alive: timeout=5\r\n\r\n",
+                            "response-body": "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n<meta charset=\"utf-8\">\n<title>Error</title>\n</head>\n<body>\n<pre>Cannot GET /robots.txt</pre>\n</body>\n</html>\n"
+                        },
+                        {
+                            "id": "32",
+                            "uri": "http://localhost:3002/sitemap.xml",
+                            "nodeName": "http:\/\/localhost:3002\/sitemap.xml",
+                            "method": "GET",
+                            "param": "",
+                            "attack": "",
+                            "evidence": "X-Powered-By: Express",
+                            "otherinfo": "",
+                            "request-header": "GET http://localhost:3002/sitemap.xml HTTP/1.1\r\nhost: localhost:3002\r\nuser-agent: \r\npragma: no-cache\r\ncache-control: no-cache\r\n\r\n",
+                            "request-body": "",
+                            "response-header": "HTTP/1.1 404 Not Found\r\nX-Powered-By: Express\r\nAccess-Control-Allow-Origin: http://localhost:5176\r\nVary: Origin\r\nAccess-Control-Allow-Credentials: true\r\nContent-Security-Policy: default-src 'none'\r\nX-Content-Type-Options: nosniff\r\nContent-Type: text/html; charset=utf-8\r\nContent-Length: 150\r\nDate: Thu, 09 Apr 2026 21:19:26 GMT\r\nConnection: keep-alive\r\nKeep-Alive: timeout=5\r\n\r\n",
+                            "response-body": "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n<meta charset=\"utf-8\">\n<title>Error</title>\n</head>\n<body>\n<pre>Cannot GET /sitemap.xml</pre>\n</body>\n</html>\n"
+                        }
+                    ],
+                    "count": "4",
+                    "systemic": true,
+                    "solution": "<p>Ensure that your web server, application server, load balancer, etc. is configured to suppress \"X-Powered-By\" headers.</p>",
+                    "otherinfo": "",
+                    "reference": "<p>https://owasp.org/www-project-web-security-testing-guide/v42/4-Web_Application_Security_Testing/01-Information_Gathering/08-Fingerprint_Web_Application_Framework</p><p>https://www.troyhunt.com/shhh-dont-let-your-response-headers/</p>",
+                    "cweid": "497",
+                    "wascid": "13",
+                    "sourceid": "26",
+                    "tags":[ 
+                        {
+                            "tag": "OWASP_2021_A01",
+                            "link": "https:\/\/owasp.org\/Top10\/A01_2021-Broken_Access_Control\/"
+                        },
+                        {
+                            "tag": "WSTG-v42-INFO-08",
+                            "link": "https:\/\/owasp.org\/www-project-web-security-testing-guide\/v42\/4-Web_Application_Security_Testing\/01-Information_Gathering\/08-Fingerprint_Web_Application_Framework"
+                        },
+                        {
+                            "tag": "POLICY_QA_STD",
+                            "link": ""
+                        },
+                        {
+                            "tag": "POLICY_PENTEST",
+                            "link": ""
+                        },
+                        {
+                            "tag": "SYSTEMIC",
+                            "link": "https:\/\/www.zaproxy.org\/docs\/desktop\/addons\/common-library\/alerttags\/#systemic"
+                        },
+                        {
+                            "tag": "OWASP_2017_A03",
+                            "link": "https:\/\/owasp.org\/www-project-top-ten\/2017\/A3_2017-Sensitive_Data_Exposure.html"
+                        },
+                        {
+                            "tag": "CWE-497",
+                            "link": "https:\/\/cwe.mitre.org\/data\/definitions\/497.html"
+                        }
+                    ]
+                }
+            ],
+            "statistics":{ 
+                "stats.contentType.text\/html; charset=utf-8": 5
+                ,
+                "stats.code.404": 5
+                ,
+                "stats.responseTime.4": 5
+                
+            }
+        },
+        {
+            "@name": "http://localhost:5174",
+            "@host": "localhost",
+            "@port": "5174",
+            "@ssl": "false",
+            "alerts": [ 
+                {
+                    "pluginid": "10038",
+                    "alertRef": "10038-1",
+                    "alert": "Content Security Policy (CSP) Header Not Set",
+                    "name": "Content Security Policy (CSP) Header Not Set",
+                    "riskcode": "2",
+                    "confidence": "3",
+                    "riskdesc": "Medium (High)",
+                    "desc": "<p>Content Security Policy (CSP) is an added layer of security that helps to detect and mitigate certain types of attacks, including Cross Site Scripting (XSS) and data injection attacks. These attacks are used for everything from data theft to site defacement or distribution of malware. CSP provides a set of standard HTTP headers that allow website owners to declare approved sources of content that browsers should be allowed to load on that page \u2014 covered types are JavaScript, CSS, HTML frames, fonts, images and embeddable objects such as Java applets, ActiveX, audio and video files.</p>",
+                    "instances":[ 
+                        {
+                            "id": "5",
+                            "uri": "http://localhost:5174",
+                            "nodeName": "http:\/\/localhost:5174",
+                            "method": "GET",
+                            "param": "",
+                            "attack": "",
+                            "evidence": "",
+                            "otherinfo": "",
+                            "request-header": "GET http://localhost:5174 HTTP/1.1\r\nhost: localhost:5174\r\nuser-agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36\r\npragma: no-cache\r\ncache-control: no-cache\r\n\r\n",
+                            "request-body": "",
+                            "response-header": "HTTP/1.1 200 OK\r\nVary: Origin\r\nContent-Type: text/html\r\nCache-Control: no-cache\r\nEtag: W/\"3a6-oeC9uu9ZqOkFNZcNpzJRpwNERIY\"\r\nDate: Thu, 09 Apr 2026 21:19:24 GMT\r\nConnection: keep-alive\r\nKeep-Alive: timeout=5\r\nContent-Length: 934\r\n\r\n",
+                            "response-body": "<!DOCTYPE html>\n<html lang=\"es\">\n  <head>\n    <script type=\"module\">import { injectIntoGlobalHook } from \"/@react-refresh\";\ninjectIntoGlobalHook(window);\nwindow.$RefreshReg$ = () => {};\nwindow.$RefreshSig$ = () => (type) => type;</script>\n\n    <script type=\"module\" src=\"/@vite/client\"></script>\n\n    <meta charset=\"UTF-8\" />\n    <link rel=\"icon\" type=\"image/svg+xml\" href=\"/vite.svg\" />\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\" />\n    <title>SmartComedor - Comedor Universitario</title>\n    <link rel=\"preconnect\" href=\"https://fonts.googleapis.com\">\n    <link rel=\"preconnect\" href=\"https://fonts.gstatic.com\" crossorigin>\n    <link href=\"https://fonts.googleapis.com/css2?family=Roboto:wght@100;300;400;500;700;900&family=Roboto+Mono:wght@400;500&display=swap\" rel=\"stylesheet\">\n  </head>\n  <body>\n    <div id=\"root\"></div>\n    <script type=\"module\" src=\"/src/main.tsx\"></script>\n  </body>\n</html>\n"
+                        },
+                        {
+                            "id": "7",
+                            "uri": "http://localhost:5174/robots.txt",
+                            "nodeName": "http:\/\/localhost:5174\/robots.txt",
+                            "method": "GET",
+                            "param": "",
+                            "attack": "",
+                            "evidence": "",
+                            "otherinfo": "",
+                            "request-header": "GET http://localhost:5174/robots.txt HTTP/1.1\r\nhost: localhost:5174\r\nuser-agent: \r\npragma: no-cache\r\ncache-control: no-cache\r\n\r\n",
+                            "request-body": "",
+                            "response-header": "HTTP/1.1 200 OK\r\nVary: Origin\r\nContent-Type: text/html\r\nCache-Control: no-cache\r\nEtag: W/\"3a6-oeC9uu9ZqOkFNZcNpzJRpwNERIY\"\r\nDate: Thu, 09 Apr 2026 21:19:24 GMT\r\nConnection: keep-alive\r\nKeep-Alive: timeout=5\r\nContent-Length: 934\r\n\r\n",
+                            "response-body": "<!DOCTYPE html>\n<html lang=\"es\">\n  <head>\n    <script type=\"module\">import { injectIntoGlobalHook } from \"/@react-refresh\";\ninjectIntoGlobalHook(window);\nwindow.$RefreshReg$ = () => {};\nwindow.$RefreshSig$ = () => (type) => type;</script>\n\n    <script type=\"module\" src=\"/@vite/client\"></script>\n\n    <meta charset=\"UTF-8\" />\n    <link rel=\"icon\" type=\"image/svg+xml\" href=\"/vite.svg\" />\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\" />\n    <title>SmartComedor - Comedor Universitario</title>\n    <link rel=\"preconnect\" href=\"https://fonts.googleapis.com\">\n    <link rel=\"preconnect\" href=\"https://fonts.gstatic.com\" crossorigin>\n    <link href=\"https://fonts.googleapis.com/css2?family=Roboto:wght@100;300;400;500;700;900&family=Roboto+Mono:wght@400;500&display=swap\" rel=\"stylesheet\">\n  </head>\n  <body>\n    <div id=\"root\"></div>\n    <script type=\"module\" src=\"/src/main.tsx\"></script>\n  </body>\n</html>\n"
+                        },
+                        {
+                            "id": "8",
+                            "uri": "http://localhost:5174/sitemap.xml",
+                            "nodeName": "http:\/\/localhost:5174\/sitemap.xml",
+                            "method": "GET",
+                            "param": "",
+                            "attack": "",
+                            "evidence": "",
+                            "otherinfo": "",
+                            "request-header": "GET http://localhost:5174/sitemap.xml HTTP/1.1\r\nhost: localhost:5174\r\nuser-agent: \r\npragma: no-cache\r\ncache-control: no-cache\r\n\r\n",
+                            "request-body": "",
+                            "response-header": "HTTP/1.1 200 OK\r\nVary: Origin\r\nContent-Type: text/html\r\nCache-Control: no-cache\r\nEtag: W/\"3a6-oeC9uu9ZqOkFNZcNpzJRpwNERIY\"\r\nDate: Thu, 09 Apr 2026 21:19:24 GMT\r\nConnection: keep-alive\r\nKeep-Alive: timeout=5\r\nContent-Length: 934\r\n\r\n",
+                            "response-body": "<!DOCTYPE html>\n<html lang=\"es\">\n  <head>\n    <script type=\"module\">import { injectIntoGlobalHook } from \"/@react-refresh\";\ninjectIntoGlobalHook(window);\nwindow.$RefreshReg$ = () => {};\nwindow.$RefreshSig$ = () => (type) => type;</script>\n\n    <script type=\"module\" src=\"/@vite/client\"></script>\n\n    <meta charset=\"UTF-8\" />\n    <link rel=\"icon\" type=\"image/svg+xml\" href=\"/vite.svg\" />\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\" />\n    <title>SmartComedor - Comedor Universitario</title>\n    <link rel=\"preconnect\" href=\"https://fonts.googleapis.com\">\n    <link rel=\"preconnect\" href=\"https://fonts.gstatic.com\" crossorigin>\n    <link href=\"https://fonts.googleapis.com/css2?family=Roboto:wght@100;300;400;500;700;900&family=Roboto+Mono:wght@400;500&display=swap\" rel=\"stylesheet\">\n  </head>\n  <body>\n    <div id=\"root\"></div>\n    <script type=\"module\" src=\"/src/main.tsx\"></script>\n  </body>\n</html>\n"
+                        },
+                        {
+                            "id": "6",
+                            "uri": "http://localhost:5174/vite.svg",
+                            "nodeName": "http:\/\/localhost:5174\/vite.svg",
+                            "method": "GET",
+                            "param": "",
+                            "attack": "",
+                            "evidence": "",
+                            "otherinfo": "",
+                            "request-header": "GET http://localhost:5174/vite.svg HTTP/1.1\r\nhost: localhost:5174\r\nuser-agent: \r\npragma: no-cache\r\ncache-control: no-cache\r\nreferer: http://localhost:5174\r\n\r\n",
+                            "request-body": "",
+                            "response-header": "HTTP/1.1 200 OK\r\nVary: Origin\r\nContent-Type: text/html\r\nCache-Control: no-cache\r\nEtag: W/\"3a6-oeC9uu9ZqOkFNZcNpzJRpwNERIY\"\r\nDate: Thu, 09 Apr 2026 21:19:24 GMT\r\nConnection: keep-alive\r\nKeep-Alive: timeout=5\r\nContent-Length: 934\r\n\r\n",
+                            "response-body": "<!DOCTYPE html>\n<html lang=\"es\">\n  <head>\n    <script type=\"module\">import { injectIntoGlobalHook } from \"/@react-refresh\";\ninjectIntoGlobalHook(window);\nwindow.$RefreshReg$ = () => {};\nwindow.$RefreshSig$ = () => (type) => type;</script>\n\n    <script type=\"module\" src=\"/@vite/client\"></script>\n\n    <meta charset=\"UTF-8\" />\n    <link rel=\"icon\" type=\"image/svg+xml\" href=\"/vite.svg\" />\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\" />\n    <title>SmartComedor - Comedor Universitario</title>\n    <link rel=\"preconnect\" href=\"https://fonts.googleapis.com\">\n    <link rel=\"preconnect\" href=\"https://fonts.gstatic.com\" crossorigin>\n    <link href=\"https://fonts.googleapis.com/css2?family=Roboto:wght@100;300;400;500;700;900&family=Roboto+Mono:wght@400;500&display=swap\" rel=\"stylesheet\">\n  </head>\n  <body>\n    <div id=\"root\"></div>\n    <script type=\"module\" src=\"/src/main.tsx\"></script>\n  </body>\n</html>\n"
+                        }
+                    ],
+                    "count": "4",
+                    "systemic": true,
+                    "solution": "<p>Ensure that your web server, application server, load balancer, etc. is configured to set the Content-Security-Policy header.</p>",
+                    "otherinfo": "",
+                    "reference": "<p>https://developer.mozilla.org/en-US/docs/Web/HTTP/Guides/CSP</p><p>https://cheatsheetseries.owasp.org/cheatsheets/Content_Security_Policy_Cheat_Sheet.html</p><p>https://www.w3.org/TR/CSP/</p><p>https://w3c.github.io/webappsec-csp/</p><p>https://web.dev/articles/csp</p><p>https://caniuse.com/#feat=contentsecuritypolicy</p><p>https://content-security-policy.com/</p>",
+                    "cweid": "693",
+                    "wascid": "15",
+                    "sourceid": "1",
+                    "tags":[ 
+                        {
+                            "tag": "CWE-693",
+                            "link": "https:\/\/cwe.mitre.org\/data\/definitions\/693.html"
+                        },
+                        {
+                            "tag": "OWASP_2021_A05",
+                            "link": "https:\/\/owasp.org\/Top10\/A05_2021-Security_Misconfiguration\/"
+                        },
+                        {
+                            "tag": "OWASP_2017_A06",
+                            "link": "https:\/\/owasp.org\/www-project-top-ten\/2017\/A6_2017-Security_Misconfiguration.html"
+                        },
+                        {
+                            "tag": "POLICY_QA_STD",
+                            "link": ""
+                        },
+                        {
+                            "tag": "POLICY_PENTEST",
+                            "link": ""
+                        },
+                        {
+                            "tag": "SYSTEMIC",
+                            "link": "https:\/\/www.zaproxy.org\/docs\/desktop\/addons\/common-library\/alerttags\/#systemic"
+                        }
+                    ]
+                },
+                {
+                    "pluginid": "10020",
+                    "alertRef": "10020-1",
+                    "alert": "Missing Anti-clickjacking Header",
+                    "name": "Missing Anti-clickjacking Header",
+                    "riskcode": "2",
+                    "confidence": "2",
+                    "riskdesc": "Medium (Medium)",
+                    "desc": "<p>The response does not protect against 'ClickJacking' attacks. It should include either Content-Security-Policy with 'frame-ancestors' directive or X-Frame-Options.</p>",
+                    "instances":[ 
+                        {
+                            "id": "4",
+                            "uri": "http://localhost:5174",
+                            "nodeName": "http:\/\/localhost:5174",
+                            "method": "GET",
+                            "param": "x-frame-options",
+                            "attack": "",
+                            "evidence": "",
+                            "otherinfo": "",
+                            "request-header": "GET http://localhost:5174 HTTP/1.1\r\nhost: localhost:5174\r\nuser-agent: \r\npragma: no-cache\r\ncache-control: no-cache\r\n\r\n",
+                            "request-body": "",
+                            "response-header": "HTTP/1.1 200 OK\r\nVary: Origin\r\nContent-Type: text/html\r\nCache-Control: no-cache\r\nEtag: W/\"3a6-oeC9uu9ZqOkFNZcNpzJRpwNERIY\"\r\nDate: Thu, 09 Apr 2026 21:19:24 GMT\r\nConnection: keep-alive\r\nKeep-Alive: timeout=5\r\nContent-Length: 934\r\n\r\n",
+                            "response-body": "<!DOCTYPE html>\n<html lang=\"es\">\n  <head>\n    <script type=\"module\">import { injectIntoGlobalHook } from \"/@react-refresh\";\ninjectIntoGlobalHook(window);\nwindow.$RefreshReg$ = () => {};\nwindow.$RefreshSig$ = () => (type) => type;</script>\n\n    <script type=\"module\" src=\"/@vite/client\"></script>\n\n    <meta charset=\"UTF-8\" />\n    <link rel=\"icon\" type=\"image/svg+xml\" href=\"/vite.svg\" />\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\" />\n    <title>SmartComedor - Comedor Universitario</title>\n    <link rel=\"preconnect\" href=\"https://fonts.googleapis.com\">\n    <link rel=\"preconnect\" href=\"https://fonts.gstatic.com\" crossorigin>\n    <link href=\"https://fonts.googleapis.com/css2?family=Roboto:wght@100;300;400;500;700;900&family=Roboto+Mono:wght@400;500&display=swap\" rel=\"stylesheet\">\n  </head>\n  <body>\n    <div id=\"root\"></div>\n    <script type=\"module\" src=\"/src/main.tsx\"></script>\n  </body>\n</html>\n"
+                        },
+                        {
+                            "id": "3",
+                            "uri": "http://localhost:5174/robots.txt",
+                            "nodeName": "http:\/\/localhost:5174\/robots.txt",
+                            "method": "GET",
+                            "param": "x-frame-options",
+                            "attack": "",
+                            "evidence": "",
+                            "otherinfo": "",
+                            "request-header": "GET http://localhost:5174/robots.txt HTTP/1.1\r\nhost: localhost:5174\r\nuser-agent: \r\npragma: no-cache\r\ncache-control: no-cache\r\n\r\n",
+                            "request-body": "",
+                            "response-header": "HTTP/1.1 200 OK\r\nVary: Origin\r\nContent-Type: text/html\r\nCache-Control: no-cache\r\nEtag: W/\"3a6-oeC9uu9ZqOkFNZcNpzJRpwNERIY\"\r\nDate: Thu, 09 Apr 2026 21:19:24 GMT\r\nConnection: keep-alive\r\nKeep-Alive: timeout=5\r\nContent-Length: 934\r\n\r\n",
+                            "response-body": "<!DOCTYPE html>\n<html lang=\"es\">\n  <head>\n    <script type=\"module\">import { injectIntoGlobalHook } from \"/@react-refresh\";\ninjectIntoGlobalHook(window);\nwindow.$RefreshReg$ = () => {};\nwindow.$RefreshSig$ = () => (type) => type;</script>\n\n    <script type=\"module\" src=\"/@vite/client\"></script>\n\n    <meta charset=\"UTF-8\" />\n    <link rel=\"icon\" type=\"image/svg+xml\" href=\"/vite.svg\" />\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\" />\n    <title>SmartComedor - Comedor Universitario</title>\n    <link rel=\"preconnect\" href=\"https://fonts.googleapis.com\">\n    <link rel=\"preconnect\" href=\"https://fonts.gstatic.com\" crossorigin>\n    <link href=\"https://fonts.googleapis.com/css2?family=Roboto:wght@100;300;400;500;700;900&family=Roboto+Mono:wght@400;500&display=swap\" rel=\"stylesheet\">\n  </head>\n  <body>\n    <div id=\"root\"></div>\n    <script type=\"module\" src=\"/src/main.tsx\"></script>\n  </body>\n</html>\n"
+                        },
+                        {
+                            "id": "0",
+                            "uri": "http://localhost:5174/sitemap.xml",
+                            "nodeName": "http:\/\/localhost:5174\/sitemap.xml",
+                            "method": "GET",
+                            "param": "x-frame-options",
+                            "attack": "",
+                            "evidence": "",
+                            "otherinfo": "",
+                            "request-header": "GET http://localhost:5174/sitemap.xml HTTP/1.1\r\nhost: localhost:5174\r\nuser-agent: \r\npragma: no-cache\r\ncache-control: no-cache\r\n\r\n",
+                            "request-body": "",
+                            "response-header": "HTTP/1.1 200 OK\r\nVary: Origin\r\nContent-Type: text/html\r\nCache-Control: no-cache\r\nEtag: W/\"3a6-oeC9uu9ZqOkFNZcNpzJRpwNERIY\"\r\nDate: Thu, 09 Apr 2026 21:19:24 GMT\r\nConnection: keep-alive\r\nKeep-Alive: timeout=5\r\nContent-Length: 934\r\n\r\n",
+                            "response-body": "<!DOCTYPE html>\n<html lang=\"es\">\n  <head>\n    <script type=\"module\">import { injectIntoGlobalHook } from \"/@react-refresh\";\ninjectIntoGlobalHook(window);\nwindow.$RefreshReg$ = () => {};\nwindow.$RefreshSig$ = () => (type) => type;</script>\n\n    <script type=\"module\" src=\"/@vite/client\"></script>\n\n    <meta charset=\"UTF-8\" />\n    <link rel=\"icon\" type=\"image/svg+xml\" href=\"/vite.svg\" />\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\" />\n    <title>SmartComedor - Comedor Universitario</title>\n    <link rel=\"preconnect\" href=\"https://fonts.googleapis.com\">\n    <link rel=\"preconnect\" href=\"https://fonts.gstatic.com\" crossorigin>\n    <link href=\"https://fonts.googleapis.com/css2?family=Roboto:wght@100;300;400;500;700;900&family=Roboto+Mono:wght@400;500&display=swap\" rel=\"stylesheet\">\n  </head>\n  <body>\n    <div id=\"root\"></div>\n    <script type=\"module\" src=\"/src/main.tsx\"></script>\n  </body>\n</html>\n"
+                        },
+                        {
+                            "id": "1",
+                            "uri": "http://localhost:5174/vite.svg",
+                            "nodeName": "http:\/\/localhost:5174\/vite.svg",
+                            "method": "GET",
+                            "param": "x-frame-options",
+                            "attack": "",
+                            "evidence": "",
+                            "otherinfo": "",
+                            "request-header": "GET http://localhost:5174/vite.svg HTTP/1.1\r\nhost: localhost:5174\r\nuser-agent: \r\npragma: no-cache\r\ncache-control: no-cache\r\nreferer: http://localhost:5174\r\n\r\n",
+                            "request-body": "",
+                            "response-header": "HTTP/1.1 200 OK\r\nVary: Origin\r\nContent-Type: text/html\r\nCache-Control: no-cache\r\nEtag: W/\"3a6-oeC9uu9ZqOkFNZcNpzJRpwNERIY\"\r\nDate: Thu, 09 Apr 2026 21:19:24 GMT\r\nConnection: keep-alive\r\nKeep-Alive: timeout=5\r\nContent-Length: 934\r\n\r\n",
+                            "response-body": "<!DOCTYPE html>\n<html lang=\"es\">\n  <head>\n    <script type=\"module\">import { injectIntoGlobalHook } from \"/@react-refresh\";\ninjectIntoGlobalHook(window);\nwindow.$RefreshReg$ = () => {};\nwindow.$RefreshSig$ = () => (type) => type;</script>\n\n    <script type=\"module\" src=\"/@vite/client\"></script>\n\n    <meta charset=\"UTF-8\" />\n    <link rel=\"icon\" type=\"image/svg+xml\" href=\"/vite.svg\" />\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\" />\n    <title>SmartComedor - Comedor Universitario</title>\n    <link rel=\"preconnect\" href=\"https://fonts.googleapis.com\">\n    <link rel=\"preconnect\" href=\"https://fonts.gstatic.com\" crossorigin>\n    <link href=\"https://fonts.googleapis.com/css2?family=Roboto:wght@100;300;400;500;700;900&family=Roboto+Mono:wght@400;500&display=swap\" rel=\"stylesheet\">\n  </head>\n  <body>\n    <div id=\"root\"></div>\n    <script type=\"module\" src=\"/src/main.tsx\"></script>\n  </body>\n</html>\n"
+                        }
+                    ],
+                    "count": "4",
+                    "systemic": true,
+                    "solution": "<p>Modern Web browsers support the Content-Security-Policy and X-Frame-Options HTTP headers. Ensure one of them is set on all web pages returned by your site/app.</p><p>If you expect the page to be framed only by pages on your server (e.g. it's part of a FRAMESET) then you'll want to use SAMEORIGIN, otherwise if you never expect the page to be framed, you should use DENY. Alternatively consider implementing Content Security Policy's \"frame-ancestors\" directive.</p>",
+                    "otherinfo": "",
+                    "reference": "<p>https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/X-Frame-Options</p>",
+                    "cweid": "1021",
+                    "wascid": "15",
+                    "sourceid": "7",
+                    "tags":[ 
+                        {
+                            "tag": "OWASP_2021_A05",
+                            "link": "https:\/\/owasp.org\/Top10\/A05_2021-Security_Misconfiguration\/"
+                        },
+                        {
+                            "tag": "POLICY_QA_STD",
+                            "link": ""
+                        },
+                        {
+                            "tag": "POLICY_PENTEST",
+                            "link": ""
+                        },
+                        {
+                            "tag": "CWE-1021",
+                            "link": "https:\/\/cwe.mitre.org\/data\/definitions\/1021.html"
+                        },
+                        {
+                            "tag": "SYSTEMIC",
+                            "link": "https:\/\/www.zaproxy.org\/docs\/desktop\/addons\/common-library\/alerttags\/#systemic"
+                        },
+                        {
+                            "tag": "WSTG-v42-CLNT-09",
+                            "link": "https:\/\/owasp.org\/www-project-web-security-testing-guide\/v42\/4-Web_Application_Security_Testing\/11-Client-side_Testing\/09-Testing_for_Clickjacking"
+                        },
+                        {
+                            "tag": "OWASP_2017_A06",
+                            "link": "https:\/\/owasp.org\/www-project-top-ten\/2017\/A6_2017-Security_Misconfiguration.html"
+                        }
+                    ]
+                },
+                {
+                    "pluginid": "90003",
+                    "alertRef": "90003",
+                    "alert": "Sub Resource Integrity Attribute Missing",
+                    "name": "Sub Resource Integrity Attribute Missing",
+                    "riskcode": "2",
+                    "confidence": "3",
+                    "riskdesc": "Medium (High)",
+                    "desc": "<p>The integrity attribute is missing on a script or link tag served by an external server. The integrity tag prevents an attacker who have gained access to this server from injecting a malicious content.</p>",
+                    "instances":[ 
+                        {
+                            "id": "18",
+                            "uri": "http://localhost:5174",
+                            "nodeName": "http:\/\/localhost:5174",
+                            "method": "GET",
+                            "param": "",
+                            "attack": "",
+                            "evidence": "<link href=\"https://fonts.googleapis.com/css2?family=Roboto:wght@100;300;400;500;700;900&family=Roboto+Mono:wght@400;500&display=swap\" rel=\"stylesheet\">",
+                            "otherinfo": "",
+                            "request-header": "GET http://localhost:5174 HTTP/1.1\r\nhost: localhost:5174\r\nuser-agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36\r\npragma: no-cache\r\ncache-control: no-cache\r\n\r\n",
+                            "request-body": "",
+                            "response-header": "HTTP/1.1 200 OK\r\nVary: Origin\r\nContent-Type: text/html\r\nCache-Control: no-cache\r\nEtag: W/\"3a6-oeC9uu9ZqOkFNZcNpzJRpwNERIY\"\r\nDate: Thu, 09 Apr 2026 21:19:24 GMT\r\nConnection: keep-alive\r\nKeep-Alive: timeout=5\r\nContent-Length: 934\r\n\r\n",
+                            "response-body": "<!DOCTYPE html>\n<html lang=\"es\">\n  <head>\n    <script type=\"module\">import { injectIntoGlobalHook } from \"/@react-refresh\";\ninjectIntoGlobalHook(window);\nwindow.$RefreshReg$ = () => {};\nwindow.$RefreshSig$ = () => (type) => type;</script>\n\n    <script type=\"module\" src=\"/@vite/client\"></script>\n\n    <meta charset=\"UTF-8\" />\n    <link rel=\"icon\" type=\"image/svg+xml\" href=\"/vite.svg\" />\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\" />\n    <title>SmartComedor - Comedor Universitario</title>\n    <link rel=\"preconnect\" href=\"https://fonts.googleapis.com\">\n    <link rel=\"preconnect\" href=\"https://fonts.gstatic.com\" crossorigin>\n    <link href=\"https://fonts.googleapis.com/css2?family=Roboto:wght@100;300;400;500;700;900&family=Roboto+Mono:wght@400;500&display=swap\" rel=\"stylesheet\">\n  </head>\n  <body>\n    <div id=\"root\"></div>\n    <script type=\"module\" src=\"/src/main.tsx\"></script>\n  </body>\n</html>\n"
+                        },
+                        {
+                            "id": "17",
+                            "uri": "http://localhost:5174/robots.txt",
+                            "nodeName": "http:\/\/localhost:5174\/robots.txt",
+                            "method": "GET",
+                            "param": "",
+                            "attack": "",
+                            "evidence": "<link href=\"https://fonts.googleapis.com/css2?family=Roboto:wght@100;300;400;500;700;900&family=Roboto+Mono:wght@400;500&display=swap\" rel=\"stylesheet\">",
+                            "otherinfo": "",
+                            "request-header": "GET http://localhost:5174/robots.txt HTTP/1.1\r\nhost: localhost:5174\r\nuser-agent: \r\npragma: no-cache\r\ncache-control: no-cache\r\n\r\n",
+                            "request-body": "",
+                            "response-header": "HTTP/1.1 200 OK\r\nVary: Origin\r\nContent-Type: text/html\r\nCache-Control: no-cache\r\nEtag: W/\"3a6-oeC9uu9ZqOkFNZcNpzJRpwNERIY\"\r\nDate: Thu, 09 Apr 2026 21:19:24 GMT\r\nConnection: keep-alive\r\nKeep-Alive: timeout=5\r\nContent-Length: 934\r\n\r\n",
+                            "response-body": "<!DOCTYPE html>\n<html lang=\"es\">\n  <head>\n    <script type=\"module\">import { injectIntoGlobalHook } from \"/@react-refresh\";\ninjectIntoGlobalHook(window);\nwindow.$RefreshReg$ = () => {};\nwindow.$RefreshSig$ = () => (type) => type;</script>\n\n    <script type=\"module\" src=\"/@vite/client\"></script>\n\n    <meta charset=\"UTF-8\" />\n    <link rel=\"icon\" type=\"image/svg+xml\" href=\"/vite.svg\" />\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\" />\n    <title>SmartComedor - Comedor Universitario</title>\n    <link rel=\"preconnect\" href=\"https://fonts.googleapis.com\">\n    <link rel=\"preconnect\" href=\"https://fonts.gstatic.com\" crossorigin>\n    <link href=\"https://fonts.googleapis.com/css2?family=Roboto:wght@100;300;400;500;700;900&family=Roboto+Mono:wght@400;500&display=swap\" rel=\"stylesheet\">\n  </head>\n  <body>\n    <div id=\"root\"></div>\n    <script type=\"module\" src=\"/src/main.tsx\"></script>\n  </body>\n</html>\n"
+                        },
+                        {
+                            "id": "19",
+                            "uri": "http://localhost:5174/sitemap.xml",
+                            "nodeName": "http:\/\/localhost:5174\/sitemap.xml",
+                            "method": "GET",
+                            "param": "",
+                            "attack": "",
+                            "evidence": "<link href=\"https://fonts.googleapis.com/css2?family=Roboto:wght@100;300;400;500;700;900&family=Roboto+Mono:wght@400;500&display=swap\" rel=\"stylesheet\">",
+                            "otherinfo": "",
+                            "request-header": "GET http://localhost:5174/sitemap.xml HTTP/1.1\r\nhost: localhost:5174\r\nuser-agent: \r\npragma: no-cache\r\ncache-control: no-cache\r\n\r\n",
+                            "request-body": "",
+                            "response-header": "HTTP/1.1 200 OK\r\nVary: Origin\r\nContent-Type: text/html\r\nCache-Control: no-cache\r\nEtag: W/\"3a6-oeC9uu9ZqOkFNZcNpzJRpwNERIY\"\r\nDate: Thu, 09 Apr 2026 21:19:24 GMT\r\nConnection: keep-alive\r\nKeep-Alive: timeout=5\r\nContent-Length: 934\r\n\r\n",
+                            "response-body": "<!DOCTYPE html>\n<html lang=\"es\">\n  <head>\n    <script type=\"module\">import { injectIntoGlobalHook } from \"/@react-refresh\";\ninjectIntoGlobalHook(window);\nwindow.$RefreshReg$ = () => {};\nwindow.$RefreshSig$ = () => (type) => type;</script>\n\n    <script type=\"module\" src=\"/@vite/client\"></script>\n\n    <meta charset=\"UTF-8\" />\n    <link rel=\"icon\" type=\"image/svg+xml\" href=\"/vite.svg\" />\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\" />\n    <title>SmartComedor - Comedor Universitario</title>\n    <link rel=\"preconnect\" href=\"https://fonts.googleapis.com\">\n    <link rel=\"preconnect\" href=\"https://fonts.gstatic.com\" crossorigin>\n    <link href=\"https://fonts.googleapis.com/css2?family=Roboto:wght@100;300;400;500;700;900&family=Roboto+Mono:wght@400;500&display=swap\" rel=\"stylesheet\">\n  </head>\n  <body>\n    <div id=\"root\"></div>\n    <script type=\"module\" src=\"/src/main.tsx\"></script>\n  </body>\n</html>\n"
+                        },
+                        {
+                            "id": "14",
+                            "uri": "http://localhost:5174/vite.svg",
+                            "nodeName": "http:\/\/localhost:5174\/vite.svg",
+                            "method": "GET",
+                            "param": "",
+                            "attack": "",
+                            "evidence": "<link href=\"https://fonts.googleapis.com/css2?family=Roboto:wght@100;300;400;500;700;900&family=Roboto+Mono:wght@400;500&display=swap\" rel=\"stylesheet\">",
+                            "otherinfo": "",
+                            "request-header": "GET http://localhost:5174/vite.svg HTTP/1.1\r\nhost: localhost:5174\r\nuser-agent: \r\npragma: no-cache\r\ncache-control: no-cache\r\nreferer: http://localhost:5174\r\n\r\n",
+                            "request-body": "",
+                            "response-header": "HTTP/1.1 200 OK\r\nVary: Origin\r\nContent-Type: text/html\r\nCache-Control: no-cache\r\nEtag: W/\"3a6-oeC9uu9ZqOkFNZcNpzJRpwNERIY\"\r\nDate: Thu, 09 Apr 2026 21:19:24 GMT\r\nConnection: keep-alive\r\nKeep-Alive: timeout=5\r\nContent-Length: 934\r\n\r\n",
+                            "response-body": "<!DOCTYPE html>\n<html lang=\"es\">\n  <head>\n    <script type=\"module\">import { injectIntoGlobalHook } from \"/@react-refresh\";\ninjectIntoGlobalHook(window);\nwindow.$RefreshReg$ = () => {};\nwindow.$RefreshSig$ = () => (type) => type;</script>\n\n    <script type=\"module\" src=\"/@vite/client\"></script>\n\n    <meta charset=\"UTF-8\" />\n    <link rel=\"icon\" type=\"image/svg+xml\" href=\"/vite.svg\" />\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\" />\n    <title>SmartComedor - Comedor Universitario</title>\n    <link rel=\"preconnect\" href=\"https://fonts.googleapis.com\">\n    <link rel=\"preconnect\" href=\"https://fonts.gstatic.com\" crossorigin>\n    <link href=\"https://fonts.googleapis.com/css2?family=Roboto:wght@100;300;400;500;700;900&family=Roboto+Mono:wght@400;500&display=swap\" rel=\"stylesheet\">\n  </head>\n  <body>\n    <div id=\"root\"></div>\n    <script type=\"module\" src=\"/src/main.tsx\"></script>\n  </body>\n</html>\n"
+                        }
+                    ],
+                    "count": "4",
+                    "systemic": true,
+                    "solution": "<p>Provide a valid integrity attribute to the tag.</p>",
+                    "otherinfo": "",
+                    "reference": "<p>https://developer.mozilla.org/en-US/docs/Web/Security/Subresource_Integrity</p>",
+                    "cweid": "345",
+                    "wascid": "15",
+                    "sourceid": "1",
+                    "tags":[ 
+                        {
+                            "tag": "CWE-345",
+                            "link": "https:\/\/cwe.mitre.org\/data\/definitions\/345.html"
+                        },
+                        {
+                            "tag": "OWASP_2021_A05",
+                            "link": "https:\/\/owasp.org\/Top10\/A05_2021-Security_Misconfiguration\/"
+                        },
+                        {
+                            "tag": "POLICY_QA_STD",
+                            "link": ""
+                        },
+                        {
+                            "tag": "POLICY_PENTEST",
+                            "link": ""
+                        },
+                        {
+                            "tag": "SYSTEMIC",
+                            "link": "https:\/\/www.zaproxy.org\/docs\/desktop\/addons\/common-library\/alerttags\/#systemic"
+                        },
+                        {
+                            "tag": "OWASP_2017_A06",
+                            "link": "https:\/\/owasp.org\/www-project-top-ten\/2017\/A6_2017-Security_Misconfiguration.html"
+                        },
+                        {
+                            "tag": "POLICY_DEV_STD",
+                            "link": ""
+                        }
+                    ]
+                },
+                {
+                    "pluginid": "10021",
+                    "alertRef": "10021",
+                    "alert": "X-Content-Type-Options Header Missing",
+                    "name": "X-Content-Type-Options Header Missing",
+                    "riskcode": "1",
+                    "confidence": "2",
+                    "riskdesc": "Low (Medium)",
+                    "desc": "<p>The Anti-MIME-Sniffing header X-Content-Type-Options was not set to 'nosniff'. This allows older versions of Internet Explorer and Chrome to perform MIME-sniffing on the response body, potentially causing the response body to be interpreted and displayed as a content type other than the declared content type. Current (early 2014) and legacy versions of Firefox will use the declared content type (if one is set), rather than performing MIME-sniffing.</p>",
+                    "instances":[ 
+                        {
+                            "id": "21",
+                            "uri": "http://localhost:5174",
+                            "nodeName": "http:\/\/localhost:5174",
+                            "method": "GET",
+                            "param": "x-content-type-options",
+                            "attack": "",
+                            "evidence": "",
+                            "otherinfo": "This issue still applies to error type pages (401, 403, 500, etc.) as those pages are often still affected by injection issues, in which case there is still concern for browsers sniffing pages away from their actual content type.\nAt \"High\" threshold this scan rule will not alert on client or server error responses.",
+                            "request-header": "GET http://localhost:5174 HTTP/1.1\r\nhost: localhost:5174\r\nuser-agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36\r\npragma: no-cache\r\ncache-control: no-cache\r\n\r\n",
+                            "request-body": "",
+                            "response-header": "HTTP/1.1 200 OK\r\nVary: Origin\r\nContent-Type: text/html\r\nCache-Control: no-cache\r\nEtag: W/\"3a6-oeC9uu9ZqOkFNZcNpzJRpwNERIY\"\r\nDate: Thu, 09 Apr 2026 21:19:24 GMT\r\nConnection: keep-alive\r\nKeep-Alive: timeout=5\r\nContent-Length: 934\r\n\r\n",
+                            "response-body": "<!DOCTYPE html>\n<html lang=\"es\">\n  <head>\n    <script type=\"module\">import { injectIntoGlobalHook } from \"/@react-refresh\";\ninjectIntoGlobalHook(window);\nwindow.$RefreshReg$ = () => {};\nwindow.$RefreshSig$ = () => (type) => type;</script>\n\n    <script type=\"module\" src=\"/@vite/client\"></script>\n\n    <meta charset=\"UTF-8\" />\n    <link rel=\"icon\" type=\"image/svg+xml\" href=\"/vite.svg\" />\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\" />\n    <title>SmartComedor - Comedor Universitario</title>\n    <link rel=\"preconnect\" href=\"https://fonts.googleapis.com\">\n    <link rel=\"preconnect\" href=\"https://fonts.gstatic.com\" crossorigin>\n    <link href=\"https://fonts.googleapis.com/css2?family=Roboto:wght@100;300;400;500;700;900&family=Roboto+Mono:wght@400;500&display=swap\" rel=\"stylesheet\">\n  </head>\n  <body>\n    <div id=\"root\"></div>\n    <script type=\"module\" src=\"/src/main.tsx\"></script>\n  </body>\n</html>\n"
+                        },
+                        {
+                            "id": "22",
+                            "uri": "http://localhost:5174/robots.txt",
+                            "nodeName": "http:\/\/localhost:5174\/robots.txt",
+                            "method": "GET",
+                            "param": "x-content-type-options",
+                            "attack": "",
+                            "evidence": "",
+                            "otherinfo": "This issue still applies to error type pages (401, 403, 500, etc.) as those pages are often still affected by injection issues, in which case there is still concern for browsers sniffing pages away from their actual content type.\nAt \"High\" threshold this scan rule will not alert on client or server error responses.",
+                            "request-header": "GET http://localhost:5174/robots.txt HTTP/1.1\r\nhost: localhost:5174\r\nuser-agent: \r\npragma: no-cache\r\ncache-control: no-cache\r\n\r\n",
+                            "request-body": "",
+                            "response-header": "HTTP/1.1 200 OK\r\nVary: Origin\r\nContent-Type: text/html\r\nCache-Control: no-cache\r\nEtag: W/\"3a6-oeC9uu9ZqOkFNZcNpzJRpwNERIY\"\r\nDate: Thu, 09 Apr 2026 21:19:24 GMT\r\nConnection: keep-alive\r\nKeep-Alive: timeout=5\r\nContent-Length: 934\r\n\r\n",
+                            "response-body": "<!DOCTYPE html>\n<html lang=\"es\">\n  <head>\n    <script type=\"module\">import { injectIntoGlobalHook } from \"/@react-refresh\";\ninjectIntoGlobalHook(window);\nwindow.$RefreshReg$ = () => {};\nwindow.$RefreshSig$ = () => (type) => type;</script>\n\n    <script type=\"module\" src=\"/@vite/client\"></script>\n\n    <meta charset=\"UTF-8\" />\n    <link rel=\"icon\" type=\"image/svg+xml\" href=\"/vite.svg\" />\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\" />\n    <title>SmartComedor - Comedor Universitario</title>\n    <link rel=\"preconnect\" href=\"https://fonts.googleapis.com\">\n    <link rel=\"preconnect\" href=\"https://fonts.gstatic.com\" crossorigin>\n    <link href=\"https://fonts.googleapis.com/css2?family=Roboto:wght@100;300;400;500;700;900&family=Roboto+Mono:wght@400;500&display=swap\" rel=\"stylesheet\">\n  </head>\n  <body>\n    <div id=\"root\"></div>\n    <script type=\"module\" src=\"/src/main.tsx\"></script>\n  </body>\n</html>\n"
+                        },
+                        {
+                            "id": "24",
+                            "uri": "http://localhost:5174/sitemap.xml",
+                            "nodeName": "http:\/\/localhost:5174\/sitemap.xml",
+                            "method": "GET",
+                            "param": "x-content-type-options",
+                            "attack": "",
+                            "evidence": "",
+                            "otherinfo": "This issue still applies to error type pages (401, 403, 500, etc.) as those pages are often still affected by injection issues, in which case there is still concern for browsers sniffing pages away from their actual content type.\nAt \"High\" threshold this scan rule will not alert on client or server error responses.",
+                            "request-header": "GET http://localhost:5174/sitemap.xml HTTP/1.1\r\nhost: localhost:5174\r\nuser-agent: \r\npragma: no-cache\r\ncache-control: no-cache\r\n\r\n",
+                            "request-body": "",
+                            "response-header": "HTTP/1.1 200 OK\r\nVary: Origin\r\nContent-Type: text/html\r\nCache-Control: no-cache\r\nEtag: W/\"3a6-oeC9uu9ZqOkFNZcNpzJRpwNERIY\"\r\nDate: Thu, 09 Apr 2026 21:19:24 GMT\r\nConnection: keep-alive\r\nKeep-Alive: timeout=5\r\nContent-Length: 934\r\n\r\n",
+                            "response-body": "<!DOCTYPE html>\n<html lang=\"es\">\n  <head>\n    <script type=\"module\">import { injectIntoGlobalHook } from \"/@react-refresh\";\ninjectIntoGlobalHook(window);\nwindow.$RefreshReg$ = () => {};\nwindow.$RefreshSig$ = () => (type) => type;</script>\n\n    <script type=\"module\" src=\"/@vite/client\"></script>\n\n    <meta charset=\"UTF-8\" />\n    <link rel=\"icon\" type=\"image/svg+xml\" href=\"/vite.svg\" />\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\" />\n    <title>SmartComedor - Comedor Universitario</title>\n    <link rel=\"preconnect\" href=\"https://fonts.googleapis.com\">\n    <link rel=\"preconnect\" href=\"https://fonts.gstatic.com\" crossorigin>\n    <link href=\"https://fonts.googleapis.com/css2?family=Roboto:wght@100;300;400;500;700;900&family=Roboto+Mono:wght@400;500&display=swap\" rel=\"stylesheet\">\n  </head>\n  <body>\n    <div id=\"root\"></div>\n    <script type=\"module\" src=\"/src/main.tsx\"></script>\n  </body>\n</html>\n"
+                        },
+                        {
+                            "id": "25",
+                            "uri": "http://localhost:5174/src/main.tsx",
+                            "nodeName": "http:\/\/localhost:5174\/src\/main.tsx",
+                            "method": "GET",
+                            "param": "x-content-type-options",
+                            "attack": "",
+                            "evidence": "",
+                            "otherinfo": "This issue still applies to error type pages (401, 403, 500, etc.) as those pages are often still affected by injection issues, in which case there is still concern for browsers sniffing pages away from their actual content type.\nAt \"High\" threshold this scan rule will not alert on client or server error responses.",
+                            "request-header": "GET http://localhost:5174/src/main.tsx HTTP/1.1\r\nhost: localhost:5174\r\nuser-agent: \r\npragma: no-cache\r\ncache-control: no-cache\r\nreferer: http://localhost:5174/sitemap.xml\r\n\r\n",
+                            "request-body": "",
+                            "response-header": "HTTP/1.1 200 OK\r\nVary: Origin\r\nContent-Type: text/javascript\r\nCache-Control: no-cache\r\nEtag: W/\"7c7-eS61RUnRa7Fmh063bd6pHPxAVH4\"\r\nDate: Thu, 09 Apr 2026 21:19:24 GMT\r\nConnection: keep-alive\r\nKeep-Alive: timeout=5\r\nContent-Length: 3878\r\n\r\n",
+                            "response-body": "import __vite__cjsImport0_react_jsxDevRuntime from \"/node_modules/.vite/deps/react_jsx-dev-runtime.js?v=73f43db5\"; const jsxDEV = __vite__cjsImport0_react_jsxDevRuntime[\"jsxDEV\"];\nimport __vite__cjsImport1_react from \"/node_modules/.vite/deps/react.js?v=73f43db5\"; const React = __vite__cjsImport1_react.__esModule ? __vite__cjsImport1_react.default : __vite__cjsImport1_react;\nimport __vite__cjsImport2_reactDom_client from \"/node_modules/.vite/deps/react-dom_client.js?v=0e8ca599\"; const ReactDOM = __vite__cjsImport2_reactDom_client.__esModule ? __vite__cjsImport2_reactDom_client.default : __vite__cjsImport2_reactDom_client;\nimport { BrowserRouter } from \"/node_modules/.vite/deps/react-router-dom.js?v=4e6c6c38\";\nimport { ThemeProvider, CssBaseline } from \"/node_modules/.vite/deps/@mui_material.js?v=173b5b5b\";\nimport { AuthProvider } from \"/src/auth/AuthProvider.tsx\";\nimport theme from \"/src/theme/index.ts\";\nimport App from \"/src/App.tsx\";\nimport \"/src/index.css\";\nReactDOM.createRoot(document.getElementById(\"root\")).render(\n  /* @__PURE__ */ jsxDEV(React.StrictMode, { children: /* @__PURE__ */ jsxDEV(BrowserRouter, { children: /* @__PURE__ */ jsxDEV(ThemeProvider, { theme, children: [\n    /* @__PURE__ */ jsxDEV(CssBaseline, {}, void 0, false, {\n      fileName: \"/app/src/main.tsx\",\n      lineNumber: 14,\n      columnNumber: 9\n    }, this),\n    /* @__PURE__ */ jsxDEV(AuthProvider, { children: /* @__PURE__ */ jsxDEV(App, {}, void 0, false, {\n      fileName: \"/app/src/main.tsx\",\n      lineNumber: 16,\n      columnNumber: 11\n    }, this) }, void 0, false, {\n      fileName: \"/app/src/main.tsx\",\n      lineNumber: 15,\n      columnNumber: 9\n    }, this)\n  ] }, void 0, true, {\n    fileName: \"/app/src/main.tsx\",\n    lineNumber: 13,\n    columnNumber: 7\n  }, this) }, void 0, false, {\n    fileName: \"/app/src/main.tsx\",\n    lineNumber: 12,\n    columnNumber: 5\n  }, this) }, void 0, false, {\n    fileName: \"/app/src/main.tsx\",\n    lineNumber: 11,\n    columnNumber: 3\n  }, this)\n);\n\n//# sourceMappingURL=data:application/json;base64,eyJ2ZXJzaW9uIjozLCJtYXBwaW5ncyI6IkFBYVE7QUFiUixPQUFPQSxXQUFXO0FBQ2xCLE9BQU9DLGNBQWM7QUFDckIsU0FBU0MscUJBQXFCO0FBQzlCLFNBQVNDLGVBQWVDLG1CQUFtQjtBQUMzQyxTQUFTQyxvQkFBb0I7QUFDN0IsT0FBT0MsV0FBVztBQUNsQixPQUFPQyxTQUFTO0FBQ2hCLE9BQU87QUFFUE4sU0FBU08sV0FBV0MsU0FBU0MsZUFBZSxNQUFNLENBQUUsRUFBRUM7QUFBQUEsRUFDcEQsdUJBQUMsTUFBTSxZQUFOLEVBQ0MsaUNBQUMsaUJBQ0MsaUNBQUMsaUJBQWMsT0FDYjtBQUFBLDJCQUFDLGlCQUFEO0FBQUE7QUFBQTtBQUFBO0FBQUEsV0FBWTtBQUFBLElBQ1osdUJBQUMsZ0JBQ0MsaUNBQUMsU0FBRDtBQUFBO0FBQUE7QUFBQTtBQUFBLFdBQUksS0FETjtBQUFBO0FBQUE7QUFBQTtBQUFBLFdBRUE7QUFBQSxPQUpGO0FBQUE7QUFBQTtBQUFBO0FBQUEsU0FLQSxLQU5GO0FBQUE7QUFBQTtBQUFBO0FBQUEsU0FPQSxLQVJGO0FBQUE7QUFBQTtBQUFBO0FBQUEsU0FTQTtBQUNGIiwibmFtZXMiOlsiUmVhY3QiLCJSZWFjdERPTSIsIkJyb3dzZXJSb3V0ZXIiLCJUaGVtZVByb3ZpZGVyIiwiQ3NzQmFzZWxpbmUiLCJBdXRoUHJvdmlkZXIiLCJ0aGVtZSIsIkFwcCIsImNyZWF0ZVJvb3QiLCJkb2N1bWVudCIsImdldEVsZW1lbnRCeUlkIiwicmVuZGVyIl0sImlnbm9yZUxpc3QiOltdLCJzb3VyY2VzIjpbIm1haW4udHN4Il0sInNvdXJjZXNDb250ZW50IjpbImltcG9ydCBSZWFjdCBmcm9tICdyZWFjdCc7XG5pbXBvcnQgUmVhY3RET00gZnJvbSAncmVhY3QtZG9tL2NsaWVudCc7XG5pbXBvcnQgeyBCcm93c2VyUm91dGVyIH0gZnJvbSAncmVhY3Qtcm91dGVyLWRvbSc7XG5pbXBvcnQgeyBUaGVtZVByb3ZpZGVyLCBDc3NCYXNlbGluZSB9IGZyb20gJ0BtdWkvbWF0ZXJpYWwnO1xuaW1wb3J0IHsgQXV0aFByb3ZpZGVyIH0gZnJvbSAnLi9hdXRoL0F1dGhQcm92aWRlcic7XG5pbXBvcnQgdGhlbWUgZnJvbSAnLi90aGVtZSc7XG5pbXBvcnQgQXBwIGZyb20gJy4vQXBwJztcbmltcG9ydCAnLi9pbmRleC5jc3MnO1xuXG5SZWFjdERPTS5jcmVhdGVSb290KGRvY3VtZW50LmdldEVsZW1lbnRCeUlkKCdyb290JykhKS5yZW5kZXIoXG4gIDxSZWFjdC5TdHJpY3RNb2RlPlxuICAgIDxCcm93c2VyUm91dGVyPlxuICAgICAgPFRoZW1lUHJvdmlkZXIgdGhlbWU9e3RoZW1lfT5cbiAgICAgICAgPENzc0Jhc2VsaW5lIC8+XG4gICAgICAgIDxBdXRoUHJvdmlkZXI+XG4gICAgICAgICAgPEFwcCAvPlxuICAgICAgICA8L0F1dGhQcm92aWRlcj5cbiAgICAgIDwvVGhlbWVQcm92aWRlcj5cbiAgICA8L0Jyb3dzZXJSb3V0ZXI+XG4gIDwvUmVhY3QuU3RyaWN0TW9kZT5cbik7XG4iXSwiZmlsZSI6Ii9hcHAvc3JjL21haW4udHN4In0="
+                        },
+                        {
+                            "id": "16",
+                            "uri": "http://localhost:5174/vite.svg",
+                            "nodeName": "http:\/\/localhost:5174\/vite.svg",
+                            "method": "GET",
+                            "param": "x-content-type-options",
+                            "attack": "",
+                            "evidence": "",
+                            "otherinfo": "This issue still applies to error type pages (401, 403, 500, etc.) as those pages are often still affected by injection issues, in which case there is still concern for browsers sniffing pages away from their actual content type.\nAt \"High\" threshold this scan rule will not alert on client or server error responses.",
+                            "request-header": "GET http://localhost:5174/vite.svg HTTP/1.1\r\nhost: localhost:5174\r\nuser-agent: \r\npragma: no-cache\r\ncache-control: no-cache\r\nreferer: http://localhost:5174\r\n\r\n",
+                            "request-body": "",
+                            "response-header": "HTTP/1.1 200 OK\r\nVary: Origin\r\nContent-Type: text/html\r\nCache-Control: no-cache\r\nEtag: W/\"3a6-oeC9uu9ZqOkFNZcNpzJRpwNERIY\"\r\nDate: Thu, 09 Apr 2026 21:19:24 GMT\r\nConnection: keep-alive\r\nKeep-Alive: timeout=5\r\nContent-Length: 934\r\n\r\n",
+                            "response-body": "<!DOCTYPE html>\n<html lang=\"es\">\n  <head>\n    <script type=\"module\">import { injectIntoGlobalHook } from \"/@react-refresh\";\ninjectIntoGlobalHook(window);\nwindow.$RefreshReg$ = () => {};\nwindow.$RefreshSig$ = () => (type) => type;</script>\n\n    <script type=\"module\" src=\"/@vite/client\"></script>\n\n    <meta charset=\"UTF-8\" />\n    <link rel=\"icon\" type=\"image/svg+xml\" href=\"/vite.svg\" />\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\" />\n    <title>SmartComedor - Comedor Universitario</title>\n    <link rel=\"preconnect\" href=\"https://fonts.googleapis.com\">\n    <link rel=\"preconnect\" href=\"https://fonts.gstatic.com\" crossorigin>\n    <link href=\"https://fonts.googleapis.com/css2?family=Roboto:wght@100;300;400;500;700;900&family=Roboto+Mono:wght@400;500&display=swap\" rel=\"stylesheet\">\n  </head>\n  <body>\n    <div id=\"root\"></div>\n    <script type=\"module\" src=\"/src/main.tsx\"></script>\n  </body>\n</html>\n"
+                        }
+                    ],
+                    "count": "5",
+                    "systemic": true,
+                    "solution": "<p>Ensure that the application/web server sets the Content-Type header appropriately, and that it sets the X-Content-Type-Options header to 'nosniff' for all web pages.</p><p>If possible, ensure that the end user uses a standards-compliant and modern web browser that does not perform MIME-sniffing at all, or that can be directed by the web application/web server to not perform MIME-sniffing.</p>",
+                    "otherinfo": "<p>This issue still applies to error type pages (401, 403, 500, etc.) as those pages are often still affected by injection issues, in which case there is still concern for browsers sniffing pages away from their actual content type.</p><p>At \"High\" threshold this scan rule will not alert on client or server error responses.</p>",
+                    "reference": "<p>https://learn.microsoft.com/en-us/previous-versions/windows/internet-explorer/ie-developer/compatibility/gg622941(v=vs.85)</p><p>https://owasp.org/www-community/Security_Headers</p>",
+                    "cweid": "693",
+                    "wascid": "15",
+                    "sourceid": "1",
+                    "tags":[ 
+                        {
+                            "tag": "CWE-693",
+                            "link": "https:\/\/cwe.mitre.org\/data\/definitions\/693.html"
+                        },
+                        {
+                            "tag": "OWASP_2021_A05",
+                            "link": "https:\/\/owasp.org\/Top10\/A05_2021-Security_Misconfiguration\/"
+                        },
+                        {
+                            "tag": "OWASP_2017_A06",
+                            "link": "https:\/\/owasp.org\/www-project-top-ten\/2017\/A6_2017-Security_Misconfiguration.html"
+                        },
+                        {
+                            "tag": "POLICY_QA_STD",
+                            "link": ""
+                        },
+                        {
+                            "tag": "POLICY_PENTEST",
+                            "link": ""
+                        },
+                        {
+                            "tag": "SYSTEMIC",
+                            "link": "https:\/\/www.zaproxy.org\/docs\/desktop\/addons\/common-library\/alerttags\/#systemic"
+                        }
+                    ]
+                },
+                {
+                    "pluginid": "10109",
+                    "alertRef": "10109",
+                    "alert": "Modern Web Application",
+                    "name": "Modern Web Application",
+                    "riskcode": "0",
+                    "confidence": "2",
+                    "riskdesc": "Informational (Medium)",
+                    "desc": "<p>The application appears to be a modern web application. If you need to explore it automatically then the Ajax Spider may well be more effective than the standard one.</p>",
+                    "instances":[ 
+                        {
+                            "id": "11",
+                            "uri": "http://localhost:5174",
+                            "nodeName": "http:\/\/localhost:5174",
+                            "method": "GET",
+                            "param": "",
+                            "attack": "",
+                            "evidence": "<script type=\"module\">import { injectIntoGlobalHook } from \"/@react-refresh\";\ninjectIntoGlobalHook(window);\nwindow.$RefreshReg$ = () => {};\nwindow.$RefreshSig$ = () => (type) => type;</script>",
+                            "otherinfo": "No links have been found while there are scripts, which is an indication that this is a modern web application.",
+                            "request-header": "GET http://localhost:5174 HTTP/1.1\r\nhost: localhost:5174\r\nuser-agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36\r\npragma: no-cache\r\ncache-control: no-cache\r\n\r\n",
+                            "request-body": "",
+                            "response-header": "HTTP/1.1 200 OK\r\nVary: Origin\r\nContent-Type: text/html\r\nCache-Control: no-cache\r\nEtag: W/\"3a6-oeC9uu9ZqOkFNZcNpzJRpwNERIY\"\r\nDate: Thu, 09 Apr 2026 21:19:24 GMT\r\nConnection: keep-alive\r\nKeep-Alive: timeout=5\r\nContent-Length: 934\r\n\r\n",
+                            "response-body": "<!DOCTYPE html>\n<html lang=\"es\">\n  <head>\n    <script type=\"module\">import { injectIntoGlobalHook } from \"/@react-refresh\";\ninjectIntoGlobalHook(window);\nwindow.$RefreshReg$ = () => {};\nwindow.$RefreshSig$ = () => (type) => type;</script>\n\n    <script type=\"module\" src=\"/@vite/client\"></script>\n\n    <meta charset=\"UTF-8\" />\n    <link rel=\"icon\" type=\"image/svg+xml\" href=\"/vite.svg\" />\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\" />\n    <title>SmartComedor - Comedor Universitario</title>\n    <link rel=\"preconnect\" href=\"https://fonts.googleapis.com\">\n    <link rel=\"preconnect\" href=\"https://fonts.gstatic.com\" crossorigin>\n    <link href=\"https://fonts.googleapis.com/css2?family=Roboto:wght@100;300;400;500;700;900&family=Roboto+Mono:wght@400;500&display=swap\" rel=\"stylesheet\">\n  </head>\n  <body>\n    <div id=\"root\"></div>\n    <script type=\"module\" src=\"/src/main.tsx\"></script>\n  </body>\n</html>\n"
+                        },
+                        {
+                            "id": "15",
+                            "uri": "http://localhost:5174/robots.txt",
+                            "nodeName": "http:\/\/localhost:5174\/robots.txt",
+                            "method": "GET",
+                            "param": "",
+                            "attack": "",
+                            "evidence": "<script type=\"module\">import { injectIntoGlobalHook } from \"/@react-refresh\";\ninjectIntoGlobalHook(window);\nwindow.$RefreshReg$ = () => {};\nwindow.$RefreshSig$ = () => (type) => type;</script>",
+                            "otherinfo": "No links have been found while there are scripts, which is an indication that this is a modern web application.",
+                            "request-header": "GET http://localhost:5174/robots.txt HTTP/1.1\r\nhost: localhost:5174\r\nuser-agent: \r\npragma: no-cache\r\ncache-control: no-cache\r\n\r\n",
+                            "request-body": "",
+                            "response-header": "HTTP/1.1 200 OK\r\nVary: Origin\r\nContent-Type: text/html\r\nCache-Control: no-cache\r\nEtag: W/\"3a6-oeC9uu9ZqOkFNZcNpzJRpwNERIY\"\r\nDate: Thu, 09 Apr 2026 21:19:24 GMT\r\nConnection: keep-alive\r\nKeep-Alive: timeout=5\r\nContent-Length: 934\r\n\r\n",
+                            "response-body": "<!DOCTYPE html>\n<html lang=\"es\">\n  <head>\n    <script type=\"module\">import { injectIntoGlobalHook } from \"/@react-refresh\";\ninjectIntoGlobalHook(window);\nwindow.$RefreshReg$ = () => {};\nwindow.$RefreshSig$ = () => (type) => type;</script>\n\n    <script type=\"module\" src=\"/@vite/client\"></script>\n\n    <meta charset=\"UTF-8\" />\n    <link rel=\"icon\" type=\"image/svg+xml\" href=\"/vite.svg\" />\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\" />\n    <title>SmartComedor - Comedor Universitario</title>\n    <link rel=\"preconnect\" href=\"https://fonts.googleapis.com\">\n    <link rel=\"preconnect\" href=\"https://fonts.gstatic.com\" crossorigin>\n    <link href=\"https://fonts.googleapis.com/css2?family=Roboto:wght@100;300;400;500;700;900&family=Roboto+Mono:wght@400;500&display=swap\" rel=\"stylesheet\">\n  </head>\n  <body>\n    <div id=\"root\"></div>\n    <script type=\"module\" src=\"/src/main.tsx\"></script>\n  </body>\n</html>\n"
+                        },
+                        {
+                            "id": "13",
+                            "uri": "http://localhost:5174/sitemap.xml",
+                            "nodeName": "http:\/\/localhost:5174\/sitemap.xml",
+                            "method": "GET",
+                            "param": "",
+                            "attack": "",
+                            "evidence": "<script type=\"module\">import { injectIntoGlobalHook } from \"/@react-refresh\";\ninjectIntoGlobalHook(window);\nwindow.$RefreshReg$ = () => {};\nwindow.$RefreshSig$ = () => (type) => type;</script>",
+                            "otherinfo": "No links have been found while there are scripts, which is an indication that this is a modern web application.",
+                            "request-header": "GET http://localhost:5174/sitemap.xml HTTP/1.1\r\nhost: localhost:5174\r\nuser-agent: \r\npragma: no-cache\r\ncache-control: no-cache\r\n\r\n",
+                            "request-body": "",
+                            "response-header": "HTTP/1.1 200 OK\r\nVary: Origin\r\nContent-Type: text/html\r\nCache-Control: no-cache\r\nEtag: W/\"3a6-oeC9uu9ZqOkFNZcNpzJRpwNERIY\"\r\nDate: Thu, 09 Apr 2026 21:19:24 GMT\r\nConnection: keep-alive\r\nKeep-Alive: timeout=5\r\nContent-Length: 934\r\n\r\n",
+                            "response-body": "<!DOCTYPE html>\n<html lang=\"es\">\n  <head>\n    <script type=\"module\">import { injectIntoGlobalHook } from \"/@react-refresh\";\ninjectIntoGlobalHook(window);\nwindow.$RefreshReg$ = () => {};\nwindow.$RefreshSig$ = () => (type) => type;</script>\n\n    <script type=\"module\" src=\"/@vite/client\"></script>\n\n    <meta charset=\"UTF-8\" />\n    <link rel=\"icon\" type=\"image/svg+xml\" href=\"/vite.svg\" />\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\" />\n    <title>SmartComedor - Comedor Universitario</title>\n    <link rel=\"preconnect\" href=\"https://fonts.googleapis.com\">\n    <link rel=\"preconnect\" href=\"https://fonts.gstatic.com\" crossorigin>\n    <link href=\"https://fonts.googleapis.com/css2?family=Roboto:wght@100;300;400;500;700;900&family=Roboto+Mono:wght@400;500&display=swap\" rel=\"stylesheet\">\n  </head>\n  <body>\n    <div id=\"root\"></div>\n    <script type=\"module\" src=\"/src/main.tsx\"></script>\n  </body>\n</html>\n"
+                        },
+                        {
+                            "id": "10",
+                            "uri": "http://localhost:5174/vite.svg",
+                            "nodeName": "http:\/\/localhost:5174\/vite.svg",
+                            "method": "GET",
+                            "param": "",
+                            "attack": "",
+                            "evidence": "<script type=\"module\">import { injectIntoGlobalHook } from \"/@react-refresh\";\ninjectIntoGlobalHook(window);\nwindow.$RefreshReg$ = () => {};\nwindow.$RefreshSig$ = () => (type) => type;</script>",
+                            "otherinfo": "No links have been found while there are scripts, which is an indication that this is a modern web application.",
+                            "request-header": "GET http://localhost:5174/vite.svg HTTP/1.1\r\nhost: localhost:5174\r\nuser-agent: \r\npragma: no-cache\r\ncache-control: no-cache\r\nreferer: http://localhost:5174\r\n\r\n",
+                            "request-body": "",
+                            "response-header": "HTTP/1.1 200 OK\r\nVary: Origin\r\nContent-Type: text/html\r\nCache-Control: no-cache\r\nEtag: W/\"3a6-oeC9uu9ZqOkFNZcNpzJRpwNERIY\"\r\nDate: Thu, 09 Apr 2026 21:19:24 GMT\r\nConnection: keep-alive\r\nKeep-Alive: timeout=5\r\nContent-Length: 934\r\n\r\n",
+                            "response-body": "<!DOCTYPE html>\n<html lang=\"es\">\n  <head>\n    <script type=\"module\">import { injectIntoGlobalHook } from \"/@react-refresh\";\ninjectIntoGlobalHook(window);\nwindow.$RefreshReg$ = () => {};\nwindow.$RefreshSig$ = () => (type) => type;</script>\n\n    <script type=\"module\" src=\"/@vite/client\"></script>\n\n    <meta charset=\"UTF-8\" />\n    <link rel=\"icon\" type=\"image/svg+xml\" href=\"/vite.svg\" />\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\" />\n    <title>SmartComedor - Comedor Universitario</title>\n    <link rel=\"preconnect\" href=\"https://fonts.googleapis.com\">\n    <link rel=\"preconnect\" href=\"https://fonts.gstatic.com\" crossorigin>\n    <link href=\"https://fonts.googleapis.com/css2?family=Roboto:wght@100;300;400;500;700;900&family=Roboto+Mono:wght@400;500&display=swap\" rel=\"stylesheet\">\n  </head>\n  <body>\n    <div id=\"root\"></div>\n    <script type=\"module\" src=\"/src/main.tsx\"></script>\n  </body>\n</html>\n"
+                        }
+                    ],
+                    "count": "4",
+                    "systemic": true,
+                    "solution": "<p>This is an informational alert and so no changes are required.</p>",
+                    "otherinfo": "<p>No links have been found while there are scripts, which is an indication that this is a modern web application.</p>",
+                    "reference": "",
+                    "cweid": "-1",
+                    "wascid": "-1",
+                    "sourceid": "1",
+                    "tags":[ 
+                        {
+                            "tag": "POLICY_QA_STD",
+                            "link": ""
+                        },
+                        {
+                            "tag": "POLICY_PENTEST",
+                            "link": ""
+                        },
+                        {
+                            "tag": "SYSTEMIC",
+                            "link": "https:\/\/www.zaproxy.org\/docs\/desktop\/addons\/common-library\/alerttags\/#systemic"
+                        },
+                        {
+                            "tag": "POLICY_DEV_STD",
+                            "link": ""
+                        }
+                    ]
+                }
+            ],
+            "statistics":{ 
+                "stats.responseTime.16": 5
+                ,
+                "stats.contentType.text\/javascript": 2
+                ,
+                "stats.responseTime.4": 1
+                ,
+                "stats.code.200": 7
+                ,
+                "stats.contentType.text\/html": 5
+                ,
+                "stats.responseTime.8": 1
+                
+            }
+        }
+    ],
+    "sequences":[
+    ],
+    "statistics":{ 
+        "stats.pscan.10035.time": 1
+        ,
+        "stats.pscan.10021.time": 15
+        ,
+        "stats.pscan.recordsToScan": 17
+        ,
+        "stats.auto.job.spider.run": 2
+        ,
+        "stats.script.call.Graal.js.active": 1
+        ,
+        "stats.pscan.10027.time": 382
+        ,
+        "stats.pscan.Anti CSRF Token Detection": 1
+        ,
+        "stats.pscan.10043.time": 0
+        ,
+        "stats.pscan.90001.time": 1
+        ,
+        "stats.pscan.10096.time": 5
+        ,
+        "stats.pscan.10037.alerts": 5
+        ,
+        "stats.auto.job.alertFilter.run": 1
+        ,
+        "stats.pscan.10055.alerts": 5
+        ,
+        "stats.pscan.90022.time": 49
+        ,
+        "stats.auto.jobs.run": 7
+        ,
+        "stats.pscan.10109.alerts": 5
+        ,
+        "stats.pscan.10020.time": 41
+        ,
+        "stats.pscan.10112.time": 0
+        ,
+        "stats.pscan.10057.time": 22
+        ,
+        "stats.auto.plans.run": 1
+        ,
+        "stats.pscan.10034.time": 0
+        ,
+        "stats.pscan.10042.time": 0
+        ,
+        "stats.pscan.10050.time": 0
+        ,
+        "stats.pscan.10111.time": 1
+        ,
+        "stats.pscan.10056.time": 0
+        ,
+        "stats.pscan.10061.time": 0
+        ,
+        "automation.spider.urls.added": 15
+        ,
+        "stats.spider.url.found": 10
+        ,
+        "stats.pscan.90030.time": 0
+        ,
+        "stats.pscan.90033.time": 0
+        ,
+        "stats.pscan.10109.time": 10
+        ,
+        "stats.auto.job.report.run": 1
+        ,
+        "stats.pscan.50003.time": 0
+        ,
+        "stats.spider.started": 2
+        ,
+        "stats.pscan.10019.time": 0
+        ,
+        "stats.pscan.10097.time": 4
+        ,
+        "stats.spider.time": 121
+        ,
+        "stats.pscan.3.time": 0
+        ,
+        "stats.auto.job.passiveScan-config.run": 1
+        ,
+        "stats.pscan.10202.time": 4
+        ,
+        "stats.pscan.10010.time": 1
+        ,
+        "stats.auto.job.passiveScan-wait.run": 2
+        ,
+        "stats.pscan.2.time": 50
+        ,
+        "stats.pscan.10032.time": 1
+        ,
+        "stats.pscan.10024.time": 0
+        ,
+        "stats.pscan.10020.alerts": 5
+        ,
+        "stats.pscan.90003.time": 41
+        ,
+        "stats.pscan.10021.alerts": 7
+        ,
+        "stats.pscan.10040.time": 0
+        ,
+        "stats.pscan.10054.time": 0
+        ,
+        "stats.reports.generated.traditional-html": 1
+        ,
+        "stats.pscan.10038.time": 25
+        ,
+        "stats.pscan.10023.time": 3
+        ,
+        "stats.pscan.10062.time": 29
+        ,
+        "stats.pscan.10029.time": 0
+        ,
+        "stats.pscan.10037.time": 57
+        ,
+        "stats.pscan.90011.time": 2
+        ,
+        "stats.pscan.10031.time": 0
+        ,
+        "stats.pscan.10015.time": 0
+        ,
+        "stats.pscan.10115.time": 1
+        ,
+        "stats.pscan.10017.time": 0
+        ,
+        "stats.pscan.10011.time": 0
+        ,
+        "stats.pscan.90002.time": 0
+        ,
+        "stats.pscan.10025.time": 0
+        ,
+        "stats.pscan.10028.time": 0
+        ,
+        "stats.pscan.10098.time": 0
+        ,
+        "stats.network.send.success": 17
+        ,
+        "stats.pscan.10003.time": 226
+        ,
+        "stats.pscan.10009.time": 0
+        ,
+        "stats.pscan.50001.time": 0
+        ,
+        "stats.pscan.10030.time": 2
+        ,
+        "stats.pscan.10044.time": 0
+        ,
+        "stats.pscan.10038.alerts": 5
+        ,
+        "stats.pscan.90003.alerts": 5
+        ,
+        "stats.pscan.10041.time": 0
+        ,
+        "stats.pscan.Parameter Scanner": 125
+        ,
+        "stats.pscan.10113.time": 3
+        ,
+        "stats.pscan.10033.time": 1
+        ,
+        "stats.pscan.10108.time": 1
+        ,
+        "stats.pscan.10116.time": 7008
+        ,
+        "stats.pscan.10039.time": 0
+        ,
+        "stats.pscan.10036.time": 0
+        ,
+        "stats.pscan.10052.time": 0
+        ,
+        "stats.pscan.10055.time": 65
+        ,
+        "stats.pscan.10105.time": 0
+        
+    },
+    "afPlanErrors": [
+    ],
+    "afPlanWarns": [
+        "Job: Filtros de alertas No alertFilters element defined",
+        "Job spider error accessing URL http:\/\/localhost:3002 status code returned : 404 expected 200"
+    ]
+}
+

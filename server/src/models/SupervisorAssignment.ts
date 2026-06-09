@@ -2,21 +2,24 @@ import { DataTypes, Model, Optional } from 'sequelize';
 import { sequelize } from '../config/database';
 import { User } from './User';
 import { Student } from './Student';
+import { generateUid } from '../utils/uidGenerator';
 
 export interface SupervisorAssignmentAttributes {
   id: string;
+  uid: string;
   supervisorId: string;
   studentId: string;
   createdAt?: Date;
   updatedAt?: Date;
 }
 
-interface SupervisorAssignmentCreationAttributes extends Optional<SupervisorAssignmentAttributes, 'id'> {}
+interface SupervisorAssignmentCreationAttributes extends Optional<SupervisorAssignmentAttributes, 'id' | 'uid'> {}
 
 export class SupervisorAssignment
   extends Model<SupervisorAssignmentAttributes, SupervisorAssignmentCreationAttributes>
   implements SupervisorAssignmentAttributes {
   declare id: string;
+  declare uid: string;
   declare supervisorId: string;
   declare studentId: string;
   declare readonly createdAt: Date;
@@ -29,6 +32,11 @@ SupervisorAssignment.init(
       type: DataTypes.UUID,
       defaultValue: DataTypes.UUIDV4,
       primaryKey: true
+    },
+    uid: {
+      type: DataTypes.STRING(20),
+      unique: true,
+      allowNull: false
     },
     supervisorId: {
       type: DataTypes.UUID,
@@ -45,7 +53,12 @@ SupervisorAssignment.init(
     sequelize,
     modelName: 'SupervisorAssignment',
     tableName: 'supervisor_assignments',
-    indexes: [{ unique: true, fields: ['supervisorId', 'studentId'] }]
+    indexes: [{ unique: true, fields: ['supervisor_id', 'student_id'] }],
+    hooks: {
+      beforeValidate: (assignment: SupervisorAssignment) => {
+        assignment.uid = generateUid('SPA');
+      }
+    }
   }
 );
 

@@ -1,8 +1,10 @@
 import { DataTypes, Model, Optional } from 'sequelize';
 import { sequelize } from '../config/database';
+import { generateUid } from '../utils/uidGenerator';
 
 export interface NewsAttributes {
   id: string;
+  uid: string;
   title: string;
   content: string;
   imageUrl?: string;
@@ -11,10 +13,11 @@ export interface NewsAttributes {
   updatedAt?: Date;
 }
 
-interface NewsCreationAttributes extends Optional<NewsAttributes, 'id' | 'isActive'> {}
+interface NewsCreationAttributes extends Optional<NewsAttributes, 'id' | 'uid' | 'isActive'> {}
 
 export class News extends Model<NewsAttributes, NewsCreationAttributes> implements NewsAttributes {
   declare id: string;
+  declare uid: string;
   declare title: string;
   declare content: string;
   declare imageUrl?: string;
@@ -29,6 +32,11 @@ News.init(
       type: DataTypes.UUID,
       defaultValue: DataTypes.UUIDV4,
       primaryKey: true
+    },
+    uid: {
+      type: DataTypes.STRING(20),
+      unique: true,
+      allowNull: false
     },
     title: {
       type: DataTypes.STRING(100),
@@ -50,7 +58,12 @@ News.init(
   {
     sequelize,
     modelName: 'News',
-    tableName: 'news'
+    tableName: 'news',
+    hooks: {
+      beforeValidate: (news: News) => {
+        news.uid = generateUid('NWS');
+      }
+    }
   }
 );
 

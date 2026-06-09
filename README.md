@@ -155,6 +155,16 @@ npm run lint    # Revisar linting
 
 ---
 
+## Operacion y calidad
+
+- **Disponibilidad**: el despliegue con Docker incluye `healthcheck` en PostgreSQL y separacion de perfiles `dev`/`prod` para mantener el servicio operativo 24/7.
+- **Rendimiento objetivo**: consultas criticas y autenticacion deben responder en menos de 3 segundos. Se validan con escenarios JMeter en `tests/security/jmeter/`.
+- **Auditoria**: accesos y acciones administrativas/supervisor se almacenan en `audit_logs` y pueden consultarse desde `/api/audit` (rol admin).
+- **Backups diarios**: `docker-compose.yml` incluye el servicio `backup`, que ejecuta `pg_dump` diario en `/backups` dentro del volumen `db_backups` y elimina copias con mas de 30 dias.
+- **Accesibilidad y usabilidad**: la UI usa componentes MUI responsive, labels en formularios, estados visuales y mensajes guiados para perfiles admin/supervisor/estudiante.
+
+---
+
 ## Estructura del proyecto
 
 ```
@@ -196,6 +206,19 @@ SmartDinningRoom/
 | **Estudiante** | Ver perfil, registrar pagos, calificar servicio, ver noticias     |
 | **Supervisor** | Buscar estudiantes, registrar asistencia a almuerzos              |
 | **Admin**      | Gestión completa: usuarios, pagos, menús, reportes, auditoría     |
+
+---
+
+## Requisitos funcionales actuales
+
+- **Registro estudiantil**: el formulario solicita datos académicos/sociales con listas cerradas para valores controlados (por ejemplo, semestre y categoría SISBEN).
+- **Adjuntos en registro**: el estudiante debe poder adjuntar SISBEN, cédula frontal y horario en PDF. El horario mantiene carga manual y además permite extracción automática de datos desde el PDF.
+- **Validación SISBEN híbrida**: el backend realiza comparación automática entre evidencias documentales (SISBEN, cédula y número de cédula registrado) y luego el administrador confirma desde `/admin/students` mediante botón.
+- **Pagos en registro inicial**: el recibo de pago no es obligatorio en el primer registro.
+- **Pagos administrativos**: en `/admin/payments` se revisan los soportes de universidad y banco; al validar, se elimina el archivo adjunto operativo y se conserva trazabilidad del evento.
+- **Ciclos/periodos**: el sistema contempla periodos visibles para deshabilitar estudiantes al cierre y solicitar revalidación documental en el siguiente ciclo.
+- **Supervisión de almuerzos**: el registro de almuerzo usa una barra única de búsqueda por nombre, apellido o UID. El historial de almuerzos no se expone en la vista de supervisor.
+- **Exportación de reportes**: el administrador puede elegir columnas por formato (Excel/CSV/PDF) y usar una plantilla de formato estandarizada.
 
 ---
 

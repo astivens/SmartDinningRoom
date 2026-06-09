@@ -36,12 +36,13 @@ import PersonAddIcon from '@mui/icons-material/PersonAdd';
 import Layout from '../../components/layout/Layout';
 import { supervisorService } from '../../api/supervisorApi';
 import { studentService } from '../../api/studentApi';
+import FeedbackState from '../../components/FeedbackState';
 
 export default function SupervisorsPage() {
   const [supervisors, setSupervisors] = useState<any[]>([]);
   const [open, setOpen] = useState(false);
   const [editSupervisor, setEditSupervisor] = useState<any>(null);
-  const [formData, setFormData] = useState({ email: '', name: '', lastName: '' });
+  const [formData, setFormData] = useState({ email: '', name: '', lastName: '', telefono: '' });
   const [inviteUrl, setInviteUrl] = useState('');
   const [inviteOpen, setInviteOpen] = useState(false);
   const [inviteCopied, setInviteCopied] = useState(false);
@@ -53,17 +54,24 @@ export default function SupervisorsPage() {
   const [allStudents, setAllStudents] = useState<any[]>([]);
   const [selectedStudent, setSelectedStudent] = useState<any>(null);
   const [assignError, setAssignError] = useState('');
+  const [loadingSupervisors, setLoadingSupervisors] = useState(false);
+  const [tableError, setTableError] = useState('');
 
   useEffect(() => {
     fetchSupervisors();
   }, []);
 
   const fetchSupervisors = async () => {
+    setLoadingSupervisors(true);
+    setTableError('');
     try {
       const data = await supervisorService.getSupervisors();
       setSupervisors(data);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error:', error);
+      setTableError(error.response?.data?.message ?? 'No se pudo cargar la lista de supervisores.');
+    } finally {
+      setLoadingSupervisors(false);
     }
   };
 
@@ -76,7 +84,7 @@ export default function SupervisorsPage() {
       }
       fetchSupervisors();
       setOpen(false);
-      setFormData({ email: '', name: '', lastName: '' });
+      setFormData({ email: '', name: '', lastName: '', telefono: '' });
       setEditSupervisor(null);
     } catch (error) {
       console.error('Error:', error);
@@ -170,7 +178,15 @@ export default function SupervisorsPage() {
           <Button variant="outlined" startIcon={<LinkIcon />} onClick={handleGenerateInvite}>
             Enlace de Invitación
           </Button>
-          <Button variant="contained" startIcon={<AddIcon />} onClick={() => setOpen(true)}>
+          <Button
+            variant="contained"
+            startIcon={<AddIcon />}
+            onClick={() => {
+              setEditSupervisor(null);
+              setFormData({ email: '', name: '', lastName: '', telefono: '' });
+              setOpen(true);
+            }}
+          >
             Agregar Supervisor
           </Button>
         </Box>
@@ -180,20 +196,57 @@ export default function SupervisorsPage() {
         <Table>
           <TableHead>
             <TableRow>
+              <TableCell>UID</TableCell>
               <TableCell>Nombre</TableCell>
               <TableCell>Apellido</TableCell>
               <TableCell>Email</TableCell>
+              <TableCell>Teléfono</TableCell>
               <TableCell>Activo</TableCell>
               <TableCell>Autorizado</TableCell>
               <TableCell>Acciones</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
-            {supervisors.map((sup) => (
+            {loadingSupervisors ? (
+              <TableRow>
+                <TableCell colSpan={8}>
+                  <FeedbackState type="loading" compact description="Cargando supervisores..." />
+                </TableCell>
+              </TableRow>
+            ) : null}
+            {!loadingSupervisors && tableError ? (
+              <TableRow>
+                <TableCell colSpan={8}>
+                  <FeedbackState
+                    type="error"
+                    title="No se pudo cargar la tabla"
+                    description={tableError}
+                    actionLabel="Reintentar"
+                    onAction={fetchSupervisors}
+                  />
+                </TableCell>
+              </TableRow>
+            ) : null}
+            {!loadingSupervisors && !tableError && supervisors.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={8}>
+                  <FeedbackState
+                    type="empty"
+                    title="No hay supervisores registrados"
+                    description="Puedes crear un supervisor o generar un enlace de invitación."
+                  />
+                </TableCell>
+              </TableRow>
+            ) : null}
+            {!loadingSupervisors && !tableError && supervisors.map((sup) => (
               <TableRow key={sup.id}>
+                <TableCell>
+                  <Typography variant="caption" sx={{ fontFamily: 'monospace' }}>{sup.uid}</Typography>
+                </TableCell>
                 <TableCell>{sup.name}</TableCell>
                 <TableCell>{sup.lastName}</TableCell>
                 <TableCell>{sup.email}</TableCell>
+                <TableCell>{sup.telefono ?? '—'}</TableCell>
                 <TableCell>
                   <Switch
                     checked={sup.isActive}
@@ -211,7 +264,18 @@ export default function SupervisorsPage() {
                   <IconButton title="Asignar estudiantes" onClick={() => handleOpenAssign(sup)}>
                     <PersonAddIcon />
                   </IconButton>
-                  <IconButton onClick={() => { setEditSupervisor(sup); setOpen(true); }}>
+                  <IconButton
+                    onClick={() => {
+                      setEditSupervisor(sup);
+                      setFormData({
+                        email: sup.email ?? '',
+                        name: sup.name ?? '',
+                        lastName: sup.lastName ?? '',
+                        telefono: sup.telefono ?? ''
+                      });
+                      setOpen(true);
+                    }}
+                  >
                     <EditIcon />
                   </IconButton>
                   <IconButton onClick={() => handleDelete(sup.id)} color="error">
@@ -250,6 +314,14 @@ export default function SupervisorsPage() {
                 fullWidth
                 value={formData.email}
                 onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+              />
+            </Grid>
+            <Grid item xs={12}>
+              <TextField
+                label="Teléfono"
+                fullWidth
+                value={formData.telefono}
+                onChange={(e) => setFormData({ ...formData, telefono: e.target.value })}
               />
             </Grid>
           </Grid>

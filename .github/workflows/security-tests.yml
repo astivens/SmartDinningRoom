@@ -1,0 +1,513 @@
+name: Security, Load, Stress & Portability Tests
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+  schedule:
+    # Cada lunes a las 02:00 UTC
+    - cron: "0 2 * * 1"
+  workflow_dispatch:
+    inputs:
+      run_security:
+        description: "Ejecutar pruebas de Seguridad (ZAP)"
+        required: false
+        default: "true"
+        type: boolean
+      run_load:
+        description: "Ejecutar prueba de Carga (200 usuarios)"
+        required: false
+        default: "true"
+        type: boolean
+      run_stress:
+        description: "Ejecutar prueba de Estrés (rampa 10→500)"
+        required: false
+        default: "true"
+        type: boolean
+      run_portability:
+        description: "Ejecutar pruebas de Portabilidad (BrowserStack)"
+        required: false
+        default: "true"
+        type: boolean
+      load_threads:
+        description: "Usuarios concurrentes para carga"
+        required: false
+        default: "200"
+      load_duration:
+        description: "Duración de carga en segundos"
+        required: false
+        default: "300"
+
+env:
+  NODE_VERSION: "20"
+  API_URL: "http://localhost:3002"
+  FRONTEND_URL: "http://localhost:5174"
+
+# ─── Reutilizable: setup de la aplicación ────────────────────────────────────
+# Cada job levanta sus propios servicios porque GitHub Actions
+# no comparte entornos entre jobs en el mismo runner por defecto.
+
+jobs:
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # 1. OWASP ZAP — Seguridad
+  # ═══════════════════════════════════════════════════════════════════════════
+  security-zap:
+    name: "Seguridad — OWASP ZAP"
+    runs-on: ubuntu-latest
+    if: ${{ github.event.inputs.run_security != 'false' }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Generar server/.env
+        run: |
+          cat > server/.env <<'EOF'
+          PORT=3002
+          DB_HOST=postgres
+          DB_PORT=5432
+          DB_NAME=smartdining_test
+          DB_USER=postgres
+          DB_PASSWORD=postgres_ci_pass
+          JWT_SECRET=ci_jwt_secret_testing_only
+          JWT_REFRESH_SECRET=ci_jwt_refresh_secret_testing_only
+          JWT_EXPIRES_IN=1h
+          JWT_REFRESH_EXPIRES_IN=7d
+          CLIENT_URL=http://localhost:5174
+          SMTP_HOST=localhost
+          SMTP_PORT=1025
+          SMTP_USER=test@example.com
+          SMTP_PASS=test
+          NODE_ENV=development
+          EOF
+
+      - name: Levantar servicios (dev)
+        run: docker compose --profile dev up -d --build
+        timeout-minutes: 10
+
+      - name: Esperar API y Frontend
+        run: |
+          for i in $(seq 1 30); do curl -sf "$API_URL/api/health" > /dev/null && break; sleep 5; done
+          for i in $(seq 1 20); do curl -sf "$FRONTEND_URL" > /dev/null && break; sleep 5; done
+
+      - name: ZAP — Baseline Frontend
+        uses: zaproxy/action-baseline@v0.12.0
+        with:
+          target: "${{ env.FRONTEND_URL }}"
+          cmd_options: "-I"
+          artifact_name: "zap-frontend-report"
+        continue-on-error: true
+
+      - name: ZAP — API Scan Backend
+        uses: zaproxy/action-api-scan@v0.7.0
+        with:
+          target: "${{ env.API_URL }}/api/health"
+          format: "openapi"
+          cmd_options: "-I"
+          artifact_name: "zap-api-report"
+        continue-on-error: true
+
+      - name: Subir reportes ZAP
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: zap-security-reports
+          path: |
+            report_html.html
+            report_json.json
+            report_md.md
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # 2. JMeter — Seguridad (inyección, JWT, brute-force)
+  # ═══════════════════════════════════════════════════════════════════════════
+  security-jmeter:
+    name: "Seguridad — JMeter"
+    runs-on: ubuntu-latest
+    if: ${{ github.event.inputs.run_security != 'false' }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Generar server/.env
+        run: |
+          cat > server/.env <<'EOF'
+          PORT=3002
+          DB_HOST=postgres
+          DB_PORT=5432
+          DB_NAME=smartdining_test
+          DB_USER=postgres
+          DB_PASSWORD=postgres_ci_pass
+          JWT_SECRET=ci_jwt_secret_testing_only
+          JWT_REFRESH_SECRET=ci_jwt_refresh_secret_testing_only
+          JWT_EXPIRES_IN=1h
+          JWT_REFRESH_EXPIRES_IN=7d
+          CLIENT_URL=http://localhost:5174
+          SMTP_HOST=localhost
+          SMTP_PORT=1025
+          SMTP_USER=test@example.com
+          SMTP_PASS=test
+          NODE_ENV=development
+          EOF
+
+      - name: Levantar servicios (dev)
+        run: docker compose --profile dev up -d --build
+        timeout-minutes: 10
+
+      - name: Esperar API
+        run: |
+          for i in $(seq 1 30); do curl -sf "$API_URL/api/health" > /dev/null && break; sleep 5; done
+
+      - name: Ejecutar JMeter Security Tests
+        run: |
+          mkdir -p tests/security/jmeter/results
+          docker run --rm \
+            --network host \
+            -v "${{ github.workspace }}/tests/security/jmeter:/jmeter/tests" \
+            -v "${{ github.workspace }}/tests/security/jmeter/results:/jmeter/tests/results" \
+            -w /jmeter/tests \
+            justb4/jmeter:latest \
+            -n -t security-plan.jmx \
+            -JBASE_URL=localhost -JPORT=3002 \
+            -JVALID_EMAIL="${{ secrets.JMETER_TEST_EMAIL }}" \
+            -JVALID_PASS="${{ secrets.JMETER_TEST_PASSWORD }}" \
+            -l results/security.jtl
+        continue-on-error: true
+
+      - name: Subir resultados JMeter Security
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: jmeter-security-results
+          path: tests/security/jmeter/results/
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # 3. JMeter — Carga (200 usuarios, 5 min, umbral 500ms)
+  # ═══════════════════════════════════════════════════════════════════════════
+  load-test:
+    name: "Carga — JMeter (${{ github.event.inputs.load_threads || '200' }} usuarios)"
+    runs-on: ubuntu-latest
+    if: ${{ github.event.inputs.run_load != 'false' }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Generar server/.env
+        run: |
+          cat > server/.env <<'EOF'
+          PORT=3002
+          DB_HOST=postgres
+          DB_PORT=5432
+          DB_NAME=smartdining_test
+          DB_USER=postgres
+          DB_PASSWORD=postgres_ci_pass
+          JWT_SECRET=ci_jwt_secret_testing_only
+          JWT_REFRESH_SECRET=ci_jwt_refresh_secret_testing_only
+          JWT_EXPIRES_IN=1h
+          JWT_REFRESH_EXPIRES_IN=7d
+          CLIENT_URL=http://localhost:5174
+          SMTP_HOST=localhost
+          SMTP_PORT=1025
+          SMTP_USER=test@example.com
+          SMTP_PASS=test
+          NODE_ENV=development
+          EOF
+
+      - name: Levantar servicios (dev)
+        run: docker compose --profile dev up -d --build
+        timeout-minutes: 10
+
+      - name: Esperar API y Frontend
+        run: |
+          for i in $(seq 1 30); do curl -sf "$API_URL/api/health" > /dev/null && break; sleep 5; done
+          for i in $(seq 1 20); do curl -sf "$FRONTEND_URL" > /dev/null && break; sleep 5; done
+
+      - name: Ejecutar prueba de CARGA
+        run: |
+          mkdir -p tests/security/jmeter/results
+          docker run --rm \
+            --network host \
+            -v "${{ github.workspace }}/tests/security/jmeter:/jmeter/tests" \
+            -v "${{ github.workspace }}/tests/security/jmeter/results:/jmeter/tests/results" \
+            -w /jmeter/tests \
+            justb4/jmeter:latest \
+            -n -t load-test.jmx \
+            -JBASE_URL=localhost -JPORT=3002 \
+            -JTEST_EMAIL="${{ secrets.JMETER_TEST_EMAIL }}" \
+            -JTEST_PASS="${{ secrets.JMETER_TEST_PASSWORD }}" \
+            -JTHREADS="${{ github.event.inputs.load_threads || '200' }}" \
+            -JRAMP_SECS=60 \
+            -JDURATION_SECS="${{ github.event.inputs.load_duration || '300' }}" \
+            -JTHRESHOLD_MS=500 \
+            -l results/load-test.jtl
+        timeout-minutes: 15
+        continue-on-error: true
+
+      - name: Resumen de carga (p50/p95/error rate)
+        if: always()
+        run: |
+          python3 - <<'PYEOF'
+          import csv, statistics, sys, os
+
+          path = "tests/security/jmeter/results/load-test.csv"
+          if not os.path.exists(path):
+              print("Sin datos de carga")
+              sys.exit(0)
+
+          rows = list(csv.DictReader(open(path)))
+          times = [int(r['elapsed']) for r in rows if r.get('elapsed','').isdigit()]
+          successes = sum(1 for r in rows if r.get('success','').lower() == 'true')
+          total = len(rows)
+          errors = total - successes
+          rate = (errors/total*100) if total else 0
+
+          if times:
+              times.sort()
+              p95 = times[int(len(times)*0.95)]
+              print(f"Peticiones totales : {total}")
+              print(f"Tasa de error      : {rate:.1f}%")
+              print(f"Promedio           : {statistics.mean(times):.0f} ms")
+              print(f"Percentil 95       : {p95} ms")
+              print(f"Máximo             : {max(times)} ms")
+              # Añadir al job summary
+              summary = os.environ.get("GITHUB_STEP_SUMMARY", "")
+              if summary:
+                  with open(summary, "a") as f:
+                      f.write(f"## Carga — {total} peticiones\n")
+                      f.write(f"| Métrica | Valor |\n|---|---|\n")
+                      f.write(f"| Tasa de error | {rate:.1f}% |\n")
+                      f.write(f"| Promedio | {statistics.mean(times):.0f} ms |\n")
+                      f.write(f"| Percentil 95 | {p95} ms |\n")
+                      f.write(f"| Máximo | {max(times)} ms |\n")
+          PYEOF
+
+      - name: Subir resultados de carga
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: jmeter-load-results
+          path: tests/security/jmeter/results/load-test*
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # 4. JMeter — Estrés (rampa 10→500, 5 niveles)
+  # ═══════════════════════════════════════════════════════════════════════════
+  stress-test:
+    name: "Estrés — JMeter (rampa 10→500)"
+    runs-on: ubuntu-latest
+    if: ${{ github.event.inputs.run_stress != 'false' }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Generar server/.env
+        run: |
+          cat > server/.env <<'EOF'
+          PORT=3002
+          DB_HOST=postgres
+          DB_PORT=5432
+          DB_NAME=smartdining_test
+          DB_USER=postgres
+          DB_PASSWORD=postgres_ci_pass
+          JWT_SECRET=ci_jwt_secret_testing_only
+          JWT_REFRESH_SECRET=ci_jwt_refresh_secret_testing_only
+          JWT_EXPIRES_IN=1h
+          JWT_REFRESH_EXPIRES_IN=7d
+          CLIENT_URL=http://localhost:5174
+          SMTP_HOST=localhost
+          SMTP_PORT=1025
+          SMTP_USER=test@example.com
+          SMTP_PASS=test
+          NODE_ENV=development
+          EOF
+
+      - name: Levantar servicios (dev)
+        run: docker compose --profile dev up -d --build
+        timeout-minutes: 10
+
+      - name: Esperar API
+        run: |
+          for i in $(seq 1 30); do curl -sf "$API_URL/api/health" > /dev/null && break; sleep 5; done
+
+      - name: Ejecutar prueba de ESTRÉS
+        run: |
+          mkdir -p tests/security/jmeter/results
+          docker run --rm \
+            --network host \
+            -v "${{ github.workspace }}/tests/security/jmeter:/jmeter/tests" \
+            -v "${{ github.workspace }}/tests/security/jmeter/results:/jmeter/tests/results" \
+            -w /jmeter/tests \
+            justb4/jmeter:latest \
+            -n -t stress-test.jmx \
+            -JBASE_URL=localhost -JPORT=3002 \
+            -JTEST_EMAIL="${{ secrets.JMETER_TEST_EMAIL }}" \
+            -JTEST_PASS="${{ secrets.JMETER_TEST_PASSWORD }}" \
+            -l results/stress-test.jtl
+        timeout-minutes: 15
+        continue-on-error: true
+
+      - name: Resumen de estrés por nivel
+        if: always()
+        run: |
+          python3 - <<'PYEOF'
+          import csv, statistics, os, sys
+
+          niveles = [
+              ("stress-nivel1-10u.csv",  " 10 usuarios"),
+              ("stress-nivel2-50u.csv",  " 50 usuarios"),
+              ("stress-nivel3-100u.csv", "100 usuarios"),
+              ("stress-nivel4-250u.csv", "250 usuarios"),
+              ("stress-nivel5-500u.csv", "500 usuarios"),
+          ]
+          base = "tests/security/jmeter/results"
+          summary_path = os.environ.get("GITHUB_STEP_SUMMARY", "")
+          lines = ["## Estrés — Resultados por nivel\n", "| Nivel | Peticiones | Error % | Avg ms | p95 ms |\n", "|---|---|---|---|---|\n"]
+
+          for fname, label in niveles:
+              path = os.path.join(base, fname)
+              if not os.path.exists(path):
+                  print(f"{label}: sin datos")
+                  lines.append(f"| {label} | - | - | - | - |\n")
+                  continue
+              rows = list(csv.DictReader(open(path)))
+              times = [int(r['elapsed']) for r in rows if r.get('elapsed','').isdigit()]
+              successes = sum(1 for r in rows if r.get('success','').lower() == 'true')
+              total = len(rows)
+              errors = total - successes
+              rate = (errors/total*100) if total else 0
+              if times:
+                  times.sort()
+                  p95 = times[int(len(times)*0.95)] if len(times) > 20 else max(times)
+                  avg = statistics.mean(times)
+                  print(f"{label}: total={total} err={rate:.1f}% avg={avg:.0f}ms p95={p95}ms")
+                  lines.append(f"| {label} | {total} | {rate:.1f}% | {avg:.0f} | {p95} |\n")
+
+          if summary_path:
+              with open(summary_path, "a") as f:
+                  f.writelines(lines)
+          PYEOF
+
+      - name: Subir resultados de estrés
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: jmeter-stress-results
+          path: tests/security/jmeter/results/stress-*
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # 5. BrowserStack — Portabilidad + Seguridad frontend
+  # ═══════════════════════════════════════════════════════════════════════════
+  browserstack:
+    name: "Portabilidad — BrowserStack (Chrome/Firefox/Edge/Safari)"
+    runs-on: ubuntu-latest
+    if: ${{ github.event.inputs.run_portability != 'false' }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Generar server/.env
+        run: |
+          cat > server/.env <<'EOF'
+          PORT=3002
+          DB_HOST=postgres
+          DB_PORT=5432
+          DB_NAME=smartdining_test
+          DB_USER=postgres
+          DB_PASSWORD=postgres_ci_pass
+          JWT_SECRET=ci_jwt_secret_testing_only
+          JWT_REFRESH_SECRET=ci_jwt_refresh_secret_testing_only
+          JWT_EXPIRES_IN=1h
+          JWT_REFRESH_EXPIRES_IN=7d
+          CLIENT_URL=http://localhost:5174
+          SMTP_HOST=localhost
+          SMTP_PORT=1025
+          SMTP_USER=test@example.com
+          SMTP_PASS=test
+          NODE_ENV=development
+          EOF
+
+      - name: Levantar servicios (dev)
+        run: docker compose --profile dev up -d --build
+        timeout-minutes: 10
+
+      - name: Esperar API y Frontend
+        run: |
+          for i in $(seq 1 30); do curl -sf "$API_URL/api/health" > /dev/null && break; sleep 5; done
+          for i in $(seq 1 20); do curl -sf "$FRONTEND_URL" > /dev/null && break; sleep 5; done
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: tests/security/browserstack/package.json
+
+      - name: Instalar dependencias
+        working-directory: tests/security/browserstack
+        run: npm ci
+
+      - name: Iniciar BrowserStack Local Tunnel
+        run: |
+          wget -q "https://www.browserstack.com/browserstack-local/BrowserStackLocal-linux-x64.zip"
+          unzip -q BrowserStackLocal-linux-x64.zip && chmod +x BrowserStackLocal
+          ./BrowserStackLocal \
+            --key "${{ secrets.BROWSERSTACK_ACCESS_KEY }}" \
+            --local-identifier "smartdiningroom-local" \
+            --daemon start
+          sleep 8
+
+      - name: Ejecutar pruebas de Portabilidad
+        working-directory: tests/security/browserstack
+        env:
+          BROWSERSTACK_USERNAME: ${{ secrets.BROWSERSTACK_USERNAME }}
+          BROWSERSTACK_ACCESS_KEY: ${{ secrets.BROWSERSTACK_ACCESS_KEY }}
+          FRONTEND_URL: ${{ env.FRONTEND_URL }}
+          API_URL: ${{ env.API_URL }}
+        run: npx browserstack-node-sdk playwright test portability.test.ts
+        continue-on-error: true
+
+      - name: Ejecutar pruebas de Seguridad frontend
+        working-directory: tests/security/browserstack
+        env:
+          BROWSERSTACK_USERNAME: ${{ secrets.BROWSERSTACK_USERNAME }}
+          BROWSERSTACK_ACCESS_KEY: ${{ secrets.BROWSERSTACK_ACCESS_KEY }}
+          FRONTEND_URL: ${{ env.FRONTEND_URL }}
+          API_URL: ${{ env.API_URL }}
+        run: npx browserstack-node-sdk playwright test security.test.ts
+        continue-on-error: true
+
+      - name: Detener BrowserStack Local
+        if: always()
+        run: |
+          ./BrowserStackLocal \
+            --key "${{ secrets.BROWSERSTACK_ACCESS_KEY }}" \
+            --local-identifier "smartdiningroom-local" \
+            --daemon stop || true
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # 6. Resumen final
+  # ═══════════════════════════════════════════════════════════════════════════
+  summary:
+    name: "Resumen General"
+    runs-on: ubuntu-latest
+    needs: [security-zap, security-jmeter, load-test, stress-test, browserstack]
+    if: always()
+
+    steps:
+      - name: Escribir resumen en el job
+        run: |
+          echo "## Resumen de Pruebas — SmartDiningRoom" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Tipo | Herramienta | Estado |" >> "$GITHUB_STEP_SUMMARY"
+          echo "|------|-------------|--------|" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Seguridad | OWASP ZAP | ${{ needs.security-zap.result }} |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Seguridad | JMeter (inyección/JWT) | ${{ needs.security-jmeter.result }} |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Carga | JMeter 200u / 500ms | ${{ needs.load-test.result }} |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Estrés | JMeter 10→500u rampa | ${{ needs.stress-test.result }} |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Portabilidad | BrowserStack Chrome/FF/Edge/Safari | ${{ needs.browserstack.result }} |" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Fallar si carga o seguridad JMeter fallaron
+        if: |
+          needs.load-test.result == 'failure' ||
+          needs.security-jmeter.result == 'failure'
+        run: |
+          echo "Pruebas críticas fallaron. Ver artifacts para detalles."
+          exit 1

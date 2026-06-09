@@ -6,7 +6,7 @@ interface AuthContextType {
   user: User | null;
   isAuthenticated: boolean;
   isLoading: boolean;
-  login: (data: LoginData) => Promise<void>;
+  login: (data: LoginData) => Promise<any>;
   logout: () => void;
   hasRole: (roles: UserRole[]) => boolean;
 }
@@ -49,9 +49,12 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
   const login = async (data: LoginData) => {
     const response = await authService.login(data);
-    localStorage.setItem('accessToken', response.accessToken);
-    localStorage.setItem('refreshToken', response.refreshToken);
-    setUser(response.user);
+    if (response.accessToken && response.refreshToken && response.user) {
+      localStorage.setItem('accessToken', response.accessToken);
+      localStorage.setItem('refreshToken', response.refreshToken);
+      setUser(response.user);
+    }
+    return response;
   };
 
   const logout = () => {

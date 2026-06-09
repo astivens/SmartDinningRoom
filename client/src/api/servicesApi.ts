@@ -1,4 +1,5 @@
 import api from './axios';
+import { DashboardAnalyticsResponse } from '../types';
 
 export const mealService = {
   registerMeal: async (studentId: string) => {
@@ -15,10 +16,15 @@ export const mealService = {
     const response = await api.get('/meals/today');
     return response.data;
   },
+
+  getDashboardAnalytics: async (days = 30): Promise<DashboardAnalyticsResponse> => {
+    const response = await api.get('/meals/analytics', { params: { days } });
+    return response.data;
+  },
 };
 
 export const paymentService = {
-  createPayment: async (data: { studentId: string; amount: number; comprobantePath?: string }) => {
+  createPayment: async (data: { studentId: string; amount: number; comprobantePath?: string; universityReceiptPath?: string; bankReceiptPath?: string }) => {
     const response = await api.post('/payments', data);
     return response.data;
   },

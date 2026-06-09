@@ -1,28 +1,33 @@
 import { useState, useEffect } from 'react';
 import {
-  Box,
   Typography,
-  Paper,
   Grid,
   Card,
   CardContent,
   CardMedia,
-  Button,
 } from '@mui/material';
 import Layout from '../../components/layout/Layout';
 import { newsService } from '../../api/servicesApi';
 import { News } from '../../types';
+import FeedbackState from '../../components/FeedbackState';
 
 export default function StudentNewsPage() {
   const [news, setNews] = useState<News[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
 
   useEffect(() => {
     const fetchNews = async () => {
+      setLoading(true);
+      setError('');
       try {
         const data = await newsService.getNews();
         setNews(data);
-      } catch (error) {
-        console.error('Error:', error);
+      } catch (err: any) {
+        console.error('Error:', err);
+        setError(err.response?.data?.message ?? 'No se pudieron cargar las noticias.');
+      } finally {
+        setLoading(false);
       }
     };
     fetchNews();
@@ -34,12 +39,16 @@ export default function StudentNewsPage() {
         Noticias del Comedor
       </Typography>
 
-      {news.length === 0 ? (
-        <Paper sx={{ p: 4, textAlign: 'center' }}>
-          <Typography variant="body1" color="text.secondary">
-            No hay noticias disponibles en este momento.
-          </Typography>
-        </Paper>
+      {loading ? (
+        <FeedbackState type="loading" description="Cargando noticias..." />
+      ) : error ? (
+        <FeedbackState type="error" title="Error al cargar noticias" description={error} />
+      ) : news.length === 0 ? (
+        <FeedbackState
+          type="empty"
+          title="No hay noticias disponibles"
+          description="No hay noticias disponibles en este momento."
+        />
       ) : (
         <Grid container spacing={3}>
           {news.map((item) => (

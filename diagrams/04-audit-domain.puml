@@ -1,0 +1,64 @@
+@startuml audit-domain
+skinparam classAttributeIconSize 0
+skinparam monochrome false
+skinparam backgroundColor #FEFEFE
+skinparam ArrowColor #333333
+skinparam ClassBorderColor #555555
+skinparam ClassBackgroundColor #F8F9FA
+skinparam nodesep 60
+skinparam ranksep 50
+
+title 4/4 — Auditoría: Logs de Actividad
+
+class AuditLog {
+  +UUID id
+  +String uid «AUD-»
+  +UUID userId
+  +String userEmail
+  +String action
+  +String details?
+  +String ipAddress?
+  +Date createdAt
+}
+
+class AuditService {
+  +{static} logAction(userId, userEmail, action, details?, req?)
+  +{static} logSystemAction(action, details?, req?, userId?, userEmail?)
+}
+
+class EventAuditMiddleware {
+  +auditHttpEvents(req, res, next)
+}
+
+AuditService --> AuditLog : escribe
+EventAuditMiddleware --> AuditService : usa
+
+note right of AuditLog
+  <b>Registro inmutable de actividades</b>
+  Cada acción del sistema genera un log:
+  • LOGIN, REGISTER
+  • CREATE_PAYMENT, VERIFY_PAYMENT
+  • REGISTER_MEAL
+  • CREATE_STUDENT, UPDATE_STUDENT
+  • CREATE_SUPERVISOR, etc.
+
+  <b>IP</b> desde x-forwarded-for o socket
+end note
+
+note right of AuditService
+  <b>logAction</b> — acciones de usuario
+  <b>logSystemAction</b> — acciones del
+  sistema (cron, middleware HTTP)
+
+  Errores capturados silenciosamente
+  para no interrumpir el flujo principal
+end note
+
+note bottom of EventAuditMiddleware
+  Se ejecuta en TODAS las rutas /api/*
+  Registra: method, path, statusCode,
+  elapsedMs, role, query y body sanitizado
+  (redacta passwords, tokens, etc.)
+end note
+
+@enduml

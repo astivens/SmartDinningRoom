@@ -1,0 +1,19 @@
+{
+  "plugins": [
+    "oh-my-opencode",
+    "@tarquinen/opencode-dcp",
+    "opencode-type-inject",
+    "opencode-vibeguard",
+    "opencode-pty",
+    "opencode-morph-fast-apply",
+    "smart-codebase",
+    "opencode-worktree"
+  ],
+  "plugins_config": {
+    "@tarquinen/opencode-dcp": {
+      "compressionThreshold": 8000,
+      "preserveRecentMessages": 10,
+      "preserveCodeBlocks": true
+    }
+  }
+}

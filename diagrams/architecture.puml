@@ -1,0 +1,231 @@
+@startuml architecture
+skinparam classAttributeIconSize 0
+skinparam monochrome false
+skinparam backgroundColor #FEFEFE
+skinparam ArrowColor #555555
+skinparam ClassBorderColor #555555
+skinparam ClassBackgroundColor #F8F9FA
+skinparam packageBorderColor #888888
+skinparam packageBackgroundColor #FCFCFC
+skinparam nodesep 40
+skinparam ranksep 50
+
+title Arquitectura de Capas — SmartDiningRoom
+
+' ═══════════════════════════════════════
+' CAPA 1: Controllers
+' ═══════════════════════════════════════
+
+package "Controllers" {
+  class AuthController {
+    +login()
+    +register()
+    +refreshToken()
+    +getProfile()
+    +forgotPassword()
+    +resetPassword()
+    +setupTwoFactor()
+    +verifyTwoFactor()
+  }
+
+  class StudentsController {
+    +getStudents()
+    +getStudentById()
+    +createStudent()
+    +updateStudent()
+    +deleteStudent()
+    +importStudentsFromExcel()
+    +searchStudents()
+    +validateSisben()
+    +getAvailableMeals()
+    +updateStudentCycle()
+  }
+
+  class CycleController {
+    +createCycle()
+    +getCycles()
+    +getCycleById()
+    +closeCycle()
+  }
+
+  class MealsController {
+    +registerMeal()
+    +getMealHistory()
+    +getTodayAttendance()
+    +getDashboardAnalytics()
+  }
+
+  class PaymentsController {
+    +createPayment()
+    +verifyPayment()
+    +getPayments()
+    +uploadPaymentComprobante()
+    +calculateMeals()
+  }
+
+  class SupervisorsController {
+    +getSupervisors()
+    +createSupervisor()
+    +toggleSupervisorStatus()
+    +generateInviteLink()
+    +joinSupervisor()
+    +assignStudent()
+    +removeStudent()
+    +getSupervisorLogs()
+  }
+
+  class NewsController {
+    +getNews()
+    +createNews()
+    +updateNews()
+    +deleteNews()
+  }
+
+  class ComplaintsController {
+    +createComplaint()
+    +getComplaints()
+    +respondComplaint()
+  }
+
+  class RatingsController {
+    +createRating()
+    +getRatings()
+    +getAverageRating()
+  }
+}
+
+' ═══════════════════════════════════════
+' CAPA 2: Services
+' ═══════════════════════════════════════
+
+package "Services" {
+  class EmailService {
+    +sendEmail()
+    +sendMealConfirmation()
+    +sendPasswordResetEmail()
+    +sendWelcomeEmail()
+    +sendRevalidationEmail()
+  }
+
+  class AuditService {
+    +{static} logAction()
+    +{static} logSystemAction()
+  }
+
+  class SisbenValidationService {
+    +{static} validateSisbenAgainstCedula()
+    +{static} extractSisbenText()
+  }
+
+  class CycleAutomationService {
+    +closeExpiredCycles()
+    +disableExpiredStudents()
+    +sendRevalidationEmails()
+  }
+
+  class BackupService {
+    +performBackup()
+    +pruneOldBackups()
+  }
+}
+
+' ═══════════════════════════════════════
+' CAPA 3: Models (resumen)
+' ═══════════════════════════════════════
+
+package "Models" {
+  class User
+  class Student
+  class Cycle
+  class Payment
+  class MealAttendance
+  class SupervisorAssignment
+  class SupervisorLog
+  class Rating
+  class Complaint
+  class News
+  class AuditLog
+}
+
+' ═══════════════════════════════════════
+' CAPA 4: Middleware
+' ═══════════════════════════════════════
+
+package "Middleware" {
+  class AuthMiddleware {
+    +authenticate()
+    +authorize()
+    +optionalAuth()
+  }
+  class UploadMiddleware
+  class EventAuditMiddleware {
+    +auditHttpEvents()
+  }
+}
+
+' ═══════════════════════════════════════
+' DEPENDENCIAS: Controller → Service
+' ═══════════════════════════════════════
+
+AuthController ..> AuditService
+AuthController ..> SisbenValidationService
+AuthController ..> EmailService
+
+StudentsController ..> AuditService
+StudentsController ..> SisbenValidationService
+
+MealsController ..> EmailService
+MealsController ..> AuditService
+
+PaymentsController ..> AuditService
+SupervisorsController ..> AuditService
+
+CycleAutomationService ..> EmailService
+
+' ═══════════════════════════════════════
+' DEPENDENCIAS: Controller → Model
+' ═══════════════════════════════════════
+
+AuthController ..> User
+AuthController ..> Student
+
+StudentsController ..> User
+StudentsController ..> Student
+StudentsController ..> Payment
+
+CycleController ..> Cycle
+CycleController ..> Student
+CycleController ..> User
+
+MealsController ..> Student
+MealsController ..> User
+MealsController ..> Payment
+MealsController ..> MealAttendance
+MealsController ..> SupervisorLog
+
+PaymentsController ..> Payment
+PaymentsController ..> Student
+PaymentsController ..> User
+
+SupervisorsController ..> User
+SupervisorsController ..> Student
+SupervisorsController ..> SupervisorLog
+SupervisorsController ..> SupervisorAssignment
+
+NewsController ..> News
+ComplaintsController ..> Complaint
+ComplaintsController ..> Student
+RatingsController ..> Rating
+
+' ═══════════════════════════════════════
+' DEPENDENCIAS: Service → Model
+' ═══════════════════════════════════════
+
+AuditService ..> AuditLog
+CycleAutomationService ..> Cycle
+CycleAutomationService ..> Student
+CycleAutomationService ..> User
+
+EventAuditMiddleware ..> AuditService
+
+@enduml

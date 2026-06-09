@@ -18,7 +18,7 @@ import {
   login, register, refreshToken, getProfile, updateProfile,
   forgotPassword, resetPassword, changePassword, setupTwoFactor, verifyTwoFactor
 } from '../../controllers/authController';
-import { User, UserRole } from '../../models';
+import { User, UserRole, Student } from '../../models';
 import { AuthRequest } from '../../middleware/auth';
 
 // Mock de modelos y servicios
@@ -26,6 +26,10 @@ jest.mock('../../models', () => ({
   User: {
     findOne: jest.fn(),
     findByPk: jest.fn(),
+    create: jest.fn(),
+  },
+  Student: {
+    findOne: jest.fn(),
     create: jest.fn(),
   },
   UserRole: {
@@ -43,6 +47,14 @@ jest.mock('../../services/auditService', () => ({
   logAction: jest.fn().mockResolvedValue(undefined),
 }));
 
+jest.mock('../../services/sisbenValidationService', () => ({
+  extractSisbenText: jest.fn().mockResolvedValue('Horario extraído'),
+  validateSisbenAgainstCedula: jest.fn().mockResolvedValue({
+    validated: true,
+    mismatches: { cedula: false, name: false, lastName: false, cedulaDocument: false },
+  }),
+}));
+
 jest.mock('speakeasy');
 jest.mock('qrcode', () => ({
   toDataURL: jest.fn().mockResolvedValue('data:image/png;base64,mockqrcode'),
@@ -58,17 +70,30 @@ const mockResponse = () => {
 };
 
 // Helper para crear mock de request
-const mockRequest = (body: any = {}, user?: any, file?: any): any => ({
-  body,
-  user,
-  file,
-  headers: {},
-});
+const mockRequest = (body: any = {}, user?: any, file?: any): any => {
+  const files = file
+    ? {
+        archivoSisben: [file],
+        cedulaFrontal: [file],
+        horarioPdf: [file],
+        reciboPago: [file],
+      }
+    : undefined;
+
+  return {
+    body,
+    user,
+    file,
+    files,
+    headers: {},
+  };
+};
 
 describe('authController', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    (Student.findOne as jest.Mock).mockResolvedValue(null);
   });
 
   // =========================================================================
@@ -571,11 +596,11 @@ describe('authController', () => {
 
       const baseValidData = {
         email: 'test@test.com',
-        password: 'password123',
+        password: '12345678',
         name: 'Juan',
         lastName: 'Perez',
         cedula: '12345678',
-        carrera: 'Ingenieria',
+        carrera: 'Ingeniería de Sistemas',
         semestre: '5',
         categoriaSisben: 'A1',
         barrio: 'Centro',
@@ -585,7 +610,7 @@ describe('authController', () => {
 
       // Valores límite para Email (max 30)
       it('VL-EMAIL-001: Email de exactamente 30 caracteres - válido', async () => {
-        const email30 = 'a'.repeat(24) + '@test.com'; // 30 chars total
+        const email30 = 'a'.repeat(21) + '@test.com'; // 30 chars total
         const mockFile = { path: 'uploads/sisben.pdf' };
         (User.findOne as jest.Mock).mockResolvedValue(null);
         (User.create as jest.Mock).mockResolvedValue({
@@ -598,12 +623,6 @@ describe('authController', () => {
 
         const req = mockRequest({ ...baseValidData, email: email30 }, undefined, mockFile);
         const res = mockResponse();
-
-        // Mock dinámico de Student
-        jest.doMock('../../models', () => ({
-          User: { findOne: jest.fn().mockResolvedValue(null), create: jest.fn().mockResolvedValue({ id: 'user-1', email: email30, name: 'Juan', lastName: 'Perez', role: 'student' }) },
-          UserRole: { STUDENT: 'student' },
-        }));
 
         await register(req as Request, res as Response);
         expect(res.status).toHaveBeenCalledWith(201);
@@ -658,7 +677,7 @@ describe('authController', () => {
         const res = mockResponse();
 
         await register(req as Request, res as Response);
-        expect(res.status).toHaveBeenCalledWith(500);
+        expect(res.status).toHaveBeenCalledWith(400);
       });
 
       // Valores límite para Nombre (max 20)
@@ -687,7 +706,7 @@ describe('authController', () => {
         const res = mockResponse();
 
         await register(req as Request, res as Response);
-        expect(res.status).toHaveBeenCalledWith(500);
+        expect(res.status).toHaveBeenCalledWith(400);
       });
     });
 
@@ -706,11 +725,11 @@ describe('authController', () => {
 
         const req = mockRequest({
           email: 'nuevo@test.com',
-          password: 'password123',
+          password: '12345678',
           name: 'Juan',
           lastName: 'Perez',
           cedula: '12345678',
-          carrera: 'Ingenieria',
+          carrera: 'Ingeniería de Sistemas',
           semestre: '3',
           categoriaSisben: 'A1',
           barrio: 'Centro',
@@ -734,7 +753,7 @@ describe('authController', () => {
       it('TC-REG-002: Error 400 - Archivo SISBEN faltante', async () => {
         const req = mockRequest({
           email: 'test@test.com',
-          password: 'password123',
+          password: '12345678',
           name: 'Juan',
           lastName: 'Perez',
         }, undefined, undefined); // Sin archivo
@@ -744,7 +763,7 @@ describe('authController', () => {
 
         expect(res.status).toHaveBeenCalledWith(400);
         expect(res.json).toHaveBeenCalledWith({
-          message: 'El archivo SISBEN es obligatorio (PDF o JPG)',
+          message: 'SISBEN, cédula frontal y horario PDF son obligatorios',
         });
       });
 
@@ -754,9 +773,16 @@ describe('authController', () => {
 
         const req = mockRequest({
           email: 'existe@test.com',
-          password: 'password123',
+          password: '12345678',
           name: 'Juan',
           lastName: 'Perez',
+          cedula: '12345678',
+          carrera: 'Ingeniería de Sistemas',
+          semestre: '3',
+          categoriaSisben: 'A1',
+          barrio: 'Centro',
+          telefono: '3001234567',
+          etnia: 'Ninguna',
         }, undefined, mockFile);
         const res = mockResponse();
 
@@ -776,17 +802,17 @@ describe('authController', () => {
 
         const req = mockRequest({
           email: 'parse@test.com',
-          password: 'password123',
+          password: '12345678',
           name: 'Juan',
           lastName: 'Perez',
           cedula: '12345678',
-          carrera: 'Ing',
+          carrera: 'Ingeniería de Sistemas',
           semestre: '1',
-          categoriaSisben: 'A',
-          barrio: 'B',
+          categoriaSisben: 'A1',
+          barrio: 'Centro',
           telefono: '300',
-          etnia: 'N',
-          diasComedor: '["Lunes","Martes"]', // String JSON, no array
+          etnia: 'Ninguna',
+          diasComedor: '["Lunes","Martes"]',
         }, undefined, mockFile);
         const res = mockResponse();
 

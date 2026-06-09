@@ -1,0 +1,599 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jmeterTestPlan version="1.2" properties="5.0" jmeter="5.5">
+  <hashTree>
+    <TestPlan guiclass="TestPlanGui" testclass="TestPlan"
+              testname="SmartDiningRoom - Security Tests" enabled="true">
+      <stringProp name="TestPlan.comments">Seguridad: brute-force, SQL injection, JWT manipulation, privilege escalation, security headers</stringProp>
+      <boolProp name="TestPlan.functional_mode">false</boolProp>
+      <boolProp name="TestPlan.serialize_threadgroups">false</boolProp>
+      <elementProp name="TestPlan.user_defined_variables" elementType="Arguments"
+                   guiclass="ArgumentsPanel" testclass="Arguments" enabled="true">
+        <collectionProp name="Arguments.arguments">
+          <elementProp name="BASE_URL" elementType="Argument">
+            <stringProp name="Argument.name">BASE_URL</stringProp>
+            <stringProp name="Argument.value">${__P(BASE_URL,localhost)}</stringProp>
+            <stringProp name="Argument.metadata">=</stringProp>
+          </elementProp>
+          <elementProp name="PORT" elementType="Argument">
+            <stringProp name="Argument.name">PORT</stringProp>
+            <stringProp name="Argument.value">${__P(PORT,3002)}</stringProp>
+            <stringProp name="Argument.metadata">=</stringProp>
+          </elementProp>
+          <elementProp name="VALID_EMAIL" elementType="Argument">
+            <stringProp name="Argument.name">VALID_EMAIL</stringProp>
+            <stringProp name="Argument.value">${__P(VALID_EMAIL,admin@test.com)}</stringProp>
+            <stringProp name="Argument.metadata">=</stringProp>
+          </elementProp>
+          <elementProp name="VALID_PASS" elementType="Argument">
+            <stringProp name="Argument.name">VALID_PASS</stringProp>
+            <stringProp name="Argument.value">${__P(VALID_PASS,Admin1234!)}</stringProp>
+            <stringProp name="Argument.metadata">=</stringProp>
+          </elementProp>
+        </collectionProp>
+      </elementProp>
+    </TestPlan>
+
+    <hashTree>
+
+      <!-- ═══════════════════════════════════════════════════════════════
+           Header Manager global (JSON para todas las peticiones POST)
+           ═══════════════════════════════════════════════════════════════ -->
+      <HeaderManager guiclass="HeaderPanel" testclass="HeaderManager"
+                     testname="Headers globales" enabled="true">
+        <collectionProp name="HeaderManager.headers">
+          <elementProp name="" elementType="Header">
+            <stringProp name="Header.name">Content-Type</stringProp>
+            <stringProp name="Header.value">application/json</stringProp>
+          </elementProp>
+          <elementProp name="" elementType="Header">
+            <stringProp name="Header.name">Accept</stringProp>
+            <stringProp name="Header.value">application/json</stringProp>
+          </elementProp>
+        </collectionProp>
+      </HeaderManager>
+      <hashTree/>
+
+      <!-- ═══════════════════════════════════════════════════════════════
+           1. BRUTE FORCE — Verificar bloqueo / rate limiting en login
+           ═══════════════════════════════════════════════════════════════ -->
+      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup"
+                   testname="1. Brute Force Login" enabled="true">
+        <stringProp name="ThreadGroup.on_sample_error">continue</stringProp>
+        <elementProp name="ThreadGroup.main_controller" elementType="LoopController"
+                     guiclass="LoopControlPanel" testclass="LoopController">
+          <boolProp name="LoopController.continue_forever">false</boolProp>
+          <stringProp name="LoopController.loops">20</stringProp>
+        </elementProp>
+        <stringProp name="ThreadGroup.num_threads">5</stringProp>
+        <stringProp name="ThreadGroup.ramp_time">2</stringProp>
+        <boolProp name="ThreadGroup.scheduler">false</boolProp>
+      </ThreadGroup>
+      <hashTree>
+        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy"
+                          testname="POST /api/auth/login (credenciales inválidas)" enabled="true">
+          <stringProp name="HTTPSampler.domain">${BASE_URL}</stringProp>
+          <stringProp name="HTTPSampler.port">${PORT}</stringProp>
+          <stringProp name="HTTPSampler.path">/api/auth/login</stringProp>
+          <stringProp name="HTTPSampler.method">POST</stringProp>
+          <boolProp name="HTTPSampler.postBodyRaw">true</boolProp>
+          <elementProp name="HTTPsampler.Arguments" elementType="Arguments">
+            <collectionProp name="Arguments.arguments">
+              <elementProp name="" elementType="HTTPArgument">
+                <boolProp name="HTTPArgument.always_encode">false</boolProp>
+                <stringProp name="Argument.value">{"email":"attacker${__threadNum}@evil.com","password":"Wrong${__Random(1000,9999)}"}</stringProp>
+                <stringProp name="Argument.metadata">=</stringProp>
+              </elementProp>
+            </collectionProp>
+          </elementProp>
+        </HTTPSamplerProxy>
+        <hashTree>
+          <!-- El servidor debe devolver 401 o 429 (rate limiting) -->
+          <ResponseAssertion guiclass="AssertionGui" testclass="ResponseAssertion"
+                             testname="Debe ser 401 o 429" enabled="true">
+            <collectionProp name="Asserion.test_strings">
+              <stringProp name="49586">401</stringProp>
+              <stringProp name="49587">429</stringProp>
+            </collectionProp>
+            <stringProp name="Assertion.test_field">Assertion.response_code</stringProp>
+            <boolProp name="Assertion.assume_success">false</boolProp>
+            <intProp name="Assertion.test_type">40</intProp>
+          </ResponseAssertion>
+          <hashTree/>
+          <ConstantTimer guiclass="ConstantTimerGui" testclass="ConstantTimer"
+                         testname="Pausa 200ms entre intentos" enabled="true">
+            <stringProp name="ConstantTimer.delay">200</stringProp>
+          </ConstantTimer>
+          <hashTree/>
+        </hashTree>
+        <ResultCollector guiclass="SimpleDataWriter" testclass="ResultCollector"
+                         testname="CSV Brute Force" enabled="true">
+          <boolProp name="ResultCollector.error_logging">false</boolProp>
+          <objProp>
+            <name>saveConfig</name>
+            <value class="SampleSaveConfiguration">
+              <time>true</time>
+              <latency>true</latency>
+              <timestamp>true</timestamp>
+              <success>true</success>
+              <label>true</label>
+              <code>true</code>
+              <message>true</message>
+              <threadName>true</threadName>
+              <dataType>true</dataType>
+              <encoding>false</encoding>
+              <assertions>true</assertions>
+              <subresults>false</subresults>
+              <responseData>false</responseData>
+              <samplerData>false</samplerData>
+              <xml>false</xml>
+              <fieldNames>true</fieldNames>
+              <responseHeaders>false</responseHeaders>
+              <requestHeaders>false</requestHeaders>
+              <responseDataOnError>false</responseDataOnError>
+              <saveAssertionResultsFailureMessage>true</saveAssertionResultsFailureMessage>
+              <bytes>true</bytes>
+              <threadCounts>true</threadCounts>
+            </value>
+          </objProp>
+          <stringProp name="filename">results/brute-force.csv</stringProp>
+        </ResultCollector>
+        <hashTree/>
+      </hashTree>
+
+      <!-- ═══════════════════════════════════════════════════════════════
+           2. SQL INJECTION — Payloads en campos de login
+           ═══════════════════════════════════════════════════════════════ -->
+      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup"
+                   testname="2. SQL Injection en Login" enabled="true">
+        <stringProp name="ThreadGroup.on_sample_error">continue</stringProp>
+        <elementProp name="ThreadGroup.main_controller" elementType="LoopController"
+                     guiclass="LoopControlPanel" testclass="LoopController">
+          <boolProp name="LoopController.continue_forever">false</boolProp>
+          <stringProp name="LoopController.loops">1</stringProp>
+        </elementProp>
+        <stringProp name="ThreadGroup.num_threads">1</stringProp>
+        <stringProp name="ThreadGroup.ramp_time">1</stringProp>
+      </ThreadGroup>
+      <hashTree>
+        <CSVDataSet guiclass="TestBeanGUI" testclass="CSVDataSet"
+                    testname="Payloads SQL Injection" enabled="true">
+          <stringProp name="filename">sql-payloads.csv</stringProp>
+          <stringProp name="fileEncoding">UTF-8</stringProp>
+          <stringProp name="variableNames">SQL_PAYLOAD</stringProp>
+          <boolProp name="ignoreFirstLine">false</boolProp>
+          <stringProp name="delimiter">,</stringProp>
+          <boolProp name="quotedData">true</boolProp>
+          <boolProp name="recycle">false</boolProp>
+          <boolProp name="stopThread">true</boolProp>
+          <stringProp name="shareMode">shareMode.all</stringProp>
+        </CSVDataSet>
+        <hashTree/>
+        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy"
+                          testname="POST /api/auth/login (SQL Injection)" enabled="true">
+          <stringProp name="HTTPSampler.domain">${BASE_URL}</stringProp>
+          <stringProp name="HTTPSampler.port">${PORT}</stringProp>
+          <stringProp name="HTTPSampler.path">/api/auth/login</stringProp>
+          <stringProp name="HTTPSampler.method">POST</stringProp>
+          <boolProp name="HTTPSampler.postBodyRaw">true</boolProp>
+          <elementProp name="HTTPsampler.Arguments" elementType="Arguments">
+            <collectionProp name="Arguments.arguments">
+              <elementProp name="" elementType="HTTPArgument">
+                <boolProp name="HTTPArgument.always_encode">false</boolProp>
+                <stringProp name="Argument.value">{"email":"${SQL_PAYLOAD}","password":"irrelevant"}</stringProp>
+                <stringProp name="Argument.metadata">=</stringProp>
+              </elementProp>
+            </collectionProp>
+          </elementProp>
+        </HTTPSamplerProxy>
+        <hashTree>
+          <!-- No debe devolver 200 con un payload de SQL injection -->
+          <ResponseAssertion guiclass="AssertionGui" testclass="ResponseAssertion"
+                             testname="No debe devolver 200 OK ante SQLi" enabled="true">
+            <collectionProp name="Asserion.test_strings">
+              <stringProp name="49586">200</stringProp>
+            </collectionProp>
+            <stringProp name="Assertion.test_field">Assertion.response_code</stringProp>
+            <boolProp name="Assertion.assume_success">false</boolProp>
+            <intProp name="Assertion.test_type">6</intProp>
+          </ResponseAssertion>
+          <hashTree/>
+          <!-- El cuerpo no debe filtrar información interna de la DB -->
+          <ResponseAssertion guiclass="AssertionGui" testclass="ResponseAssertion"
+                             testname="No debe filtrar errores de DB" enabled="true">
+            <collectionProp name="Asserion.test_strings">
+              <stringProp name="1">syntax error</stringProp>
+              <stringProp name="2">SequelizeDatabase</stringProp>
+              <stringProp name="3">pg_query</stringProp>
+            </collectionProp>
+            <stringProp name="Assertion.test_field">Assertion.response_data</stringProp>
+            <boolProp name="Assertion.assume_success">false</boolProp>
+            <intProp name="Assertion.test_type">6</intProp>
+          </ResponseAssertion>
+          <hashTree/>
+        </hashTree>
+        <ResultCollector guiclass="SimpleDataWriter" testclass="ResultCollector"
+                         testname="CSV SQL Injection" enabled="true">
+          <boolProp name="ResultCollector.error_logging">false</boolProp>
+          <objProp>
+            <name>saveConfig</name>
+            <value class="SampleSaveConfiguration">
+              <time>true</time>
+              <latency>true</latency>
+              <timestamp>true</timestamp>
+              <success>true</success>
+              <label>true</label>
+              <code>true</code>
+              <message>true</message>
+              <threadName>true</threadName>
+              <dataType>true</dataType>
+              <encoding>false</encoding>
+              <assertions>true</assertions>
+              <subresults>false</subresults>
+              <responseData>false</responseData>
+              <samplerData>false</samplerData>
+              <xml>false</xml>
+              <fieldNames>true</fieldNames>
+              <responseHeaders>false</responseHeaders>
+              <requestHeaders>false</requestHeaders>
+              <responseDataOnError>false</responseDataOnError>
+              <saveAssertionResultsFailureMessage>true</saveAssertionResultsFailureMessage>
+              <bytes>true</bytes>
+              <threadCounts>true</threadCounts>
+            </value>
+          </objProp>
+          <stringProp name="filename">results/sql-injection.csv</stringProp>
+        </ResultCollector>
+        <hashTree/>
+      </hashTree>
+
+      <!-- ═══════════════════════════════════════════════════════════════
+           3. JWT MANIPULATION — Tokens inválidos / alg=none
+           ═══════════════════════════════════════════════════════════════ -->
+      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup"
+                   testname="3. JWT Manipulation" enabled="true">
+        <stringProp name="ThreadGroup.on_sample_error">continue</stringProp>
+        <elementProp name="ThreadGroup.main_controller" elementType="LoopController"
+                     guiclass="LoopControlPanel" testclass="LoopController">
+          <boolProp name="LoopController.continue_forever">false</boolProp>
+          <stringProp name="LoopController.loops">1</stringProp>
+        </elementProp>
+        <stringProp name="ThreadGroup.num_threads">1</stringProp>
+        <stringProp name="ThreadGroup.ramp_time">1</stringProp>
+      </ThreadGroup>
+      <hashTree>
+        <!-- 3a: JWT con alg=none (bypass clásico CVE) -->
+        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy"
+                          testname="GET /api/students — JWT alg=none" enabled="true">
+          <stringProp name="HTTPSampler.domain">${BASE_URL}</stringProp>
+          <stringProp name="HTTPSampler.port">${PORT}</stringProp>
+          <stringProp name="HTTPSampler.path">/api/students</stringProp>
+          <stringProp name="HTTPSampler.method">GET</stringProp>
+          <boolProp name="HTTPSampler.postBodyRaw">false</boolProp>
+          <elementProp name="HTTPsampler.Arguments" elementType="Arguments">
+            <collectionProp name="Arguments.arguments"/>
+          </elementProp>
+        </HTTPSamplerProxy>
+        <hashTree>
+          <HeaderManager guiclass="HeaderPanel" testclass="HeaderManager"
+                         testname="Header JWT alg=none" enabled="true">
+            <collectionProp name="HeaderManager.headers">
+              <elementProp name="" elementType="Header">
+                <stringProp name="Header.name">Authorization</stringProp>
+                <stringProp name="Header.value">Bearer eyJhbGciOiJub25lIiwidHlwIjoiSldUIn0.eyJpZCI6MSwiZW1haWwiOiJhZG1pbkB0ZXN0LmNvbSIsInJvbGUiOiJhZG1pbiJ9.</stringProp>
+              </elementProp>
+            </collectionProp>
+          </HeaderManager>
+          <hashTree/>
+          <ResponseAssertion guiclass="AssertionGui" testclass="ResponseAssertion"
+                             testname="Debe rechazar JWT alg=none (401/403)" enabled="true">
+            <collectionProp name="Asserion.test_strings">
+              <stringProp name="1">401</stringProp>
+              <stringProp name="2">403</stringProp>
+            </collectionProp>
+            <stringProp name="Assertion.test_field">Assertion.response_code</stringProp>
+            <boolProp name="Assertion.assume_success">false</boolProp>
+            <intProp name="Assertion.test_type">40</intProp>
+          </ResponseAssertion>
+          <hashTree/>
+        </hashTree>
+
+        <!-- 3b: JWT con firma manipulada -->
+        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy"
+                          testname="GET /api/students — JWT firma inválida" enabled="true">
+          <stringProp name="HTTPSampler.domain">${BASE_URL}</stringProp>
+          <stringProp name="HTTPSampler.port">${PORT}</stringProp>
+          <stringProp name="HTTPSampler.path">/api/students</stringProp>
+          <stringProp name="HTTPSampler.method">GET</stringProp>
+          <boolProp name="HTTPSampler.postBodyRaw">false</boolProp>
+          <elementProp name="HTTPsampler.Arguments" elementType="Arguments">
+            <collectionProp name="Arguments.arguments"/>
+          </elementProp>
+        </HTTPSamplerProxy>
+        <hashTree>
+          <HeaderManager guiclass="HeaderPanel" testclass="HeaderManager"
+                         testname="Header JWT firma manipulada" enabled="true">
+            <collectionProp name="HeaderManager.headers">
+              <elementProp name="" elementType="Header">
+                <stringProp name="Header.name">Authorization</stringProp>
+                <stringProp name="Header.value">Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwiZW1haWwiOiJhZG1pbkB0ZXN0LmNvbSIsInJvbGUiOiJhZG1pbiJ9.FIRMA_INVALIDA_XYZ</stringProp>
+              </elementProp>
+            </collectionProp>
+          </HeaderManager>
+          <hashTree/>
+          <ResponseAssertion guiclass="AssertionGui" testclass="ResponseAssertion"
+                             testname="Debe rechazar JWT con firma inválida (401/403)" enabled="true">
+            <collectionProp name="Asserion.test_strings">
+              <stringProp name="1">401</stringProp>
+              <stringProp name="2">403</stringProp>
+            </collectionProp>
+            <stringProp name="Assertion.test_field">Assertion.response_code</stringProp>
+            <boolProp name="Assertion.assume_success">false</boolProp>
+            <intProp name="Assertion.test_type">40</intProp>
+          </ResponseAssertion>
+          <hashTree/>
+        </hashTree>
+
+        <!-- 3c: Acceso sin token a ruta protegida -->
+        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy"
+                          testname="GET /api/audit — sin token" enabled="true">
+          <stringProp name="HTTPSampler.domain">${BASE_URL}</stringProp>
+          <stringProp name="HTTPSampler.port">${PORT}</stringProp>
+          <stringProp name="HTTPSampler.path">/api/audit</stringProp>
+          <stringProp name="HTTPSampler.method">GET</stringProp>
+          <boolProp name="HTTPSampler.postBodyRaw">false</boolProp>
+          <elementProp name="HTTPsampler.Arguments" elementType="Arguments">
+            <collectionProp name="Arguments.arguments"/>
+          </elementProp>
+        </HTTPSamplerProxy>
+        <hashTree>
+          <ResponseAssertion guiclass="AssertionGui" testclass="ResponseAssertion"
+                             testname="Debe rechazar acceso sin token (401)" enabled="true">
+            <collectionProp name="Asserion.test_strings">
+              <stringProp name="1">401</stringProp>
+            </collectionProp>
+            <stringProp name="Assertion.test_field">Assertion.response_code</stringProp>
+            <boolProp name="Assertion.assume_success">false</boolProp>
+            <intProp name="Assertion.test_type">40</intProp>
+          </ResponseAssertion>
+          <hashTree/>
+        </hashTree>
+
+        <ResultCollector guiclass="SimpleDataWriter" testclass="ResultCollector"
+                         testname="CSV JWT Manipulation" enabled="true">
+          <boolProp name="ResultCollector.error_logging">false</boolProp>
+          <objProp>
+            <name>saveConfig</name>
+            <value class="SampleSaveConfiguration">
+              <time>true</time>
+              <latency>true</latency>
+              <timestamp>true</timestamp>
+              <success>true</success>
+              <label>true</label>
+              <code>true</code>
+              <message>true</message>
+              <threadName>true</threadName>
+              <dataType>true</dataType>
+              <encoding>false</encoding>
+              <assertions>true</assertions>
+              <subresults>false</subresults>
+              <responseData>false</responseData>
+              <samplerData>false</samplerData>
+              <xml>false</xml>
+              <fieldNames>true</fieldNames>
+              <responseHeaders>false</responseHeaders>
+              <requestHeaders>false</requestHeaders>
+              <responseDataOnError>false</responseDataOnError>
+              <saveAssertionResultsFailureMessage>true</saveAssertionResultsFailureMessage>
+              <bytes>true</bytes>
+              <threadCounts>true</threadCounts>
+            </value>
+          </objProp>
+          <stringProp name="filename">results/jwt-manipulation.csv</stringProp>
+        </ResultCollector>
+        <hashTree/>
+      </hashTree>
+
+      <!-- ═══════════════════════════════════════════════════════════════
+           4. PRIVILEGE ESCALATION — Login como usuario + acceso a admin
+           ═══════════════════════════════════════════════════════════════ -->
+      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup"
+                   testname="4. Privilege Escalation" enabled="true">
+        <stringProp name="ThreadGroup.on_sample_error">continue</stringProp>
+        <elementProp name="ThreadGroup.main_controller" elementType="LoopController"
+                     guiclass="LoopControlPanel" testclass="LoopController">
+          <boolProp name="LoopController.continue_forever">false</boolProp>
+          <stringProp name="LoopController.loops">1</stringProp>
+        </elementProp>
+        <stringProp name="ThreadGroup.num_threads">1</stringProp>
+        <stringProp name="ThreadGroup.ramp_time">1</stringProp>
+      </ThreadGroup>
+      <hashTree>
+        <!-- Login para obtener token -->
+        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy"
+                          testname="POST /api/auth/login (obtener token)" enabled="true">
+          <stringProp name="HTTPSampler.domain">${BASE_URL}</stringProp>
+          <stringProp name="HTTPSampler.port">${PORT}</stringProp>
+          <stringProp name="HTTPSampler.path">/api/auth/login</stringProp>
+          <stringProp name="HTTPSampler.method">POST</stringProp>
+          <boolProp name="HTTPSampler.postBodyRaw">true</boolProp>
+          <elementProp name="HTTPsampler.Arguments" elementType="Arguments">
+            <collectionProp name="Arguments.arguments">
+              <elementProp name="" elementType="HTTPArgument">
+                <boolProp name="HTTPArgument.always_encode">false</boolProp>
+                <stringProp name="Argument.value">{"email":"${VALID_EMAIL}","password":"${VALID_PASS}"}</stringProp>
+                <stringProp name="Argument.metadata">=</stringProp>
+              </elementProp>
+            </collectionProp>
+          </elementProp>
+        </HTTPSamplerProxy>
+        <hashTree>
+          <!-- Extraer token con regex (compatible con JMeter 5.5 sin plugins extra) -->
+          <RegexExtractor guiclass="RegexExtractorGui" testclass="RegexExtractor"
+                          testname="Extraer token JWT" enabled="true">
+            <stringProp name="RegexExtractor.useHeaders">false</stringProp>
+            <stringProp name="RegexExtractor.refname">AUTH_TOKEN</stringProp>
+            <stringProp name="RegexExtractor.regex">"token"\s*:\s*"([^"]+)"</stringProp>
+            <stringProp name="RegexExtractor.template">$1$</stringProp>
+            <stringProp name="RegexExtractor.default">TOKEN_NOT_FOUND</stringProp>
+            <stringProp name="RegexExtractor.match_no">1</stringProp>
+          </RegexExtractor>
+          <hashTree/>
+        </hashTree>
+
+        <!-- Acceso con token de usuario a ruta de solo admin -->
+        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy"
+                          testname="GET /api/audit (token de usuario → debe ser 403)" enabled="true">
+          <stringProp name="HTTPSampler.domain">${BASE_URL}</stringProp>
+          <stringProp name="HTTPSampler.port">${PORT}</stringProp>
+          <stringProp name="HTTPSampler.path">/api/audit</stringProp>
+          <stringProp name="HTTPSampler.method">GET</stringProp>
+          <boolProp name="HTTPSampler.postBodyRaw">false</boolProp>
+          <elementProp name="HTTPsampler.Arguments" elementType="Arguments">
+            <collectionProp name="Arguments.arguments"/>
+          </elementProp>
+        </HTTPSamplerProxy>
+        <hashTree>
+          <HeaderManager guiclass="HeaderPanel" testclass="HeaderManager"
+                         testname="Header con token extraído" enabled="true">
+            <collectionProp name="HeaderManager.headers">
+              <elementProp name="" elementType="Header">
+                <stringProp name="Header.name">Authorization</stringProp>
+                <stringProp name="Header.value">Bearer ${AUTH_TOKEN}</stringProp>
+              </elementProp>
+            </collectionProp>
+          </HeaderManager>
+          <hashTree/>
+          <ResponseAssertion guiclass="AssertionGui" testclass="ResponseAssertion"
+                             testname="Usuario no-admin debe recibir 401 o 403" enabled="true">
+            <collectionProp name="Asserion.test_strings">
+              <stringProp name="1">401</stringProp>
+              <stringProp name="2">403</stringProp>
+            </collectionProp>
+            <stringProp name="Assertion.test_field">Assertion.response_code</stringProp>
+            <boolProp name="Assertion.assume_success">false</boolProp>
+            <intProp name="Assertion.test_type">40</intProp>
+          </ResponseAssertion>
+          <hashTree/>
+        </hashTree>
+
+        <ResultCollector guiclass="SimpleDataWriter" testclass="ResultCollector"
+                         testname="CSV Privilege Escalation" enabled="true">
+          <boolProp name="ResultCollector.error_logging">false</boolProp>
+          <objProp>
+            <name>saveConfig</name>
+            <value class="SampleSaveConfiguration">
+              <time>true</time>
+              <latency>true</latency>
+              <timestamp>true</timestamp>
+              <success>true</success>
+              <label>true</label>
+              <code>true</code>
+              <message>true</message>
+              <threadName>true</threadName>
+              <dataType>true</dataType>
+              <encoding>false</encoding>
+              <assertions>true</assertions>
+              <subresults>false</subresults>
+              <responseData>false</responseData>
+              <samplerData>false</samplerData>
+              <xml>false</xml>
+              <fieldNames>true</fieldNames>
+              <responseHeaders>false</responseHeaders>
+              <requestHeaders>false</requestHeaders>
+              <responseDataOnError>false</responseDataOnError>
+              <saveAssertionResultsFailureMessage>true</saveAssertionResultsFailureMessage>
+              <bytes>true</bytes>
+              <threadCounts>true</threadCounts>
+            </value>
+          </objProp>
+          <stringProp name="filename">results/privilege-escalation.csv</stringProp>
+        </ResultCollector>
+        <hashTree/>
+      </hashTree>
+
+      <!-- ═══════════════════════════════════════════════════════════════
+           5. SECURITY HEADERS — Verificar cabeceras HTTP de seguridad
+           ═══════════════════════════════════════════════════════════════ -->
+      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup"
+                   testname="5. Security Headers" enabled="true">
+        <stringProp name="ThreadGroup.on_sample_error">continue</stringProp>
+        <elementProp name="ThreadGroup.main_controller" elementType="LoopController"
+                     guiclass="LoopControlPanel" testclass="LoopController">
+          <boolProp name="LoopController.continue_forever">false</boolProp>
+          <stringProp name="LoopController.loops">1</stringProp>
+        </elementProp>
+        <stringProp name="ThreadGroup.num_threads">1</stringProp>
+        <stringProp name="ThreadGroup.ramp_time">1</stringProp>
+      </ThreadGroup>
+      <hashTree>
+        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy"
+                          testname="GET /api/health (verificar headers)" enabled="true">
+          <stringProp name="HTTPSampler.domain">${BASE_URL}</stringProp>
+          <stringProp name="HTTPSampler.port">${PORT}</stringProp>
+          <stringProp name="HTTPSampler.path">/api/health</stringProp>
+          <stringProp name="HTTPSampler.method">GET</stringProp>
+          <boolProp name="HTTPSampler.postBodyRaw">false</boolProp>
+          <elementProp name="HTTPsampler.Arguments" elementType="Arguments">
+            <collectionProp name="Arguments.arguments"/>
+          </elementProp>
+        </HTTPSamplerProxy>
+        <hashTree>
+          <ResponseAssertion guiclass="AssertionGui" testclass="ResponseAssertion"
+                             testname="X-Content-Type-Options presente" enabled="true">
+            <collectionProp name="Asserion.test_strings">
+              <stringProp name="1">x-content-type-options</stringProp>
+            </collectionProp>
+            <stringProp name="Assertion.test_field">Assertion.response_headers</stringProp>
+            <boolProp name="Assertion.assume_success">false</boolProp>
+            <intProp name="Assertion.test_type">2</intProp>
+          </ResponseAssertion>
+          <hashTree/>
+          <ResponseAssertion guiclass="AssertionGui" testclass="ResponseAssertion"
+                             testname="No expone X-Powered-By" enabled="true">
+            <collectionProp name="Asserion.test_strings">
+              <stringProp name="1">x-powered-by</stringProp>
+            </collectionProp>
+            <stringProp name="Assertion.test_field">Assertion.response_headers</stringProp>
+            <boolProp name="Assertion.assume_success">false</boolProp>
+            <intProp name="Assertion.test_type">6</intProp>
+          </ResponseAssertion>
+          <hashTree/>
+        </hashTree>
+        <ResultCollector guiclass="SimpleDataWriter" testclass="ResultCollector"
+                         testname="CSV Security Headers" enabled="true">
+          <boolProp name="ResultCollector.error_logging">false</boolProp>
+          <objProp>
+            <name>saveConfig</name>
+            <value class="SampleSaveConfiguration">
+              <time>true</time>
+              <latency>true</latency>
+              <timestamp>true</timestamp>
+              <success>true</success>
+              <label>true</label>
+              <code>true</code>
+              <message>true</message>
+              <threadName>true</threadName>
+              <dataType>true</dataType>
+              <encoding>false</encoding>
+              <assertions>true</assertions>
+              <subresults>false</subresults>
+              <responseData>false</responseData>
+              <samplerData>false</samplerData>
+              <xml>false</xml>
+              <fieldNames>true</fieldNames>
+              <responseHeaders>true</responseHeaders>
+              <requestHeaders>false</requestHeaders>
+              <responseDataOnError>false</responseDataOnError>
+              <saveAssertionResultsFailureMessage>true</saveAssertionResultsFailureMessage>
+              <bytes>true</bytes>
+              <threadCounts>true</threadCounts>
+            </value>
+          </objProp>
+          <stringProp name="filename">results/security-headers.csv</stringProp>
+        </ResultCollector>
+        <hashTree/>
+      </hashTree>
+
+    </hashTree>
+  </hashTree>
+</jmeterTestPlan>

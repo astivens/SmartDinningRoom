@@ -7,6 +7,7 @@ import {
   TextField,
   Button,
   Alert,
+  Link,
 } from '@mui/material';
 import api from '../../api/axios';
 
@@ -26,7 +27,7 @@ export default function ForgotPasswordPage() {
       await api.post('/auth/forgot-password', { email });
       setMessage('Se ha enviado un enlace de recuperación a tu correo electrónico.');
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Error al enviar el correo');
+      setError(err.response?.data?.message ?? 'Error al enviar el correo');
     } finally {
       setLoading(false);
     }
@@ -88,9 +89,9 @@ export default function ForgotPasswordPage() {
 
         <Box sx={{ mt: 2, textAlign: 'center' }}>
           <Typography variant="body2">
-            <RouterLink to="/login" style={{ textDecoration: 'none' }}>
+            <Link component={RouterLink} to="/login" underline="hover" sx={{ fontWeight: 600 }}>
               Volver a Iniciar Sesión
-            </RouterLink>
+            </Link>
           </Typography>
         </Box>
       </Paper>

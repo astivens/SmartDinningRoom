@@ -2,9 +2,11 @@ import { DataTypes, Model, Optional } from 'sequelize';
 import { sequelize } from '../config/database';
 import { Student } from './Student';
 import { User } from './User';
+import { generateUid } from '../utils/uidGenerator';
 
 export interface MealAttendanceAttributes {
   id: string;
+  uid: string;
   studentId: string;
   supervisorId: string;
   date: Date;
@@ -13,10 +15,11 @@ export interface MealAttendanceAttributes {
   updatedAt?: Date;
 }
 
-interface MealAttendanceCreationAttributes extends Optional<MealAttendanceAttributes, 'id'> {}
+interface MealAttendanceCreationAttributes extends Optional<MealAttendanceAttributes, 'id' | 'uid'> {}
 
 export class MealAttendance extends Model<MealAttendanceAttributes, MealAttendanceCreationAttributes> implements MealAttendanceAttributes {
   declare id: string;
+  declare uid: string;
   declare studentId: string;
   declare supervisorId: string;
   declare date: Date;
@@ -31,6 +34,11 @@ MealAttendance.init(
       type: DataTypes.UUID,
       defaultValue: DataTypes.UUIDV4,
       primaryKey: true
+    },
+    uid: {
+      type: DataTypes.STRING(20),
+      unique: true,
+      allowNull: false
     },
     studentId: {
       type: DataTypes.UUID,
@@ -60,7 +68,12 @@ MealAttendance.init(
   {
     sequelize,
     modelName: 'MealAttendance',
-    tableName: 'meal_attendances'
+    tableName: 'meal_attendances',
+    hooks: {
+      beforeValidate: (attendance: MealAttendance) => {
+        attendance.uid = generateUid('MLA');
+      }
+    }
   }
 );
 

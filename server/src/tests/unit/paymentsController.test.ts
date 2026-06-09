@@ -27,8 +27,9 @@ jest.mock('../../models', () => ({
     findByPk: jest.fn(),
     findAndCountAll: jest.fn(),
   },
-  Student: { findByPk: jest.fn() },
-  User: {},
+  Student: { findByPk: jest.fn(), findOne: jest.fn() },
+  User: { findByPk: jest.fn() },
+  UserRole: { STUDENT: 'student' },
 }));
 
 const mockResponse = () => {
@@ -184,10 +185,10 @@ describe('paymentsController', () => {
 
       await verifyPayment(req as AuthRequest, res as Response);
 
-      expect(mockPayment.update).toHaveBeenCalledWith({
+      expect(mockPayment.update).toHaveBeenNthCalledWith(1, expect.objectContaining({
         isVerified: true,
         verifiedBy: 'admin-1',
-      });
+      }));
       expect(res.json).toHaveBeenCalledWith(expect.objectContaining({ message: 'Pago verificado' }));
     });
 
@@ -268,6 +269,10 @@ describe('paymentsController', () => {
   // =========================================================================
   describe('uploadPaymentComprobante', () => {
     it('TC-UPLOAD-001: Subida exitosa de comprobante', async () => {
+      (User.findByPk as jest.Mock).mockResolvedValue({
+        id: 'user-1', email: 'test@test.com', role: 'student',
+      });
+      (Student.findOne as jest.Mock).mockResolvedValue({ id: 's1' });
       (Payment.create as jest.Mock).mockResolvedValue({ id: 'p1' });
 
       const mockFile = { path: 'uploads/recibo123.pdf' };

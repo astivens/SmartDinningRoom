@@ -1,0 +1,94 @@
+@startuml feedback-domain
+skinparam classAttributeIconSize 0
+skinparam monochrome false
+skinparam backgroundColor #FEFEFE
+skinparam ArrowColor #333333
+skinparam ClassBorderColor #555555
+skinparam ClassBackgroundColor #F8F9FA
+skinparam nodesep 60
+skinparam ranksep 50
+left to right direction
+
+title 3/4 — Feedback: Calificaciones, Quejas y Noticias
+
+enum ComplaintType {
+  QUEJA
+  SUGERENCIA
+  COMENTARIO
+}
+
+class Student {
+  +UUID id
+  +String uid «STD-»
+}
+
+class Rating {
+  +UUID id
+  +String uid «RTG-»
+  +UUID studentId FK
+  +Integer stars (1-5)
+  +String comment?
+  +Date createdAt
+}
+
+class Complaint {
+  +UUID id
+  +String uid «CMP-»
+  +UUID studentId? FK
+  +ComplaintType type
+  +String content
+  +Boolean isAnonymous
+  +String response?
+  +UUID respondedBy? FK
+  +Boolean isResolved
+  +Date createdAt
+}
+
+class News {
+  +UUID id
+  +String uid «NWS-»
+  +String title
+  +String content
+  +String imageUrl?
+  +Boolean isActive
+  +Date createdAt
+}
+
+class User {
+  +UUID id
+  +String name
+}
+
+Student "1" -- "0..*" Rating : califica
+Student "1" -- "0..*" Complaint : envía
+Complaint "0..*" -- "0..1" User : respondedBy
+
+note right of Rating
+  Stars: 1 a 5
+  Comment opcional
+  --
+  Endpoints públicos:
+  GET  /api/ratings
+  GET  /api/ratings/average
+  POST /api/ratings (student)
+end note
+
+note right of Complaint
+  Tipos:
+  • queja — reclamo formal
+  • sugerencia — propuesta
+  • comentario — opinión general
+
+  isAnonymous: true → studentId = null
+
+  Admin puede responder y marcar
+  como resuelto (isResolved)
+end note
+
+note bottom of News
+  Solo admin crea/edita/elimina
+  Lectura pública (optionalAuth)
+  isActive controla visibilidad
+end note
+
+@enduml

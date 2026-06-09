@@ -16,6 +16,7 @@ import {
 } from '@mui/material';
 import Layout from '../../components/layout/Layout';
 import { complaintService } from '../../api/servicesApi';
+import DataSectionCard from '../../components/DataSectionCard';
 
 export default function StudentComplaintPage() {
   const [formData, setFormData] = useState({
@@ -41,7 +42,7 @@ export default function StudentComplaintPage() {
       setMessage({ type: 'success', text: 'Tu mensaje ha sido enviado. Gracias por tus comentarios.' });
       setFormData({ type: 'queja', content: '', isAnonymous: false });
     } catch (error: any) {
-      setMessage({ type: 'error', text: error.response?.data?.message || 'Error al enviar' });
+      setMessage({ type: 'error', text: error.response?.data?.message ?? 'Error al enviar' });
     } finally {
       setLoading(false);
     }
@@ -55,7 +56,7 @@ export default function StudentComplaintPage() {
 
       <Grid container spacing={3}>
         <Grid item xs={12} md={8}>
-          <Paper sx={{ p: 3 }}>
+          <DataSectionCard>
             <Typography variant="body1" paragraph>
               Tu opinión es importante para nosotros. Cuéntanos tus sugerencias o reporta cualquier problema.
             </Typography>
@@ -113,11 +114,11 @@ export default function StudentComplaintPage() {
                 {loading ? 'Enviando...' : 'Enviar Mensaje'}
               </Button>
             </form>
-          </Paper>
+          </DataSectionCard>
         </Grid>
 
         <Grid item xs={12} md={4}>
-          <Paper sx={{ p: 3, bgcolor: 'primary.light', color: 'white' }}>
+          <DataSectionCard sx={{ bgcolor: 'primary.main', color: 'primary.contrastText' }}>
             <Typography variant="h6" gutterBottom>
               Contacto
             </Typography>
@@ -133,7 +134,7 @@ export default function StudentComplaintPage() {
             <Typography variant="body2">
               <strong>Horario:</strong> Lun-Vie 7am - 5pm
             </Typography>
-          </Paper>
+          </DataSectionCard>
         </Grid>
       </Grid>
     </Layout>

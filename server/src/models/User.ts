@@ -1,19 +1,23 @@
 import { DataTypes, Model, Optional } from 'sequelize';
 import { sequelize } from '../config/database';
 import bcrypt from 'bcryptjs';
+import { generateUid } from '../utils/uidGenerator';
 
 export enum UserRole {
   ADMIN = 'admin',
   SUPERVISOR = 'supervisor',
-  STUDENT = 'student'
+  STUDENT = 'student',
+  EXTERNAL_AUDITOR = 'external_auditor'
 }
 
 export interface UserAttributes {
   id: string;
+  uid: string;
   email: string;
   password: string;
   name: string;
   lastName: string;
+  telefono?: string;
   role: UserRole;
   isActive: boolean;
   isAuthorized: boolean;
@@ -23,14 +27,16 @@ export interface UserAttributes {
   updatedAt?: Date;
 }
 
-interface UserCreationAttributes extends Optional<UserAttributes, 'id' | 'isActive' | 'isAuthorized' | 'resetPasswordToken' | 'resetPasswordExpires'> {}
+interface UserCreationAttributes extends Optional<UserAttributes, 'id' | 'uid' | 'isActive' | 'isAuthorized' | 'resetPasswordToken' | 'resetPasswordExpires'> {}
 
 export class User extends Model<UserAttributes, UserCreationAttributes> implements UserAttributes {
   declare id: string;
+  declare uid: string;
   declare email: string;
   declare password: string;
   declare name: string;
   declare lastName: string;
+  declare telefono?: string;
   declare role: UserRole;
   declare isActive: boolean;
   declare isAuthorized: boolean;
@@ -50,6 +56,11 @@ User.init(
       type: DataTypes.UUID,
       defaultValue: DataTypes.UUIDV4,
       primaryKey: true
+    },
+    uid: {
+      type: DataTypes.STRING(20),
+      unique: true,
+      allowNull: false
     },
     email: {
       type: DataTypes.STRING(30),
@@ -78,6 +89,10 @@ User.init(
         len: [1, 20]
       }
     },
+    telefono: {
+      type: DataTypes.STRING(15),
+      allowNull: true
+    },
     role: {
       type: DataTypes.ENUM(...Object.values(UserRole)),
       allowNull: false,
@@ -105,7 +120,8 @@ User.init(
     modelName: 'User',
     tableName: 'users',
     hooks: {
-      beforeCreate: async (user: User) => {
+      beforeValidate: async (user: User) => {
+        user.uid = generateUid('USR');
         if (user.password) {
           const salt = await bcrypt.genSalt(10);
           user.password = await bcrypt.hash(user.password, salt);

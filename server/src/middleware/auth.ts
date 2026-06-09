@@ -35,6 +35,11 @@ export const authenticate = async (req: AuthRequest, res: Response, next: NextFu
       role: user.role
     };
 
+    const isReadMethod = req.method === 'GET' || req.method === 'HEAD' || req.method === 'OPTIONS';
+    if (user.role === UserRole.EXTERNAL_AUDITOR && !isReadMethod) {
+      return res.status(403).json({ message: 'El rol de auditor externo solo tiene permisos de visualización' });
+    }
+
     next();
   } catch (error) {
     return res.status(401).json({ message: 'Invalid token' });

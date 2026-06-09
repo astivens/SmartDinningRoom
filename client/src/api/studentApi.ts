@@ -1,8 +1,8 @@
 import api from './axios';
 
 export const studentService = {
-  getStudents: async (search?: string, page = 1, limit = 10) => {
-    const response = await api.get('/students', { params: { search, page, limit } });
+  getStudents: async (search?: string, page = 1, limit = 10, onlyActive?: boolean) => {
+    const response = await api.get('/students', { params: { search, page, limit, onlyActive } });
     return response.data;
   },
 
@@ -11,7 +11,7 @@ export const studentService = {
     return response.data;
   },
 
-  searchStudents: async (params: { cedula?: string; nombre?: string; apellido?: string; carrera?: string; dia?: string }) => {
+  searchStudents: async (params: { cedula?: string; nombre?: string; apellido?: string; carrera?: string; dia?: string; uid?: string; q?: string }) => {
     const response = await api.get('/students/search', { params });
     return response.data;
   },
@@ -43,8 +43,13 @@ export const studentService = {
     return response.data;
   },
 
-  validateSisben: async (id: string, data: { cedula: string; name: string; lastName: string }) => {
-    const response = await api.post(`/students/${id}/validate-sisben`, data);
+  validateSisben: async (id: string) => {
+    const response = await api.post(`/students/${id}/validate-sisben`);
+    return response.data;
+  },
+
+  updateStudentCycle: async (id: string, data: { currentCycle?: string; cycleRevalidationDueAt?: string; cycleDisabledAt?: string }) => {
+    const response = await api.patch(`/students/${id}/cycle`, data);
     return response.data;
   },
 };

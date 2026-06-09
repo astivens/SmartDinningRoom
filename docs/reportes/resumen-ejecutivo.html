@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Resumen Ejecutivo de Pruebas</title>
+  <style>
+    body { font-family: Inter, Arial, sans-serif; margin: 0; background: #0f172a; color: #e2e8f0; }
+    .wrap { max-width: 1200px; margin: 0 auto; padding: 20px; }
+    h1 { margin: 0 0 8px; }
+    .subtitle { color: #94a3b8; margin-bottom: 16px; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 12px; }
+    .card { background: #111827; border: 1px solid #334155; border-radius: 10px; padding: 12px; }
+    .card h2 { margin: 0 0 8px; font-size: 18px; }
+    .line { font-size: 14px; margin: 4px 0; color: #cbd5e1; }
+    .badge { display:inline-block; padding:2px 8px; border-radius:999px; font-size:12px; font-weight:600; }
+    .ok { background:#14532d; color:#86efac; }
+    .warn { background:#78350f; color:#fde68a; }
+    .err { background:#7f1d1d; color:#fecaca; }
+    table { width: 100%; border-collapse: collapse; margin-top: 8px; font-size: 13px; }
+    th, td { border: 1px solid #334155; padding: 6px; text-align: left; }
+    th { background: #1e293b; }
+    .muted { color: #94a3b8; }
+    a { color: #93c5fd; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>Resumen Ejecutivo de Pruebas</h1>
+    <p class="subtitle">Lectura rapida y entendible de unitarias, integracion, carga/estres y seguridad.</p>
+    <div class="grid">
+      <section class="card">
+        <h2>Diagnostico Rapido (Que falla)</h2>
+        <table>
+          <thead>
+            <tr><th>Bloque</th><th>Estado</th><th>Lectura</th><th>Accion recomendada</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Unitarias</td>
+              <td><span class="badge warn">WARN</span></td>
+              <td>Statements en 78.76%</td>
+              <td>Subir cobertura en controllers/branching critico.</td>
+            </tr>
+            <tr>
+              <td>Integracion</td>
+              <td><span class="badge ok">OK</span></td>
+              <td>Tests: 19 OK / 0 FAIL (exito 100.0%).</td>
+              <td>Revisar suites fallidas y estabilizar contratos API en integración.</td>
+            </tr>
+            <tr>
+              <td>JMeter Carga</td>
+              <td><span class="badge warn">WARN</span></td>
+              <td>Error 18.96% (4900 de 25849).</td>
+              <td>Analizar endpoint con mas error y assertions de tiempo.</td>
+            </tr>
+            <tr>
+              <td>JMeter Estres</td>
+              <td><span class="badge warn">WARN</span></td>
+              <td>Error 14.88% (1164 de 7820).</td>
+              <td>Escalar carga gradual y ajustar umbrales por endpoint.</td>
+            </tr>
+            <tr>
+              <td>ZAP Baseline</td>
+              <td><span class="badge err">ERR</span></td>
+              <td>High: 1 / Medium: 4 / Total: 5</td>
+              <td>Corregir headers y filtrar ruido de rutas 404.</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section class="card">
+        <h2>Unitarias (Coverage)</h2>
+        <div class="line">Statements: <strong>78.76%</strong> <span class="muted">(742/942)</span></div><div class="line">Branches: <strong>64.54%</strong> <span class="muted">(233/361)</span></div><div class="line">Functions: <strong>85.26%</strong> <span class="muted">(81/95)</span></div><div class="line">Lines: <strong>77.45%</strong> <span class="muted">(670/865)</span></div>
+        <div class="line muted">Fuente: server/coverage-unit/lcov-report/index.html</div>
+      </section>
+
+      <section class="card">
+        <h2>Integracion (Ejecucion real)</h2>
+        <div class="line">Tests totales: <strong>19</strong></div>
+        <div class="line">Pasados: <strong>19</strong></div>
+        <div class="line">Fallidos: <strong>0</strong></div>
+        <div class="line">Exito: <strong>100.0%</strong> <span class="badge ok">OK</span></div>
+        <div class="line muted">Fuente: server/coverage-integration/jest-integration-results.json</div>
+      </section>
+
+      <section class="card">
+        <h2>JMeter Carga</h2>
+        <div class="line">Peticiones: <strong>25849</strong></div>
+        <div class="line">Errores: <strong>4900</strong> (18.96%) <span class="badge warn">WARN</span></div>
+        <table><thead><tr><th>Codigo</th><th>Cantidad</th></tr></thead><tbody>
+        <tr><td>200</td><td>25849</td></tr>
+        </tbody></table>
+      </section>
+
+      <section class="card">
+        <h2>JMeter Estres</h2>
+        <div class="line">Peticiones: <strong>7820</strong></div>
+        <div class="line">Errores: <strong>1164</strong> (14.88%) <span class="badge warn">WARN</span></div>
+        <table><thead><tr><th>Endpoint con mas fallos</th><th>Cantidad</th></tr></thead><tbody>
+        <tr><td>POST /api/auth/login</td><td>433</td></tr><tr><td>GET /api/health</td><td>371</td></tr><tr><td>GET /api/news</td><td>360</td></tr>
+        </tbody></table>
+      </section>
+
+      <section class="card">
+        <h2>ZAP Baseline</h2>
+        <div class="line">Alertas totales: <strong>5</strong></div>
+        <table><thead><tr><th>Riesgo</th><th>Cantidad</th></tr></thead><tbody>
+        <tr><td>Medium (High)</td><td>1</td></tr><tr><td>Low (Medium)</td><td>3</td></tr><tr><td>Informational (Medium)</td><td>1</td></tr>
+        </tbody></table>
+      </section>
+
+      <section class="card">
+        <h2>Abrir reportes detallados</h2>
+        <div class="line"><a href="../../server/coverage-unit/lcov-report/index.html">Unitarias (coverage)</a></div>
+        <div class="line"><a href="../../server/coverage-integration/integration-report.html">Integracion (ejecucion)</a></div>
+        <div class="line"><a href="../../tests/security/jmeter/results/html-report-load-full/index.html">JMeter carga (html)</a></div>
+        <div class="line"><a href="../../tests/security/zap/zap-baseline.html">ZAP baseline (html)</a></div>
+      </section>
+    </div>
+  </div>
+</body>
+</html>

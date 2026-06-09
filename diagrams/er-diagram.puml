@@ -1,166 +1,197 @@
-@startuml
-title Diagrama Entidad-Relación - SmartComedor
+@startuml er-diagram
+skinparam monochrome false
+skinparam backgroundColor #FEFEFE
 
-skinparam {
-  DatabaseBorderColor #2C3E50
-  DatabaseBackgroundColor #ECF0F1
-  DatabaseFontColor #2C3E50
-  ArrowColor #3498DB
+title Diagrama Entidad-Relación — SmartDiningRoom
+
+entity "users" as users {
+  * id : UUID <<PK>>
+  --
+  * uid : STRING(20) <<UNIQUE>>
+  * email : STRING(30) <<UNIQUE>>
+  * password : STRING(255)
+  * name : STRING(20)
+  * last_name : STRING(20)
+  telefono : STRING(15)
+  * role : ENUM(admin, supervisor, student, external_auditor)
+  * is_active : BOOLEAN
+  * is_authorized : BOOLEAN
+  reset_password_token : STRING(255)
+  reset_password_expires : DATE
+  created_at : DATE
+  updated_at : DATE
 }
 
-database "SmartComedor DB" {
-
-  entity "users" {
-    * **id** : UUID <<PK>>
-    --
-    * email : VARCHAR(30) <<UNIQUE>>
-    * password : VARCHAR(255)
-    * name : VARCHAR(20)
-    * lastName : VARCHAR(20)
-    * role : ENUM('admin','supervisor','student')
-    * isActive : BOOLEAN
-    * isAuthorized : BOOLEAN
-    --
-    resetPasswordToken : VARCHAR(255)
-    resetPasswordExpires : TIMESTAMP
-    createdAt : TIMESTAMP
-    updatedAt : TIMESTAMP
-  }
-
-  entity "students" {
-    * **id** : UUID <<PK>>
-    --
-    * userId : UUID <<FK>>
-    * cedula : VARCHAR(12) <<UNIQUE>>
-    * carrera : VARCHAR(25)
-    * semestre : INTEGER
-    * categoriaSisben : VARCHAR(10)
-    * archivoSisben : VARCHAR(255)
-    --
-    direccion : VARCHAR(100)
-    * barrio : VARCHAR(50)
-    * telefono : VARCHAR(15)
-    * trabaja : BOOLEAN
-    * etnia : VARCHAR(30)
-    * desplazado : BOOLEAN
-    * trabajadorUniversitario : BOOLEAN
-    * diasComedor : JSONB
-    qrCode : TEXT
-    qrCodeSecret : VARCHAR(255)
-    * isValidatedSisben : BOOLEAN
-    createdAt : TIMESTAMP
-    updatedAt : TIMESTAMP
-  }
-
-  entity "payments" {
-    * **id** : UUID <<PK>>
-    --
-    * studentId : UUID <<FK>>
-    * amount : INTEGER
-    * mealsIncluded : INTEGER
-    * mealsUsed : INTEGER
-    * comprobantePath : VARCHAR(255)
-    * isVerified : BOOLEAN
-    verifiedBy : UUID <<FK>>
-    createdAt : TIMESTAMP
-    updatedAt : TIMESTAMP
-  }
-
-  entity "meal_attendances" {
-    * **id** : UUID <<PK>>
-    --
-    * studentId : UUID <<FK>>
-    * supervisorId : UUID <<FK>>
-    * date : DATE
-    * hora : VARCHAR(10)
-    createdAt : TIMESTAMP
-    updatedAt : TIMESTAMP
-  }
-
-  entity "supervisor_logs" {
-    * **id** : UUID <<PK>>
-    --
-    * supervisorId : UUID <<FK>>
-    * studentId : UUID <<FK>>
-    * action : VARCHAR(100)
-    * hora : VARCHAR(10)
-    createdAt : TIMESTAMP
-    updatedAt : TIMESTAMP
-  }
-
-  entity "ratings" {
-    * **id** : UUID <<PK>>
-    --
-    * studentId : UUID <<FK>>
-    * stars : INTEGER
-    comment : TEXT
-    createdAt : TIMESTAMP
-    updatedAt : TIMESTAMP
-  }
-
-  entity "complaints" {
-    * **id** : UUID <<PK>>
-    --
-    studentId : UUID <<FK>>
-    * type : ENUM('queja','sugerencia','comentario')
-    * content : TEXT
-    * isAnonymous : BOOLEAN
-    response : TEXT
-    respondedBy : UUID <<FK>>
-    * isResolved : BOOLEAN
-    createdAt : TIMESTAMP
-    updatedAt : TIMESTAMP
-  }
-
-  entity "news" {
-    * **id** : UUID <<PK>>
-    --
-    * title : VARCHAR(100)
-    * content : TEXT
-    imageUrl : VARCHAR(255)
-    * isActive : BOOLEAN
-    createdAt : TIMESTAMP
-    updatedAt : TIMESTAMP
-  }
-
-  entity "audit_logs" {
-    * **id** : UUID <<PK>>
-    --
-    * userId : UUID <<FK>>
-    * userEmail : VARCHAR(100)
-    * action : VARCHAR(100)
-    details : TEXT
-    ipAddress : VARCHAR(45)
-    createdAt : TIMESTAMP
-    updatedAt : TIMESTAMP
-  }
-
-  entity "supervisor_assignments" {
-    * **id** : UUID <<PK>>
-    --
-    * supervisorId : UUID <<FK>>
-    * studentId : UUID <<FK>>
-    createdAt : TIMESTAMP
-    updatedAt : TIMESTAMP
-  }
+entity "students" as students {
+  * id : UUID <<PK>>
+  --
+  * uid : STRING(20) <<UNIQUE>>
+  * user_id : UUID <<FK>>
+  * cedula : STRING(12) <<UNIQUE>>
+  * carrera : STRING(25)
+  * semestre : INTEGER
+  * categoria_sisben : STRING(10)
+  * archivo_sisben : STRING(255)
+  cedula_frontal_path : STRING(255)
+  horario_pdf_path : STRING(255)
+  recibo_pago_path : STRING(255)
+  direccion : STRING(100)
+  * barrio : STRING(50)
+  * telefono : STRING(15)
+  * trabaja : BOOLEAN
+  * trabaja_estudia : BOOLEAN
+  * estudia_solo : BOOLEAN
+  * etnia : STRING(30)
+  * desplazado : BOOLEAN
+  * trabajador_universitario : BOOLEAN
+  * dias_comedor : JSONB
+  qr_code : TEXT
+  qr_code_secret : STRING(255)
+  * is_validated_sisben : BOOLEAN
+  * sisben_auto_validated : BOOLEAN
+  sisben_validation_details : JSONB
+  * current_cycle : STRING(20) <<FK>>
+  cycle_revalidation_due_at : DATE
+  cycle_disabled_at : DATE
+  created_at : DATE
+  updated_at : DATE
 }
 
-' ========================================
-' Relaciones
-' ========================================
-users ||--o{ students : "1 a 1"
-users ||--o{ payments : "verifica 0..*"
-users ||--o{ meal_attendances : "registra 0..*"
-users ||--o{ supervisor_logs : "genera 0..*"
-users ||--o{ audit_logs : "genera 0..*"
-users ||--o{ complaints : "responde 0..*"
+entity "cycles" as cycles {
+  * id : UUID <<PK>>
+  --
+  * uid : STRING(20) <<UNIQUE>>
+  * name : STRING(50) <<UNIQUE>>
+  * start_date : DATE
+  * end_date : DATE
+  * status : ENUM(Activo, Cerrado)
+  created_at : DATE
+  updated_at : DATE
+}
 
-students ||--o{ payments : "tiene 0..*"
-students ||--o{ meal_attendances : "asiste 0..*"
-students ||--o{ ratings : "califica 0..*"
-students ||--o{ complaints : "envía 0..*"
+entity "payments" as payments {
+  * id : UUID <<PK>>
+  --
+  * uid : STRING(20) <<UNIQUE>>
+  * student_id : UUID <<FK>>
+  * amount : INTEGER
+  * meals_included : INTEGER
+  * meals_used : INTEGER
+  * comprobante_path : STRING(255)
+  university_receipt_path : STRING(255)
+  bank_receipt_path : STRING(255)
+  * is_verified : BOOLEAN
+  verified_by : UUID <<FK>>
+  verified_at : DATE
+  created_at : DATE
+  updated_at : DATE
+}
 
-students ||--o{ supervisor_assignments : "asignado 0..*"
-users ||--o{ supervisor_assignments : "supervisa 0..*"
+entity "meal_attendances" as meal_attendances {
+  * id : UUID <<PK>>
+  --
+  * uid : STRING(20) <<UNIQUE>>
+  * student_id : UUID <<FK>>
+  * supervisor_id : UUID <<FK>>
+  * date : DATEONLY
+  * hora : STRING(10)
+  created_at : DATE
+  updated_at : DATE
+}
+
+entity "supervisor_assignments" as supervisor_assignments {
+  * id : UUID <<PK>>
+  --
+  * uid : STRING(20) <<UNIQUE>>
+  * supervisor_id : UUID <<FK>>
+  * student_id : UUID <<FK>>
+  created_at : DATE
+  updated_at : DATE
+  --
+  <<UNIQUE>> (supervisor_id, student_id)
+}
+
+entity "supervisor_logs" as supervisor_logs {
+  * id : UUID <<PK>>
+  --
+  * uid : STRING(20) <<UNIQUE>>
+  * supervisor_id : UUID <<FK>>
+  * student_id : UUID <<FK>>
+  * action : STRING(100)
+  * hora : STRING(10)
+  created_at : DATE
+  updated_at : DATE
+}
+
+entity "ratings" as ratings {
+  * id : UUID <<PK>>
+  --
+  * uid : STRING(20) <<UNIQUE>>
+  * student_id : UUID <<FK>>
+  * stars : INTEGER <<CHECK 1-5>>
+  comment : TEXT
+  created_at : DATE
+  updated_at : DATE
+}
+
+entity "complaints" as complaints {
+  * id : UUID <<PK>>
+  --
+  * uid : STRING(20) <<UNIQUE>>
+  student_id : UUID <<FK>>
+  * type : ENUM(queja, sugerencia, comentario)
+  * content : TEXT
+  * is_anonymous : BOOLEAN
+  response : TEXT
+  responded_by : UUID
+  * is_resolved : BOOLEAN
+  created_at : DATE
+  updated_at : DATE
+}
+
+entity "news" as news {
+  * id : UUID <<PK>>
+  --
+  * uid : STRING(20) <<UNIQUE>>
+  * title : STRING(100)
+  * content : TEXT
+  image_url : STRING(255)
+  * is_active : BOOLEAN
+  created_at : DATE
+  updated_at : DATE
+}
+
+entity "audit_logs" as audit_logs {
+  * id : UUID <<PK>>
+  --
+  * uid : STRING(20) <<UNIQUE>>
+  * user_id : UUID
+  * user_email : STRING(100)
+  * action : STRING(100)
+  details : TEXT
+  ip_address : STRING(45)
+  created_at : DATE
+  updated_at : DATE
+}
+
+' ═══════════════════════════════
+' RELACIONES
+' ═══════════════════════════════
+
+users ||--o| students : "1:1 (userId)"
+students }o--|| cycles : "N:1 (currentCycle → name)"
+students ||--o{ payments : "1:N (studentId)"
+students ||--o{ meal_attendances : "1:N (studentId)"
+students ||--o{ ratings : "1:N (studentId)"
+students ||--o{ complaints : "1:N (studentId)"
+students ||--o{ supervisor_assignments : "1:N (studentId)"
+students ||--o{ supervisor_logs : "1:N (studentId)"
+
+users ||--o{ meal_attendances : "1:N (supervisorId)"
+users ||--o{ supervisor_assignments : "1:N (supervisorId)"
+users ||--o{ supervisor_logs : "1:N (supervisorId)"
+users ||--o{ payments : "1:N (verifiedBy)"
+users ||--o{ complaints : "1:N (respondedBy)"
+users ||--o{ audit_logs : "1:N (userId)"
 
 @enduml

@@ -10,7 +10,7 @@ export const getSupervisors = async (req: AuthRequest, res: Response) => {
   try {
     const supervisors = await User.findAll({
       where: { role: UserRole.SUPERVISOR },
-      attributes: ['id', 'email', 'name', 'lastName', 'isActive', 'isAuthorized']
+      attributes: ['id', 'email', 'name', 'lastName', 'telefono', 'isActive', 'isAuthorized']
     });
 
     res.json(supervisors);
@@ -22,7 +22,7 @@ export const getSupervisors = async (req: AuthRequest, res: Response) => {
 
 export const createSupervisor = async (req: AuthRequest, res: Response) => {
   try {
-    const { email, name, lastName } = req.body;
+    const { email, name, lastName, telefono } = req.body;
 
     const tempPassword = uuidv4().slice(0, 8);
 
@@ -31,6 +31,7 @@ export const createSupervisor = async (req: AuthRequest, res: Response) => {
       password: tempPassword,
       name,
       lastName,
+      telefono,
       role: UserRole.SUPERVISOR,
       isActive: true,
       isAuthorized: false
@@ -43,7 +44,8 @@ export const createSupervisor = async (req: AuthRequest, res: Response) => {
         id: supervisor.id,
         email: supervisor.email,
         name: supervisor.name,
-        lastName: supervisor.lastName
+        lastName: supervisor.lastName,
+        telefono: supervisor.telefono
       },
       temporaryPassword: tempPassword
     });
@@ -59,14 +61,14 @@ export const createSupervisor = async (req: AuthRequest, res: Response) => {
 export const updateSupervisor = async (req: AuthRequest, res: Response) => {
   try {
     const { id } = req.params;
-    const { name, lastName, email, isActive, isAuthorized } = req.body;
+    const { name, lastName, email, telefono, isActive, isAuthorized } = req.body;
 
     const supervisor = await User.findByPk(id);
     if (!supervisor || supervisor.role !== 'supervisor') {
       return res.status(404).json({ message: 'Supervisor no encontrado' });
     }
 
-    await supervisor.update({ name, lastName, email, isActive, isAuthorized });
+    await supervisor.update({ name, lastName, email, telefono, isActive, isAuthorized });
 
     res.json({ message: 'Supervisor actualizado' });
   } catch (error) {
@@ -132,7 +134,7 @@ export const generateInviteLink = async (req: AuthRequest, res: Response) => {
 
 export const joinWithInvite = async (req: Request, res: Response) => {
   try {
-    const { token, email, name, lastName, password } = req.body;
+    const { token, email, name, lastName, telefono, password } = req.body;
 
     if (!token || !email || !name || !lastName || !password) {
       return res.status(400).json({ message: 'Todos los campos son requeridos' });
@@ -159,6 +161,7 @@ export const joinWithInvite = async (req: Request, res: Response) => {
       password,
       name,
       lastName,
+      telefono,
       role: UserRole.SUPERVISOR,
       isActive: true,
       isAuthorized: false
@@ -166,7 +169,7 @@ export const joinWithInvite = async (req: Request, res: Response) => {
 
     res.status(201).json({
       message: 'Cuenta de supervisor creada. Espera la autorización del administrador.',
-      supervisor: { id: supervisor.id, email: supervisor.email, name: supervisor.name, lastName: supervisor.lastName }
+      supervisor: { id: supervisor.id, email: supervisor.email, name: supervisor.name, lastName: supervisor.lastName, telefono: supervisor.telefono }
     });
   } catch (error: any) {
     console.error('Join with invite error:', error);
@@ -254,6 +257,10 @@ export const getSupervisorLogs = async (req: AuthRequest, res: Response) => {
     const offset = (Number(page) - 1) * Number(limit);
 
     const { count, rows } = await SupervisorLog.findAndCountAll({
+      include: [
+        { model: User, as: 'supervisor', attributes: ['id', 'name', 'lastName', 'email'] },
+        { model: Student, as: 'student', attributes: ['id', 'cedula'], include: [{ model: User, as: 'user', attributes: ['id', 'name', 'lastName'] }] }
+      ],
       limit: Number(limit),
       offset,
       order: [['createdAt', 'DESC']]

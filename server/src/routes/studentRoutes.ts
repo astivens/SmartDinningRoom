@@ -8,7 +8,8 @@ import {
   importStudentsFromExcel,
   searchStudents,
   getAvailableMeals,
-  validateSisben
+  validateSisben,
+  updateStudentCycle
 } from '../controllers/studentsController';
 import { authenticate, authorize } from '../middleware/auth';
 import { upload } from '../middleware/upload';
@@ -16,7 +17,7 @@ import { UserRole } from '../models';
 
 const router = Router();
 
-router.get('/', authenticate, authorize(UserRole.ADMIN, UserRole.SUPERVISOR), getStudents);
+router.get('/', authenticate, authorize(UserRole.ADMIN, UserRole.SUPERVISOR, UserRole.EXTERNAL_AUDITOR), getStudents);
 router.get('/search', authenticate, authorize(UserRole.SUPERVISOR), searchStudents);
 router.get('/:id', authenticate, getStudentById);
 router.get('/:id/available-meals', authenticate, getAvailableMeals);
@@ -25,5 +26,6 @@ router.post('/import', authenticate, authorize(UserRole.ADMIN), upload.single('f
 router.put('/:id', authenticate, authorize(UserRole.ADMIN), updateStudent);
 router.delete('/:id', authenticate, authorize(UserRole.ADMIN), deleteStudent);
 router.post('/:id/validate-sisben', authenticate, authorize(UserRole.ADMIN), validateSisben);
+router.patch('/:id/cycle', authenticate, authorize(UserRole.ADMIN), updateStudentCycle);
 
 export default router;

@@ -1,0 +1,107 @@
+@startuml core-domain
+skinparam classAttributeIconSize 0
+skinparam monochrome false
+skinparam backgroundColor #FEFEFE
+skinparam ArrowColor #333333
+skinparam ClassBorderColor #555555
+skinparam ClassBackgroundColor #F8F9FA
+skinparam nodesep 60
+skinparam ranksep 50
+left to right direction
+
+title 1/4 — Núcleo: Usuarios, Estudiantes y Ciclos
+
+enum UserRole {
+  ADMIN
+  SUPERVISOR
+  STUDENT
+  EXTERNAL_AUDITOR
+}
+
+class User {
+  +UUID id
+  +String uid «USR-»
+  +String email
+  +String password
+  +String name
+  +String lastName
+  +UserRole role
+  +Boolean isActive
+  +Boolean isAuthorized
+  --
+  +validatePassword(p): Promise~Boolean~
+}
+
+class Student {
+  +UUID id
+  +String uid «STD-»
+  +UUID userId FK
+  +String cedula
+  +String carrera
+  +Integer semestre
+  +String categoriaSisben
+  +String archivoSisben
+  +String cedulaFrontalPath?
+  +String horarioPdfPath?
+  +String[] diasComedor
+  +String qrCode?
+  +String qrCodeSecret?
+  +Boolean isValidatedSisben
+  +Boolean sisbenAutoValidated
+  +JSON sisbenValidationDetails?
+  +String currentCycle FK
+  +Date cycleDisabledAt?
+  +Date createdAt
+}
+
+class Cycle {
+  +UUID id
+  +String uid «CYC-»
+  +String name
+  +Date startDate
+  +Date endDate
+  +String status
+  +Date createdAt
+}
+
+User "1" -- "0..1" Student : hasOne\n(userId)
+Student "0..*" --> "0..1" Cycle : currentCycle\n(name FK)
+
+note right of User
+  <b>Roles</b>
+  • admin — gestión total
+  • supervisor — registro comedor
+  • student — consumo
+  • external_auditor — solo lectura
+
+  <b>Autorización</b>
+  isAuthorized requerido para
+  admin, supervisor y auditor
+end note
+
+note bottom of Student
+  <b>Registro</b>
+  Requiere 3 documentos:
+  • SISBEN (PDF)
+  • Cédula frontal (JPG/PNG)
+  • Horario (PDF)
+
+  <b>Validación SISBEN</b>
+  • sisbenAutoValidated → OCR
+  • isValidatedSisben → manual admin
+
+  <b>2FA</b>
+  qrCode + qrCodeSecret (TOTP)
+end note
+
+note right of Cycle
+  <b>Ciclos académicos</b>
+  name: "2026-1", "2026-2"...
+  status: Activo | Cerrado
+
+  Al cerrar un ciclo:
+  • Se deshabilitan estudiantes
+  • Se envía email de revalidación
+end note
+
+@enduml

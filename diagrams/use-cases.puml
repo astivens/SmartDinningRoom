@@ -1,100 +1,95 @@
-@startuml
-title Diagrama de Casos de Uso - SmartComedor
+@startuml use-cases
+skinparam monochrome false
+skinparam backgroundColor #FEFEFE
+
+title Casos de Uso — SmartDiningRoom (SmartComedor)
 
 left to right direction
-skinparam actorStyle awesome
-skinparam packageStyle rectangle
 
-actor "Estudiante" as Student
-actor "Administrador" as Admin
-actor "Supervisor" as Supervisor
+actor Estudiante as Est
+actor Supervisor as Sup
+actor Administrador as Admin
+actor "Auditor\nExterno" as Aud
+actor "Sistema\n(Cron)" as Sys
 
-rectangle "Sistema SmartComedor" {
+rectangle "SmartComedor" {
 
-  ' ========================================
-  ' Casos de uso generales (todos los roles)
-  ' ========================================
+  ' ── Autenticación ──
   package "Autenticación" {
-    usecase "Iniciar Sesión" as UC1
-    usecase "Recuperar Contraseña" as UC2
-    usecase "Ver Perfil" as UC3
-    usecase "Actualizar Perfil" as UC4
+    (Registrarse\ncon SISBEN) as UC1
+    (Iniciar Sesión) as UC2
+    (Recuperar Contraseña) as UC3
+    (Configurar 2FA) as UC4
+    (Verificar 2FA) as UC5
+    (Unirse como\nSupervisor) as UC6
   }
 
-  ' ========================================
-  ' Casos de uso del Estudiante
-  ' ========================================
-  package "Funcionalidades Estudiante" {
-    usecase "Registrar Cuenta (con SISBEN)" as UC5
-    usecase "Validación SISBEN" as UC5a
-    usecase "Subir Comprobante de Pago" as UC6
-    usecase "Ver Almuerzos Disponibles" as UC7
-    usecase "Calificar Servicio (1-5)" as UC8
-    usecase "Ver Noticias" as UC9
-    usecase "Enviar Queja/Sugerencia" as UC10
-    usecase "Configurar 2FA" as UC11
+  ' ── Estudiantes ──
+  package "Gestión de Estudiantes" {
+    (Ver Perfil y\nAlmuerzos) as UC7
+    (Ver/Subir Pago) as UC8
+    (Calificar Servicio) as UC9
+    (Enviar Queja/\nSugerencia) as UC10
+    (Ver Noticias) as UC11
   }
 
-  ' ========================================
-  ' Casos de uso del Administrador
-  ' ========================================
-  package "Funcionalidades Administrador" {
-    usecase "Gestionar Supervisores" as UC12
-    usecase "Crear Supervisor" as UC12a
-    usecase "Habilitar/Inhabilitar Supervisor" as UC12b
-    usecase "Generar Link de Invitación" as UC12c
-    usecase "Importar Estudiantes (Excel)" as UC13
-    usecase "Gestionar Estudiantes" as UC14
-    usecase "Agregar Estudiante" as UC14a
-    usecase "Editar Estudiante" as UC14b
-    usecase "Deshabilitar Estudiante" as UC14c
-    usecase "Verificar Pago" as UC15
-    usecase "Validar Datos SISBEN" as UC16
-    usecase "Asignar Est. a Supervisor" as UC17
-    usecase "Generar Reportes" as UC18
-    usecase "Gestionar Noticias" as UC19
-    usecase "Responder Quejas" as UC20
-    usecase "Ver Logs de Auditoría" as UC21
+  ' ── Supervisor ──
+  package "Operación del Comedor" {
+    (Buscar Estudiante) as UC12
+    (Registrar Almuerzo) as UC13
+    (Ver Historial de\nAsistencias) as UC14
   }
 
-  ' ========================================
-  ' Casos de uso del Supervisor
-  ' ========================================
-  package "Funcionalidades Supervisor" {
-    usecase "Buscar Estudiante" as UC22
-    usecase "Ver Datos del Estudiante" as UC23
-    usecase "Registrar Almuerzo" as UC24
-    usecase "Ver Historial de Asistencia" as UC25
+  ' ── Admin ──
+  package "Administración" {
+    (Gestionar\nEstudiantes) as UC15
+    (Importar desde\nExcel) as UC16
+    (Gestionar\nSupervisores) as UC17
+    (Asignar Estudiantes\na Supervisor) as UC18
+    (Generar Link\nde Invitación) as UC19
+    (Verificar Pagos) as UC20
+    (Validar SISBEN) as UC21
+    (Gestionar Ciclos) as UC22
+    (Gestionar Noticias) as UC23
+    (Responder Quejas) as UC24
+    (Ver Dashboard\ny Reportes) as UC25
+  }
+
+  ' ── Auditoría ──
+  package "Auditoría" {
+    (Ver Logs\nde Auditoría) as UC26
+    (Ver Panel\nde Actividad) as UC27
+  }
+
+  ' ── Automatización ──
+  package "Automatización" {
+    (Cerrar Ciclos\nExpirados) as UC28
+    (Deshabilitar\nEstudiantes) as UC29
+    (Enviar Emails de\nRevalidación) as UC30
+    (Backup Diario\nde BD) as UC31
   }
 }
 
-' Relaciones Estudiante
-Student --> UC1
-Student --> UC2
-Student --> UC3
-Student --> UC4
-Student --> UC5
-UC5 <.. UC5a : <<include>>
-Student --> UC6
-Student --> UC7
-Student --> UC8
-Student --> UC9
-Student --> UC10
-Student --> UC11
+' ── Relaciones Actor → Casos de Uso ──
 
-' Relaciones Administrador
-Admin --> UC1
+Est --> UC1
+Est --> UC2
+Est --> UC3
+Est --> UC4
+Est --> UC5
+Est --> UC7
+Est --> UC8
+Est --> UC9
+Est --> UC10
+Est --> UC11
+
+Sup --> UC2
+Sup --> UC6
+Sup --> UC12
+Sup --> UC13
+Sup --> UC14
+
 Admin --> UC2
-Admin --> UC3
-Admin --> UC12
-UC12 <.. UC12a : <<include>>
-UC12 <.. UC12b : <<include>>
-UC12 <.. UC12c : <<include>>
-Admin --> UC13
-Admin --> UC14
-UC14 <.. UC14a : <<include>>
-UC14 <.. UC14b : <<include>>
-UC14 <.. UC14c : <<include>>
 Admin --> UC15
 Admin --> UC16
 Admin --> UC17
@@ -102,43 +97,27 @@ Admin --> UC18
 Admin --> UC19
 Admin --> UC20
 Admin --> UC21
+Admin --> UC22
+Admin --> UC23
+Admin --> UC24
+Admin --> UC25
 
-' Relaciones Supervisor
-Supervisor --> UC1
-Supervisor --> UC22
-Supervisor --> UC23
-Supervisor --> UC24
-Supervisor --> UC25
+Aud --> UC2
+Aud --> UC26
+Aud --> UC27
 
-' Relaciones de generalización
-UC12a --|> UC14 : extiende
-UC13 --|> UC14 : extiende
+Sys --> UC28
+Sys --> UC29
+Sys --> UC30
+Sys --> UC31
 
-' Notas
-note right of UC5
-  **RF3**: Registro con:
-  - Email (max 30)
-  - Nombre (max 20)
-  - Apellido (max 20)
-  - Cédula (6-12 dígitos)
-  - Password (8 caracteres)
-  - Carrera (max 25)
-  - Archivo SISBEN (PDF/JPG)
-end note
+' ── Relaciones entre Casos de Uso ──
 
-note right of UC24
-  **RF13**: El supervisor confirma
-  el uso del comedor mediante
-  el botón "Firmar"
-  
-  **RF14**: Se envía email
-  automático de confirmación
-end note
-
-note bottom of UC15
-  **RF9**: Regla del negocio:
-  $2000 COP = 1 almuerzo
-  Ej: $10,000 = 5 almuerzos
-end note
+UC8 ..> UC20 : <<extend>>\n(admin verifica)
+UC21 ..> UC1 : <<extend>>\n(OCR automático)
+UC13 ..> UC12 : <<include>>
+UC28 ..> UC29 : <<include>>
+UC28 ..> UC30 : <<include>>
+UC6 ..> UC17 : <<extend>>\n(admin autoriza)
 
 @enduml

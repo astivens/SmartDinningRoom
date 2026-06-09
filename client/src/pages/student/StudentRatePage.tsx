@@ -12,6 +12,7 @@ import {
 import StarIcon from '@mui/icons-material/Star';
 import Layout from '../../components/layout/Layout';
 import { ratingService } from '../../api/servicesApi';
+import DataSectionCard from '../../components/DataSectionCard';
 
 export default function StudentRatePage() {
   const [rating, setRating] = useState<number | null>(0);
@@ -64,10 +65,7 @@ export default function StudentRatePage() {
 
       <Grid container spacing={3}>
         <Grid item xs={12} md={6}>
-          <Paper sx={{ p: 3 }}>
-            <Typography variant="h6" gutterBottom>
-              Tu Calificación
-            </Typography>
+          <DataSectionCard title="Tu Calificación">
 
             {message.text && (
               <Alert severity={message.type as any} sx={{ mb: 2 }}>
@@ -108,14 +106,11 @@ export default function StudentRatePage() {
                 {loading ? 'Enviando...' : 'Enviar Calificación'}
               </Button>
             </form>
-          </Paper>
+          </DataSectionCard>
         </Grid>
 
         <Grid item xs={12} md={6}>
-          <Paper sx={{ p: 3 }}>
-            <Typography variant="h6" gutterBottom>
-              Calificación Promedio
-            </Typography>
+          <DataSectionCard title="Calificación Promedio">
             <Box sx={{ textAlign: 'center', py: 4 }}>
               <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', mb: 2 }}>
                 <Typography variant="h2" color="primary" fontWeight={700}>
@@ -140,7 +135,7 @@ export default function StudentRatePage() {
                 {[5, 4, 3, 2, 1].map((star) => (
                   <Box key={star} sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
                     <Typography variant="body2" sx={{ width: 20 }}>{star}</Typography>
-                    <StarIcon sx={{ fontSize: 16, mr: 1, color: '#ffc107' }} />
+                    <StarIcon sx={{ fontSize: 16, mr: 1, color: 'warning.main' }} />
                     <Box
                       sx={{
                         flexGrow: 1,
@@ -154,7 +149,7 @@ export default function StudentRatePage() {
                         sx={{
                           height: '100%',
                           width: `${(averageRating.starsDistribution[star] / averageRating.totalRatings) * 100}%`,
-                          bgcolor: '#ffc107',
+                          bgcolor: 'warning.main',
                         }}
                       />
                     </Box>
@@ -165,7 +160,7 @@ export default function StudentRatePage() {
                 ))}
               </Box>
             )}
-          </Paper>
+          </DataSectionCard>
         </Grid>
       </Grid>
     </Layout>
