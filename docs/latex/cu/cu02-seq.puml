@@ -1,0 +1,30 @@
+@startuml
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam defaultFontName Helvetica
+skinparam dpi 150
+skinparam ActorBackgroundColor #E3F2FD
+skinparam UsecaseBackgroundColor #F5F7FA
+skinparam UsecaseBorderColor #607D8B
+skinparam SequenceLifeLineBorderColor #90A4AE
+skinparam ParticipantBackgroundColor #E3F2FD
+skinparam ActivityBackgroundColor #E8F5E9
+skinparam ActivityDiamondBackgroundColor #FFF3E0
+actor Usuario
+participant Frontend as FE
+participant "API /auth/login" as API
+participant AuthController as C
+database PostgreSQL as DB
+Usuario -> FE : email, password, rol
+FE -> API : POST /api/auth/login
+API -> C : login(req)
+C -> DB : SELECT user WHERE email
+C -> C : bcrypt.compare(password)
+alt credenciales/estado invalido
+  C --> FE : 400 / 401 / 403
+else valido
+  C -> C : sign(access, refresh)
+  C --> FE : 200 + tokens
+end
+FE --> Usuario : Acceso concedido
+@enduml

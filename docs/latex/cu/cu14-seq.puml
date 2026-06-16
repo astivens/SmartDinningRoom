@@ -1,0 +1,31 @@
+@startuml
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam defaultFontName Helvetica
+skinparam dpi 150
+skinparam ActorBackgroundColor #E3F2FD
+skinparam UsecaseBackgroundColor #F5F7FA
+skinparam UsecaseBorderColor #607D8B
+skinparam SequenceLifeLineBorderColor #90A4AE
+skinparam ParticipantBackgroundColor #E3F2FD
+skinparam ActivityBackgroundColor #E8F5E9
+skinparam ActivityDiamondBackgroundColor #FFF3E0
+actor Supervisor as S
+participant Frontend as FE
+participant "API /meals" as API
+participant MealsController as C
+database PostgreSQL as DB
+S -> FE : Busca estudiante (QR/cedula/UID)
+FE -> API : POST /api/meals
+API -> C : registerMeal()
+C -> DB : Buscar estudiante
+C -> C : Validar activo, dia, no comio hoy, disponibilidad
+alt validacion falla
+  C --> FE : 400 / 404
+else ok
+  C -> DB : INSERT MealAttendance
+  C -> DB : mealsUsed++ (ultimo pago)
+  C -> DB : INSERT SupervisorLog + AuditLog
+  C --> FE : 201 registrado
+end
+@enduml

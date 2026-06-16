@@ -1,0 +1,15 @@
+$ npm run test:unit
+PASS src/tests/unit/authController.test.ts
+PASS src/tests/unit/mealsController.test.ts
+PASS src/tests/unit/studentsController.test.ts
+PASS src/tests/unit/supervisorsController.test.ts
+PASS src/tests/unit/middleware.test.ts
+PASS src/tests/unit/paymentsController.test.ts
+PASS src/tests/unit/ratingsComplaintsNews.test.ts
+PASS src/tests/unit/sisbenValidationService.test.ts
+
+Test Suites: 8 passed, 8 total
+Tests:       177 passed, 177 total
+Snapshots:   0 total
+Time:        2.095 s
+Ran all test suites matching /tests/unit/i.

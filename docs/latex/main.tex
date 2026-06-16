@@ -6,6 +6,7 @@
 \usepackage[spanish,es-tabla]{babel}
 
 % ─── Tablas, figuras y utilidades ───────────────────────────────────────────
+\usepackage{amsmath}
 \usepackage{booktabs}
 \usepackage{longtable}
 \usepackage{array}
@@ -20,6 +21,9 @@
 % Columnas de ancho fijo con justificación
 \newcolumntype{L}[1]{>{\RaggedRight\arraybackslash}p{#1}}
 \newcolumntype{C}[1]{>{\Centering\arraybackslash}p{#1}}
+
+% Rutas de búsqueda de figuras
+\graphicspath{{./}{figs/}{cu/}}
 
 % ─── Bibliografía APA (biblatex-apa + biber) ────────────────────────────────
 \usepackage[style=apa,backend=biber]{biblatex}
@@ -80,10 +84,13 @@ funcionales), el modelo de casos de uso y el modelo de diseño (clases, secuenci
 entidad–relación y componentes). La segunda parte documenta el proceso de verificación
 y validación: planificación, pruebas unitarias (caja negra y caja blanca), pruebas de
 integración (incremental y basada en hilos), pruebas de sistema (seguridad, rendimiento,
-usabilidad y portabilidad) y pruebas de aceptación. La suite automatizada ejecuta
-\textbf{196 pruebas con 100\% de éxito} y una cobertura global aproximada del
-\textbf{80,4\%} de sentencias. El trabajo se apoya en estándares y técnicas reconocidas
-de la ingeniería de software \parencite{ieee829,iso25010,myers2011,pressman2014}.
+usabilidad y portabilidad) y pruebas de aceptación. La tercera parte mide el software
+(atributos internos de tamaño y atributos externos de calidad según ISO/IEC 25010) y la
+cuarta lo estima con cinco técnicas (puntos de función, puntos de caso de uso, puntos
+objeto, puntos de historia y COCOMO). La suite automatizada ejecuta \textbf{196 pruebas
+con 100\% de éxito} y una cobertura global aproximada del \textbf{80,4\%} de sentencias.
+El trabajo se apoya en estándares y técnicas reconocidas de la ingeniería de software
+\parencite{ieee829,iso25010,myers2011,pressman2014}.
 
 \par\vspace{6pt}\noindent\textit{Palabras clave:} pruebas de software, verificación y
 validación, casos de uso, requerimientos, calidad de software, JWT, SISBÉN.
@@ -411,90 +418,9 @@ CU-21 & Consultar auditoría & Admin / Auditor \\
 \end{longtable}
 
 \subsection{Descripción de casos de uso}
-Se documentan los casos de uso más relevantes con la plantilla extendida (actor,
-precondiciones, flujo principal, flujos alternativos y postcondiciones). Las reglas y
-códigos de respuesta provienen de los controladores reales y están verificados por las
-pruebas (Segunda Parte).
+\input{secciones/casos-uso}
 
-\subsubsection{CU-01 — Registrar estudiante}
-\textbf{Actor:} Estudiante (no autenticado). \textbf{Endpoint:}
-\texttt{POST /api/auth/register} (multipart). \textbf{Precondición:} el email no debe
-existir.
-\begin{description}[leftmargin=1.4em,style=nextline]
-\item[Flujo principal] (1) El estudiante diligencia el formulario y adjunta documentos.
-(2) Se valida la presencia de \texttt{archivoSisben}. (3) Se valida que el email no
-exista. (4) Se parsea \texttt{diasComedor}. (5) Se crea el usuario (rol student,
-contraseña cifrada) y el estudiante. (6) Respuesta 201.
-\item[Alternativos] 2a. Falta el archivo SISBÉN $\rightarrow$ 400. 3a. Email ya
-registrado $\rightarrow$ 400.
-\item[Postcondición] Se crea un \texttt{User} (student) y un \texttt{Student} con
-\texttt{isValidatedSisben = false}.
-\end{description}
 
-\subsubsection{CU-02 — Iniciar sesión}
-\textbf{Actor:} Todos. \textbf{Endpoint:} \texttt{POST /api/auth/login}.
-\begin{description}[leftmargin=1.4em,style=nextline]
-\item[Flujo principal] (1) Envío de email, contraseña y rol. (2) Validación de campos.
-(3) Búsqueda del usuario. (4) Verificación de contraseña (\texttt{bcrypt.compare}). (5)
-Validación de \texttt{isActive}, rol e \texttt{isAuthorized}. (6) Emisión de tokens y
-respuesta 200.
-\item[Alternativos] 2a. Campos faltantes $\rightarrow$ 400. 3a. Usuario inexistente
-$\rightarrow$ 401. 4a. Contraseña incorrecta $\rightarrow$ 401. 5a. Inactivo
-$\rightarrow$ 401; rol no coincide $\rightarrow$ 403; no autorizado $\rightarrow$ 403.
-Excepción no controlada $\rightarrow$ 500 (sin filtrar el stack trace).
-\item[Postcondición] El cliente almacena los tokens para autenticar peticiones.
-\end{description}
-
-\subsubsection{CU-07 — Validar SISBÉN}
-\textbf{Actor:} Administrador. \textbf{Endpoint:}
-\texttt{POST /api/students/:id/validate-sisben}.
-\begin{description}[leftmargin=1.4em,style=nextline]
-\item[Flujo principal] (1) Solicitud de validación. (2) Extracción del texto del
-documento SISBÉN (PDF con pdf-parse o imagen con OCR tesseract.js). (3) Normalización y
-cotejo de cédula, nombre y apellido, verificando que la cédula aparezca en el documento
-de identidad. (4) Si todo coincide, \texttt{isValidatedSisben = true} y respuesta 200.
-\item[Alternativos] 1a. Estudiante no encontrado $\rightarrow$ 404. 3a. Inconsistencia
-$\rightarrow$ \texttt{validated = false} con el detalle de cada \emph{mismatch}.
-\item[Postcondición] Se actualiza el estado de validación y \texttt{sisbenValidationDetails}.
-\end{description}
-
-\subsubsection{CU-11 — Subir pago y comprobantes}
-\textbf{Actor:} Estudiante. \textbf{Endpoints:} \texttt{POST /api/payments},
-\texttt{POST /api/payments/upload}, \texttt{POST /api/payments/calculate}.
-\begin{description}[leftmargin=1.4em,style=nextline]
-\item[Flujo principal] (1) Se ingresa el monto y se calcula
-$mealsIncluded = \lfloor monto/2000\rfloor$. (2) Se adjunta el comprobante. (3) Se crea
-el pago con \texttt{isVerified = false} y respuesta 201.
-\item[Alternativos] 1a. Monto $<2000 \rightarrow$ 400. 1b. Estudiante no encontrado
-$\rightarrow$ 404. 2a. Sin archivo $\rightarrow$ 400.
-\item[Postcondición] Queda un pago pendiente de verificación.
-\end{description}
-
-\subsubsection{CU-14 — Registrar almuerzo (caso de uso central)}
-\textbf{Actor:} Supervisor. \textbf{Endpoint:} \texttt{POST /api/meals}.
-\begin{description}[leftmargin=1.4em,style=nextline]
-\item[Flujo principal] (1) Búsqueda/escaneo del estudiante (QR/cédula). (2) Validación de
-existencia y estado activo. (3) Validación de día autorizado. (4) Validación de no haber
-comido hoy. (5) Validación de disponibilidad de almuerzos. (6) Creación del
-\texttt{MealAttendance}, incremento de \texttt{mealsUsed} y creación de
-\texttt{SupervisorLog}. (7) Registro en \texttt{audit\_logs} y respuesta 201.
-\item[Alternativos] 1a. No autenticado $\rightarrow$ 401. 2a. No encontrado
-$\rightarrow$ 404; inactivo $\rightarrow$ 400. 3a. Día no autorizado $\rightarrow$ 400.
-4a. Ya comió hoy $\rightarrow$ 400. 5a. Sin almuerzos $\rightarrow$ 400.
-\item[Postcondición] Disminuye la disponibilidad; quedan trazas en
-\texttt{meal\_attendances}, \texttt{supervisor\_logs} y \texttt{audit\_logs}.
-\end{description}
-
-\subsubsection{Otros casos de uso}
-Por brevedad se resumen: \textbf{CU-12 Verificar pago} (\texttt{PATCH /api/payments/:id/verify};
-404 si no existe; tras verificar, los \texttt{mealsIncluded} cuentan como disponibles);
-\textbf{CU-09 Invitar/unir supervisor} (token válido 48 h; 400 ante campos faltantes,
-token inválido o email duplicado); \textbf{CU-18 Calificar} (1--5 estrellas; 401 sin
-autenticar, 404 si el estudiante no existe); \textbf{CU-19 Quejas} (anónimas o
-identificadas; respuesta del admin con 404 si no existe); \textbf{CU-21 Auditoría}
-(filtros validados por lista blanca; 400 ante filtros no permitidos).
-
-% ────────────────────────────────────────────────────────────────────────────
 \section{Modelo de diseño del sistema}
 
 \subsection{Diagrama de clases detallado}
@@ -767,7 +693,7 @@ válidas e inválidas), \textbf{análisis de valores límite} (fronteras de rang
 \textbf{cobertura de caminos} (grafo de flujo) y \textbf{pruebas basadas en estado}
 \parencite{myers2011,beizer1990}.
 
-\subsection{Ambiente de pruebas}
+\subsection{Ambiente de pruebas}\label{sec:ambiente}
 La Tabla~\ref{tab:ambiente} describe el ambiente. Las pruebas unitarias y de integración
 emplean una base de datos simulada en memoria (mocks), lo que permite ejecutarlas sin
 PostgreSQL real, de forma determinista y veloz.
@@ -834,7 +760,12 @@ integration/threads.test.ts & 8 \\
 \end{tabularx}
 \end{table}
 
+\subsection{Catálogo detallado de casos de prueba}
+\input{secciones/catalogo-pruebas}
+
 \subsection{Diseño de casos de prueba}
+Más allá del catálogo anterior, se aplican técnicas formales de diseño de casos
+(caja negra y caja blanca) sobre las unidades de mayor riesgo.
 
 \subsubsection{Caja negra — Clases de equivalencia (Login)}
 La Tabla~\ref{tab:login} muestra los casos de equivalencia del inicio de sesión.
@@ -960,15 +891,17 @@ El catálogo completo de los 202 casos (refresh token, perfil, recuperación de 
 \subsection{Ejecución y evaluación de las pruebas}
 
 \subsubsection{Resultado de ejecución}
-La ejecución de \texttt{npm run test:coverage} produjo el resultado del
-Código~\ref{lst:resultado}.
+Las pruebas se ejecutaron con Jest sobre el código real del servidor. El
+Código~\ref{lst:unit} muestra la salida de consola de las pruebas unitarias, el
+Código~\ref{lst:integ} la de las pruebas de integración y el Código~\ref{lst:cov} el
+informe de cobertura. Todas las salidas son reales y reproducibles con los \emph{scripts}
+documentados en la Sección~\ref{sec:ambiente}.
 
-\begin{lstlisting}[caption={Resultado de ejecución de la suite},label={lst:resultado},captionpos=b]
-Test Suites: 10 passed, 10 total
-Tests:       196 passed, 196 total
-Snapshots:   0 total
-Time:        ~4.7 s
-\end{lstlisting}
+\lstinputlisting[caption={Salida real de \texttt{npm run test:unit} (177 casos)},label={lst:unit},captionpos=b]{console/unit-clean.txt}
+
+\lstinputlisting[caption={Salida real de \texttt{npm run test:integration} (19 casos)},label={lst:integ},captionpos=b]{console/integration-clean.txt}
+
+\lstinputlisting[caption={Informe real de cobertura \texttt{npm run test:coverage}},label={lst:cov},captionpos=b,basicstyle=\ttfamily\scriptsize]{console/coverage-clean.txt}
 
 \subsubsection{Cobertura de código}
 La Tabla~\ref{tab:cobertura} presenta la cobertura por ámbito (Jest/Istanbul).
@@ -1308,7 +1241,7 @@ flujos de negocio esperados de los cuatro actores y cumple las reglas críticas 
 elegibilidad, recarga, consumo, retroalimentación, control de acceso y trazabilidad.
 
 % ────────────────────────────────────────────────────────────────────────────
-\section{Conclusiones}
+\section{Conclusiones de las pruebas}
 \begin{enumerate}[leftmargin=1.5em]
 \item \textbf{Calidad funcional verificada.} La suite automatizada ejecuta 196 pruebas
 con 100\% de éxito (10 suites), cubriendo controladores, middleware, servicios y flujos
@@ -1338,6 +1271,49 @@ satisface las necesidades de los actores del comedor universitario.
 componentes React con Testing Library; (iii) ejecutar periódicamente los planes de JMeter
 y BrowserStack en integración continua; y (iv) realizar pruebas de usabilidad con
 usuarios reales (cuestionario SUS) para cuantificar la satisfacción.
+
+% ════════════════════════════════════════════════════════════════════════════
+\input{secciones/medicion}
+
+% ════════════════════════════════════════════════════════════════════════════
+\input{secciones/estimacion}
+
+% ════════════════════════════════════════════════════════════════════════════
+\part*{QUINTA PARTE. Conclusiones Generales}
+\addcontentsline{toc}{part}{QUINTA PARTE. Conclusiones Generales}
+% ════════════════════════════════════════════════════════════════════════════
+\section{Conclusiones generales}
+El presente documento integró, en cuatro grandes ejes, la ingeniería del sistema
+\textbf{SmartComedor}: la descripción y el diseño, la verificación y validación, la
+medición y la estimación. Las principales conclusiones son:
+
+\begin{enumerate}[leftmargin=1.5em]
+\item \textbf{Solución completa y trazable.} SmartComedor digitaliza la operación del
+comedor universitario (registro y validación de elegibilidad por SISBÉN, control de
+acceso por roles, gestión de pagos, registro de almuerzos, retroalimentación y
+auditoría) sobre una arquitectura web de tres capas desplegable con Docker, cubriendo
+los 45 requisitos funcionales y los 21 casos de uso especificados.
+\item \textbf{Calidad verificada empíricamente.} La suite de 196 pruebas automatizadas
+se ejecuta con 100\% de éxito y una cobertura global del 80,44\% de sentencias, con los
+componentes críticos de seguridad y elegibilidad por encima del 97\%.
+\item \textbf{Producto medido objetivamente.} La medición confirma un sistema de tamaño
+medio ($\approx 11{,}3$ KLOC de aplicación) con una fuerte inversión en pruebas (razón
+prueba/producción $\approx 0{,}77$) y buenos indicadores en seguridad, fiabilidad y
+adecuación funcional según ISO/IEC 25010.
+\item \textbf{Esfuerzo estimado con múltiples técnicas.} Puntos de función (323,4 PF),
+puntos de caso de uso (209,2 UCP), puntos objeto, puntos de historia (149 pts) y COCOMO
+convergen en un proyecto abordable por un equipo de 3 a 4 personas en un horizonte de
+4 a 9 meses.
+\item \textbf{Mejora continua.} Las oportunidades identificadas —elevar la cobertura de
+\texttt{mealsController} y \texttt{auditService}, añadir pruebas de componentes del
+frontend y formalizar mediciones de rendimiento en producción— constituyen la hoja de
+ruta de evolución del producto.
+\end{enumerate}
+
+\noindent En conjunto, el trabajo evidencia la aplicación rigurosa de las prácticas de la
+ingeniería de software —análisis, diseño, pruebas, medición y estimación— sobre un
+sistema real, alineado con los estándares y técnicas reconocidos de la disciplina
+\parencite{sommerville2011,pressman2014,iso25010,ieee829}.
 
 % ─── Referencias APA ────────────────────────────────────────────────────────
 \newpage

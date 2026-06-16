@@ -1,0 +1,285 @@
+% ════════════════════════════════════════════════════════════════════════════
+\part*{TERCERA PARTE. Medición del Software}
+\addcontentsline{toc}{part}{TERCERA PARTE. Medición del Software}
+% ════════════════════════════════════════════════════════════════════════════
+
+\section{Introducción a la medición}
+La medición del software es la actividad de la ingeniería de software que asigna
+valores numéricos a atributos del producto, del proceso y de los recursos, con el fin
+de comprender, controlar y mejorar la calidad \parencite{pressman2014,iso25010}. En
+\textbf{SmartComedor} la medición permite cuantificar el tamaño y la estructura del
+código (atributos internos) y la calidad percibida durante su uso (atributos externos),
+y así sustentar decisiones de mantenimiento y mejora continua.
+
+\subsection{Objetivos}
+\begin{itemize}[leftmargin=1.4em]
+  \item Cuantificar el tamaño del código fuente y su distribución por módulos.
+  \item Caracterizar la estructura orientada a clases (modelos y controladores).
+  \item Evaluar atributos externos de calidad según \textcite{iso25010}
+        (ISO/IEC 25010): usabilidad, seguridad, portabilidad, mantenibilidad,
+        rendimiento, fiabilidad, compatibilidad y adecuación funcional.
+  \item Identificar valores fuera de umbral que orienten acciones de mejora.
+\end{itemize}
+
+\subsection{Alcance}
+La medición abarca el código de aplicación del servidor
+(\texttt{server/src}) y del cliente (\texttt{client/src}), junto con la suite de
+pruebas (\texttt{server/src/tests}). Se excluyen dependencias de terceros
+(\texttt{node\_modules}), artefactos de compilación y de cobertura.
+
+\subsection{Tipos y herramientas de métricas}
+Se emplearon herramientas estándar de la industria: \texttt{cloc} para el conteo de
+líneas, \texttt{Jest}/\texttt{Istanbul} para cobertura, y la inspección estática del
+código (modelos Sequelize, controladores y rutas). La Tabla~\ref{tab:herramientas-med}
+resume las herramientas por tipo de métrica.
+
+\begin{table}[H]\centering
+\caption{Herramientas por tipo de métrica}\label{tab:herramientas-med}
+\begin{tabularx}{\textwidth}{L{0.32\textwidth} X}
+\toprule \textbf{Tipo de métrica} & \textbf{Herramienta / fuente} \\ \midrule
+Tamaño del código (LOC) & \texttt{cloc} \\
+Cobertura de pruebas & \texttt{Jest} + \texttt{Istanbul} \\
+Complejidad / caminos & Análisis de grafo de flujo \parencite{mccabe1976} \\
+Estructura de clases & Inspección de modelos/controladores \\
+Seguridad & Lista OWASP Top 10 \parencite{owasp2021} \\
+Rendimiento & Escenarios de carga (Apache JMeter) \parencite{jmeter} \\
+Usabilidad & Heurísticas de Nielsen \parencite{nielsen1994} \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+% ────────────────────────────────────────────────────────────────────────────
+\section{Medición del software — atributos internos}
+
+\subsection{Métricas de tamaño del código fuente}
+La Tabla~\ref{tab:loc-global} presenta el tamaño del código de aplicación medido con
+\texttt{cloc}. El servidor y el cliente suman \textbf{14.482} líneas de código efectivo
+(LOC) en TypeScript, con una suite de pruebas de \textbf{3.194} LOC.
+
+\begin{table}[H]\centering
+\caption{Tamaño del código de aplicación (cloc)}\label{tab:loc-global}
+\begin{tabularx}{\textwidth}{X c c c c}
+\toprule
+\textbf{Ámbito} & \textbf{Archivos} & \textbf{Código} & \textbf{Comentario} & \textbf{Blanco} \\
+\midrule
+Servidor (\texttt{server/src}) & 55 & 7.336 & 770 & 1.398 \\
+\quad de los cuales, pruebas & 10 & 3.194 & --- & --- \\
+Cliente (\texttt{client/src}) & 43 & 7.149 & 6 & 483 \\
+\textbf{Total aplicación} & \textbf{98} & \textbf{14.485} & \textbf{776} & \textbf{1.881} \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+La Tabla~\ref{tab:loc-modulos} desglosa el código del servidor por capa, evidenciando
+que los controladores (lógica de negocio) concentran el mayor volumen, seguidos de los
+modelos y los servicios.
+
+\begin{table}[H]\centering
+\caption{Tamaño por capa del servidor (cloc)}\label{tab:loc-modulos}
+\begin{tabularx}{\textwidth}{X c c}
+\toprule
+\textbf{Capa (\texttt{server/src})} & \textbf{Archivos} & \textbf{LOC} \\
+\midrule
+Controladores (\texttt{controllers}) & 9 & 1.805 \\
+Modelos (\texttt{models}) & 12 & 1.096 \\
+Servicios (\texttt{services}) & 5 & 342 \\
+Rutas (\texttt{routes}) & 11 & 267 \\
+Middleware (\texttt{middleware}) & 3 & 152 \\
+Pruebas (\texttt{tests}) & 10 & 3.194 \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+Un indicador derivado relevante es la \textbf{razón de código de prueba a código de
+producción} del servidor: $3.194 / (7.336-3.194) \approx 0{,}77$, es decir, casi
+0,8 líneas de prueba por cada línea de producción, lo que refleja una inversión alta en
+verificación. La densidad de comentarios del servidor es
+$770/7.336 \approx 10{,}5\%$.
+
+\subsection{Métricas de tamaño orientadas a clases}
+El modelo de dominio se compone de \textbf{11 entidades} (clases Sequelize) y la lógica
+de negocio se organiza en \textbf{9 controladores} que exponen \textbf{56 endpoints}
+funcionales. La Tabla~\ref{tab:clases-tam} resume las métricas orientadas a clases.
+
+\begin{table}[H]\centering
+\caption{Métricas de tamaño orientadas a clases}\label{tab:clases-tam}
+\begin{tabularx}{\textwidth}{X c}
+\toprule \textbf{Métrica} & \textbf{Valor} \\ \midrule
+Número de clases de dominio (modelos) & 11 \\
+Número de controladores & 9 \\
+Número de servicios & 5 \\
+Endpoints REST funcionales & 56 \\
+Promedio de LOC por modelo & $1.096/11 \approx 99{,}6$ \\
+Promedio de LOC por controlador & $1.805/9 \approx 200{,}6$ \\
+Promedio de endpoints por controlador & $56/9 \approx 6{,}2$ \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+Las 11 entidades del dominio son: \texttt{User}, \texttt{Student}, \texttt{Payment},
+\texttt{MealAttendance}, \texttt{Rating}, \texttt{Complaint}, \texttt{News},
+\texttt{Cycle}, \texttt{AuditLog}, \texttt{SupervisorAssignment} y
+\texttt{SupervisorLog}. El controlador de mayor tamaño es \texttt{authController.ts}, lo
+que es coherente con la cantidad de responsabilidades de seguridad (login, refresh,
+recuperación de contraseña y 2FA) y con sus 59 casos de prueba.
+
+% ────────────────────────────────────────────────────────────────────────────
+\section{Medición de la calidad — atributos externos}
+Se evalúan los ocho atributos externos pertinentes del modelo de calidad de
+\textcite{iso25010}. Para cada uno se define una métrica, su fórmula y el valor
+observado en SmartComedor.
+
+\subsection{Métricas de usabilidad}
+Evaluadas con las heurísticas de \textcite{nielsen1994} sobre la interfaz Material
+Design~3 \parencite{material3}. La Tabla~\ref{tab:m-usab} resume la inspección.
+
+\begin{table}[H]\centering
+\caption{Métricas de usabilidad (heurísticas de Nielsen)}\label{tab:m-usab}
+\begin{tabularx}{\textwidth}{L{0.46\textwidth} C{0.16\textwidth} X}
+\toprule \textbf{Heurística} & \textbf{Cumplimiento} & \textbf{Evidencia} \\ \midrule
+Visibilidad del estado del sistema & Alto & Spinners, snackbars y estados de carga \\
+Correspondencia con el mundo real & Alto & Lenguaje del dominio (almuerzo, ciclo) \\
+Control y libertad del usuario & Medio & Acciones reversibles en formularios \\
+Consistencia y estándares & Alto & Componentes MUI reutilizados \\
+Prevención de errores & Alto & Validación en formularios y listas cerradas \\
+Reconocer antes que recordar & Alto & Búsqueda por nombre/UID en supervisión \\
+Flexibilidad y eficiencia & Medio & Atajos por rol; exportación configurable \\
+Diseño estético y minimalista & Alto & Jerarquía visual M3 \\
+Ayuda ante errores & Medio & Mensajes guiados de validación \\
+Ayuda y documentación & Medio & Textos de ayuda contextual \\
+\bottomrule
+\end{tabularx}
+\end{table}
+\noindent\textbf{Índice de usabilidad heurística:} 7 heurísticas en nivel Alto y 3 en
+nivel Medio sobre 10 evaluadas, lo que arroja un cumplimiento ponderado aproximado del
+\textbf{85\%}.
+
+\subsection{Métricas de seguridad}
+Medidas contra OWASP Top~10 \parencite{owasp2021}. La Tabla~\ref{tab:m-seg} indica el
+control implementado por categoría de riesgo.
+
+\begin{table}[H]\centering
+\caption{Cobertura de controles de seguridad (OWASP Top 10:2021)}\label{tab:m-seg}
+\begin{tabularx}{\textwidth}{L{0.40\textwidth} C{0.14\textwidth} X}
+\toprule \textbf{Riesgo} & \textbf{Estado} & \textbf{Control} \\ \midrule
+A01 Control de acceso roto & Mitigado & Middleware JWT + autorización por rol \\
+A02 Fallos criptográficos & Mitigado & Hash bcrypt; secretos por entorno \\
+A03 Inyección & Mitigado & ORM Sequelize (consultas parametrizadas) \\
+A04 Diseño inseguro & Mitigado & Validación de reglas de negocio \\
+A05 Mala configuración & Parcial & Variables de entorno; CORS controlado \\
+A07 Fallas de identificación y autenticación & Mitigado & 2FA TOTP; expiración de tokens \\
+A09 Fallos de registro y monitoreo & Mitigado & \texttt{audit\_logs} y \texttt{supervisor\_logs} \\
+\bottomrule
+\end{tabularx}
+\end{table}
+\noindent\textbf{Métrica de cobertura de seguridad de la lógica de acceso:}
+la cobertura de pruebas del \texttt{middleware/auth.ts} es del \textbf{97,5\%} de
+sentencias y \textbf{91,66\%} de ramas, valores apropiados para un componente crítico.
+
+\subsection{Métricas de portabilidad}
+La portabilidad se cuantifica como la capacidad de ejecutar el sistema en distintos
+entornos sin cambios de código. SmartComedor se distribuye con Docker, lo que produce
+un índice de portabilidad alto (Tabla~\ref{tab:m-port}).
+
+\begin{table}[H]\centering
+\caption{Métricas de portabilidad}\label{tab:m-port}
+\begin{tabularx}{\textwidth}{L{0.46\textwidth} X}
+\toprule \textbf{Métrica} & \textbf{Valor} \\ \midrule
+Adaptabilidad (entornos soportados) & Docker (\texttt{dev}/\texttt{prod}) y ejecución local \\
+Facilidad de instalación & \texttt{docker compose --profile dev up} (un comando) \\
+Independencia de plataforma & Node.js + contenedores (Linux/macOS/Windows) \\
+Navegadores objetivo & Chrome, Firefox, Edge, Safari (SPA responsive) \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\subsection{Métricas de mantenibilidad}
+La mantenibilidad se estima con la modularidad, la analizabilidad (cobertura) y la
+capacidad de prueba. La Tabla~\ref{tab:m-mant} resume los indicadores.
+
+\begin{table}[H]\centering
+\caption{Métricas de mantenibilidad}\label{tab:m-mant}
+\begin{tabularx}{\textwidth}{L{0.46\textwidth} X}
+\toprule \textbf{Métrica} & \textbf{Valor} \\ \midrule
+Modularidad & Separación en capas (rutas/controladores/servicios/modelos) \\
+Densidad de comentarios (servidor) & $\approx 10{,}5\%$ \\
+Razón prueba/producción & $\approx 0{,}77$ \\
+Analizabilidad (cobertura global) & 80,44\% sentencias \\
+Capacidad de prueba & 196 casos automatizados, deterministas \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\subsection{Métricas de rendimiento}
+El objetivo de rendimiento es que las operaciones críticas (autenticación y consultas)
+respondan en menos de 3~segundos \parencite{jmeter}. La Tabla~\ref{tab:m-rend} resume
+los indicadores de eficiencia de desempeño.
+
+\begin{table}[H]\centering
+\caption{Métricas de rendimiento}\label{tab:m-rend}
+\begin{tabularx}{\textwidth}{L{0.46\textwidth} X}
+\toprule \textbf{Métrica} & \textbf{Objetivo / valor} \\ \midrule
+Tiempo de respuesta (operaciones críticas) & $< 3$~s \\
+Comportamiento temporal & Consultas indexadas por clave/UID \\
+Utilización de recursos & Contenedores con \texttt{healthcheck} \\
+Tiempo de ejecución de la suite & $\approx 4{,}7$~s (196 casos) \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\subsection{Métricas de fiabilidad}
+La fiabilidad se evidencia en la tasa de éxito de las pruebas y en los mecanismos de
+recuperación. La Tabla~\ref{tab:m-fiab} resume los indicadores.
+
+\begin{table}[H]\centering
+\caption{Métricas de fiabilidad}\label{tab:m-fiab}
+\begin{tabularx}{\textwidth}{L{0.46\textwidth} X}
+\toprule \textbf{Métrica} & \textbf{Valor} \\ \midrule
+Madurez (tasa de éxito de pruebas) & 100\% (196/196) \\
+Densidad de defectos abiertos & 0 en la suite automatizada \\
+Tolerancia a fallos & Manejo de errores con códigos HTTP controlados \\
+Recuperabilidad & Respaldo diario con \texttt{pg\_dump} (retención 30 días) \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\subsection{Métricas de compatibilidad}
+La compatibilidad mide la coexistencia e interoperabilidad. SmartComedor expone una API
+REST con JSON, consumible por el cliente web y por terceros autorizados
+(Tabla~\ref{tab:m-comp}).
+
+\begin{table}[H]\centering
+\caption{Métricas de compatibilidad}\label{tab:m-comp}
+\begin{tabularx}{\textwidth}{L{0.46\textwidth} X}
+\toprule \textbf{Métrica} & \textbf{Valor} \\ \midrule
+Interoperabilidad & API REST/JSON con autenticación JWT \\
+Coexistencia & Servicios desacoplados en contenedores \\
+Formatos de exportación & Excel, CSV y PDF \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\subsection{Métricas de adecuación funcional}
+Mide en qué grado el sistema cubre las funciones requeridas. Con 45 requisitos
+funcionales y 56 endpoints implementados, la cobertura funcional es completa
+(Tabla~\ref{tab:m-adec}).
+
+\begin{table}[H]\centering
+\caption{Métricas de adecuación funcional}\label{tab:m-adec}
+\begin{tabularx}{\textwidth}{L{0.46\textwidth} X}
+\toprule \textbf{Métrica} & \textbf{Valor} \\ \midrule
+Completitud funcional & 45/45 requisitos funcionales implementados \\
+Corrección funcional & Verificada por 196 casos de prueba \\
+Pertinencia funcional & 56 endpoints alineados a los casos de uso \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\section{Conclusiones de la medición}
+La medición confirma un producto de tamaño medio ($\approx 14.5$~KLOC de aplicación)
+con una fuerte inversión en pruebas (razón prueba/producción $\approx 0{,}77$ y
+cobertura global del 80,44\%). Los atributos externos más críticos —seguridad y
+fiabilidad— presentan los mejores indicadores (cobertura del componente de acceso
+$\geq 97\%$ y 100\% de éxito en pruebas). Las oportunidades de mejora se concentran en
+elevar la cobertura de \texttt{mealsController.ts} y \texttt{auditService.ts}, y en
+formalizar mediciones continuas de rendimiento en producción.

@@ -1,0 +1,303 @@
+% Generado por gen_pruebas.py
+
+A continuacion se presenta el catalogo completo de los casos de prueba automatizados, extraido directamente del codigo fuente de las suites (\texttt{server/src/tests/}). Cada caso corresponde a un bloque \texttt{it()} ejecutable; la columna \emph{Contexto} indica el bloque \texttt{describe()} que lo agrupa.
+
+
+El catalogo agrupa \textbf{196} casos declarados en las diez suites.
+
+
+\subsubsection{AuthController (\texttt{unit/authController.test.ts})}
+La suite \texttt{unit/authController.test.ts} contiene 59 casos de prueba (Tabla~\ref{tab:cat-tc-auth}).
+\begin{longtable}{l L{0.30\textwidth} L{0.40\textwidth}}
+\caption{Casos de prueba --- AuthController}\label{tab:cat-tc-auth}\\
+\toprule \textbf{ID} & \textbf{Contexto} & \textbf{Caso de prueba} \\ \midrule
+\endfirsthead
+\toprule \textbf{ID} & \textbf{Contexto} & \textbf{Caso de prueba} \\ \midrule
+\endhead \bottomrule \endlastfoot
+TC-AUTH-001 & authController > login > Caja Negra - Clases de Equivalencia & TC-LOGIN-001: Login exitoso como administrador \\
+TC-AUTH-002 & authController > login > Caja Negra - Clases de Equivalencia & TC-LOGIN-002: Login exitoso como estudiante \\
+TC-AUTH-003 & authController > login > Caja Negra - Clases de Equivalencia & TC-LOGIN-003: Login exitoso como supervisor autorizado \\
+TC-AUTH-004 & authController > login > Caja Negra - Clases de Equivalencia & TC-LOGIN-004: Error 400 - Campos requeridos faltantes (sin email) \\
+TC-AUTH-005 & authController > login > Caja Negra - Clases de Equivalencia & TC-LOGIN-005: Error 400 - Campos requeridos faltantes (sin password) \\
+TC-AUTH-006 & authController > login > Caja Negra - Clases de Equivalencia & TC-LOGIN-006: Error 400 - Campos requeridos faltantes (sin role) \\
+TC-AUTH-007 & authController > login > Caja Negra - Clases de Equivalencia & TC-LOGIN-007: Error 401 - Usuario no existe \\
+TC-AUTH-008 & authController > login > Caja Negra - Clases de Equivalencia & TC-LOGIN-008: Error 401 - Contraseña incorrecta \\
+TC-AUTH-009 & authController > login > Caja Negra - Clases de Equivalencia & TC-LOGIN-009: Error 401 - Usuario inactivo \\
+TC-AUTH-010 & authController > login > Caja Negra - Clases de Equivalencia & TC-LOGIN-010: Error 403 - Rol no coincide (student intenta como admin) \\
+TC-AUTH-011 & authController > login > Caja Negra - Clases de Equivalencia & TC-LOGIN-011: Error 403 - Admin no autorizado (isAuthorized=false) \\
+TC-AUTH-012 & authController > login > Caja Negra - Clases de Equivalencia & TC-LOGIN-012: Error 403 - Supervisor no autorizado (isAuthorized=false) \\
+TC-AUTH-013 & authController > login > Caja Negra - Clases de Equivalencia & TC-LOGIN-013: Error 500 - Excepción del servidor \\
+TC-AUTH-014 & authController > login > Camino Básico - Cobertura de Caminos (Grafo de Flujo) & Camino 1: Campos faltantes -> 400 \\
+TC-AUTH-015 & authController > login > Camino Básico - Cobertura de Caminos (Grafo de Flujo) & Camino 2: Campos OK -> Usuario no existe -> 401 \\
+TC-AUTH-016 & authController > login > Camino Básico - Cobertura de Caminos (Grafo de Flujo) & Camino 3: Campos OK -> Usuario existe -> Contraseña incorrecta -> 401 \\
+TC-AUTH-017 & authController > login > Camino Básico - Cobertura de Caminos (Grafo de Flujo) & Camino 4: Campos OK -> Usuario -> Pass OK -> Inactivo -> 401 \\
+TC-AUTH-018 & authController > login > Camino Básico - Cobertura de Caminos (Grafo de Flujo) & Camino 5: Campos OK -> Usuario -> Pass OK -> Activo -> Rol incorrecto -> 403 \\
+TC-AUTH-019 & authController > login > Camino Básico - Cobertura de Caminos (Grafo de Flujo) & Camino 6: Camino completo hasta no autorizado -> 403 \\
+TC-AUTH-020 & authController > login > Camino Básico - Cobertura de Caminos (Grafo de Flujo) & Camino 7: Camino completo exitoso -> 200 \\
+TC-AUTH-021 & authController > register > Valores Límite - Campos con restricciones & VL-EMAIL-001: Email de exactamente 30 caracteres - válido \\
+TC-AUTH-022 & authController > register > Valores Límite - Campos con restricciones & VL-CEDULA-001: Cédula de 6 dígitos - válido (mínimo) \\
+TC-AUTH-023 & authController > register > Valores Límite - Campos con restricciones & VL-CEDULA-002: Cédula de 12 dígitos - válido (máximo) \\
+TC-AUTH-024 & authController > register > Valores Límite - Campos con restricciones & VL-CEDULA-003: Cédula de 5 dígitos - inválido (debajo del mínimo) \\
+TC-AUTH-025 & authController > register > Valores Límite - Campos con restricciones & VL-NOMBRE-001: Nombre de 20 caracteres - válido \\
+TC-AUTH-026 & authController > register > Valores Límite - Campos con restricciones & VL-NOMBRE-002: Nombre de 21 caracteres - inválido \\
+TC-AUTH-027 & authController > register > Caja Negra - Clases de Equivalencia & TC-REG-001: Registro exitoso con todos los campos válidos \\
+TC-AUTH-028 & authController > register > Caja Negra - Clases de Equivalencia & TC-REG-002: Error 400 - Archivo SISBEN faltante \\
+TC-AUTH-029 & authController > register > Caja Negra - Clases de Equivalencia & TC-REG-003: Error 400 - Email ya registrado \\
+TC-AUTH-030 & authController > register > Caja Negra - Clases de Equivalencia & TC-REG-004: Parseo correcto de diasComedor desde string JSON \\
+TC-AUTH-031 & authController > refreshToken & TC-REFRESH-001: Refresh exitoso con token válido \\
+TC-AUTH-032 & authController > refreshToken & TC-REFRESH-002: Error 400 - Token faltante \\
+TC-AUTH-033 & authController > refreshToken & TC-REFRESH-003: Error 401 - Token JWT inválido \\
+TC-AUTH-034 & authController > refreshToken & TC-REFRESH-004: Error 401 - Usuario no encontrado \\
+TC-AUTH-035 & authController > refreshToken & TC-REFRESH-005: Error 401 - Usuario inactivo \\
+TC-AUTH-036 & authController > getProfile & TC-PROFILE-001: Obtener perfil exitoso \\
+TC-AUTH-037 & authController > getProfile & TC-PROFILE-002: Error 404 - Usuario no encontrado \\
+TC-AUTH-038 & authController > updateProfile & TC-UPDATE-001: Actualización de perfil exitosa \\
+TC-AUTH-039 & authController > updateProfile & TC-UPDATE-002: Error 404 - Usuario no encontrado \\
+TC-AUTH-040 & authController > forgotPassword & TC-FORGOT-001: Email enviado cuando usuario existe \\
+TC-AUTH-041 & authController > forgotPassword & TC-FORGOT-002: Error 400 - Email faltante \\
+TC-AUTH-042 & authController > forgotPassword & TC-FORGOT-003: Mensaje genérico cuando usuario NO existe (seguridad) \\
+TC-AUTH-043 & authController > resetPassword & TC-RESET-001: Contraseña restablecida exitosamente \\
+TC-AUTH-044 & authController > resetPassword & TC-RESET-002: Error 400 - Token faltante \\
+TC-AUTH-045 & authController > resetPassword & TC-RESET-003: Error 400 - Contraseña nueva faltante \\
+TC-AUTH-046 & authController > resetPassword & TC-RESET-004: Error 400 - Contraseña NO tiene exactamente 8 caracteres (7) \\
+TC-AUTH-047 & authController > resetPassword & TC-RESET-005: Error 400 - Contraseña NO tiene exactamente 8 caracteres (9) \\
+TC-AUTH-048 & authController > resetPassword & TC-RESET-006: Error 400 - Token inválido o expirado \\
+TC-AUTH-049 & authController > changePassword & TC-CHANGE-001: Contraseña cambiada exitosamente \\
+TC-AUTH-050 & authController > changePassword & TC-CHANGE-002: Error 404 - Usuario no encontrado \\
+TC-AUTH-051 & authController > changePassword & TC-CHANGE-003: Error 400 - Contraseña actual incorrecta \\
+TC-AUTH-052 & authController > setupTwoFactor & TC-2FA-SETUP-001: Configuración 2FA exitosa para estudiante \\
+TC-AUTH-053 & authController > setupTwoFactor & TC-2FA-SETUP-002: Error 404 - Usuario no encontrado \\
+TC-AUTH-054 & authController > setupTwoFactor & TC-2FA-SETUP-003: Error 400 - Solo estudiantes (admin no puede) \\
+TC-AUTH-055 & authController > verifyTwoFactor & TC-2FA-VERIFY-001: Verificación 2FA exitosa \\
+TC-AUTH-056 & authController > verifyTwoFactor & TC-2FA-VERIFY-002: Error 400 - Token 2FA faltante \\
+TC-AUTH-057 & authController > verifyTwoFactor & TC-2FA-VERIFY-003: Error 404 - Usuario no encontrado \\
+TC-AUTH-058 & authController > verifyTwoFactor & TC-2FA-VERIFY-004: Error 400 - 2FA no configurado previamente \\
+TC-AUTH-059 & authController > verifyTwoFactor & TC-2FA-VERIFY-005: Error 400 - Código TOTP inválido \\
+\end{longtable}
+
+\subsubsection{StudentsController (\texttt{unit/studentsController.test.ts})}
+La suite \texttt{unit/studentsController.test.ts} contiene 28 casos de prueba (Tabla~\ref{tab:cat-tc-stu}).
+\begin{longtable}{l L{0.30\textwidth} L{0.40\textwidth}}
+\caption{Casos de prueba --- StudentsController}\label{tab:cat-tc-stu}\\
+\toprule \textbf{ID} & \textbf{Contexto} & \textbf{Caso de prueba} \\ \midrule
+\endfirsthead
+\toprule \textbf{ID} & \textbf{Contexto} & \textbf{Caso de prueba} \\ \midrule
+\endhead \bottomrule \endlastfoot
+TC-STU-001 & studentsController > getStudents & TC-GET-STU-001: Obtener lista de estudiantes exitosamente \\
+TC-STU-002 & studentsController > getStudents & TC-GET-STU-002: Paginación correcta \\
+TC-STU-003 & studentsController > getStudents & TC-GET-STU-003: Búsqueda por texto (search) \\
+TC-STU-004 & studentsController > getStudentById & TC-BY-ID-001: Obtener estudiante por ID exitosamente \\
+TC-STU-005 & studentsController > getStudentById & TC-BY-ID-002: Error 404 - Estudiante no encontrado \\
+TC-STU-006 & studentsController > getStudentById & TC-BY-ID-003: Sin pagos verificados - availableMeals = 0 \\
+TC-STU-007 & studentsController > createStudent > Valores Límite & VL-CEDULA: Cédula de 6 dígitos (mínimo) \\
+TC-STU-008 & studentsController > createStudent > Valores Límite & VL-CEDULA: Cédula de 12 dígitos (máximo) \\
+TC-STU-009 & studentsController > createStudent > Valores Límite & VL-NOMBRE: Nombre de 20 caracteres (máximo) \\
+TC-STU-010 & studentsController > createStudent > Valores Límite & VL-CARRERA: Carrera de 25 caracteres (máximo) \\
+TC-STU-011 & studentsController > createStudent > Caja Negra - Clases de Equivalencia & TC-CREATE-001: Creación exitosa con datos válidos \\
+TC-STU-012 & studentsController > createStudent > Caja Negra - Clases de Equivalencia & TC-CREATE-002: Error 400 - Email ya registrado \\
+TC-STU-013 & studentsController > createStudent > Caja Negra - Clases de Equivalencia & TC-CREATE-003: DiasComedor se asigna correctamente \\
+TC-STU-014 & studentsController > updateStudent & TC-UPDATE-001: Actualización exitosa \\
+TC-STU-015 & studentsController > updateStudent & TC-UPDATE-002: Error 404 - Estudiante no encontrado \\
+TC-STU-016 & studentsController > updateStudent & TC-UPDATE-003: Error 404 - Usuario no es estudiante (es admin) \\
+TC-STU-017 & studentsController > deleteStudent & TC-DELETE-001: Deshabilitación exitosa (soft delete) \\
+TC-STU-018 & studentsController > deleteStudent & TC-DELETE-002: Error 404 - Estudiante no encontrado \\
+TC-STU-019 & studentsController > validateSisben & TC-SISBEN-001: Validación exitosa - todos los datos coinciden \\
+TC-STU-020 & studentsController > validateSisben & TC-SISBEN-002: Validación fallida - cédula no coincide \\
+TC-STU-021 & studentsController > validateSisben & TC-SISBEN-003: Error 404 - Estudiante no encontrado \\
+TC-STU-022 & studentsController > getAvailableMeals & TC-MEALS-001: Calcular almuerzos disponibles correctamente \\
+TC-STU-023 & studentsController > getAvailableMeals & TC-MEALS-002: Error 404 - Estudiante no encontrado \\
+TC-STU-024 & studentsController > searchStudents & TC-SEARCH-001: Búsqueda por cédula \\
+TC-STU-025 & studentsController > searchStudents & TC-SEARCH-002: Búsqueda sin filtros retorna todos \\
+TC-STU-026 & studentsController > importStudentsFromExcel & TC-IMPORT-001: Error 400 - No se envió archivo \\
+TC-STU-027 & studentsController > importStudentsFromExcel & TC-IMPORT-002: Importar archivo Excel correctamente \\
+TC-STU-028 & studentsController > importStudentsFromExcel & TC-IMPORT-003: Actualizar estudiante existente con pago \\
+\end{longtable}
+
+\subsubsection{PaymentsController (\texttt{unit/paymentsController.test.ts})}
+La suite \texttt{unit/paymentsController.test.ts} contiene 21 casos de prueba (Tabla~\ref{tab:cat-tc-pay}).
+\begin{longtable}{l L{0.30\textwidth} L{0.40\textwidth}}
+\caption{Casos de prueba --- PaymentsController}\label{tab:cat-tc-pay}\\
+\toprule \textbf{ID} & \textbf{Contexto} & \textbf{Caso de prueba} \\ \midrule
+\endfirsthead
+\toprule \textbf{ID} & \textbf{Contexto} & \textbf{Caso de prueba} \\ \midrule
+\endhead \bottomrule \endlastfoot
+TC-PAY-001 & paymentsController > createPayment > Valores Límite - Monto mínimo de 2000 (1 almuerzo) & VL-MONTO-001: Monto exactamente 2000 = 1 almuerzo \\
+TC-PAY-002 & paymentsController > createPayment > Valores Límite - Monto mínimo de 2000 (1 almuerzo) & VL-MONTO-002: Monto 1999 = 0 almuerzos (debajo del mínimo) \\
+TC-PAY-003 & paymentsController > createPayment > Valores Límite - Monto mínimo de 2000 (1 almuerzo) & VL-MONTO-003: Monto 10000 = 5 almuerzos \\
+TC-PAY-004 & paymentsController > createPayment > Valores Límite - Monto mínimo de 2000 (1 almuerzo) & VL-MONTO-004: Monto con residuo 4500 = 2 almuerzos (residuo 500) \\
+TC-PAY-005 & paymentsController > createPayment > Caja Negra - Clases de Equivalencia & TC-PAY-001: Pago exitoso con studentId válido y monto positivo \\
+TC-PAY-006 & paymentsController > createPayment > Caja Negra - Clases de Equivalencia & TC-PAY-002: Error 404 - Estudiante no encontrado \\
+TC-PAY-007 & paymentsController > verifyPayment & TC-VERIFY-001: Verificación exitosa por administrador \\
+TC-PAY-008 & paymentsController > verifyPayment & TC-VERIFY-002: Error 404 - Pago no encontrado \\
+TC-PAY-009 & paymentsController > getPayments & TC-GET-PAY-001: Obtener pagos con paginación \\
+TC-PAY-010 & paymentsController > getPayments & TC-GET-PAY-002: Filtrar por studentId \\
+TC-PAY-011 & paymentsController > getPayments & TC-GET-PAY-003: Filtrar por isVerified=true \\
+TC-PAY-012 & paymentsController > uploadPaymentComprobante & TC-UPLOAD-001: Subida exitosa de comprobante \\
+TC-PAY-013 & paymentsController > uploadPaymentComprobante & TC-UPLOAD-002: Error 400 - No se envió archivo \\
+TC-PAY-014 & paymentsController > calculateMeals > Valores Límite - Cálculo de almuerzos & VL-CALC-001: Monto exactamente 2000 = 1 almuerzo, 0 restante \\
+TC-PAY-015 & paymentsController > calculateMeals > Valores Límite - Cálculo de almuerzos & VL-CALC-002: Monto 1999 = error 400 (debajo del mínimo) \\
+TC-PAY-016 & paymentsController > calculateMeals > Valores Límite - Cálculo de almuerzos & VL-CALC-003: Monto 3999 = 1 almuerzo, 1999 restante \\
+TC-PAY-017 & paymentsController > calculateMeals > Valores Límite - Cálculo de almuerzos & VL-CALC-004: Monto 4000 = 2 almuerzos, 0 restante \\
+TC-PAY-018 & paymentsController > calculateMeals > Valores Límite - Cálculo de almuerzos & VL-CALC-005: Monto 10000 = 5 almuerzos (ejemplo del documento) \\
+TC-PAY-019 & paymentsController > calculateMeals > Valores Límite - Cálculo de almuerzos & VL-CALC-006: Monto 24000 = 12 almuerzos (monto grande) \\
+TC-PAY-020 & paymentsController > calculateMeals > Valores Límite - Cálculo de almuerzos & VL-CALC-007: Monto negativo o cero = error 400 \\
+TC-PAY-021 & paymentsController > calculateMeals > Valores Límite - Cálculo de almuerzos & VL-CALC-008: Sin amount = error 400 \\
+\end{longtable}
+
+\subsubsection{SupervisorsController (\texttt{unit/supervisorsController.test.ts})}
+La suite \texttt{unit/supervisorsController.test.ts} contiene 19 casos de prueba (Tabla~\ref{tab:cat-tc-sup}).
+\begin{longtable}{l L{0.30\textwidth} L{0.40\textwidth}}
+\caption{Casos de prueba --- SupervisorsController}\label{tab:cat-tc-sup}\\
+\toprule \textbf{ID} & \textbf{Contexto} & \textbf{Caso de prueba} \\ \midrule
+\endfirsthead
+\toprule \textbf{ID} & \textbf{Contexto} & \textbf{Caso de prueba} \\ \midrule
+\endhead \bottomrule \endlastfoot
+TC-SUP-001 & supervisorsController > getSupervisors & TC-SUP-001: Obtener lista de supervisores \\
+TC-SUP-002 & supervisorsController > createSupervisor & TC-SUP-CREATE-001: Creación exitosa con contraseña temporal \\
+TC-SUP-003 & supervisorsController > createSupervisor & TC-SUP-CREATE-002: Error 400 - Email duplicado \\
+TC-SUP-004 & supervisorsController > updateSupervisor & TC-SUP-UPDATE-001: Actualización exitosa \\
+TC-SUP-005 & supervisorsController > updateSupervisor & TC-SUP-UPDATE-002: Error 404 - Supervisor no encontrado \\
+TC-SUP-006 & supervisorsController > deleteSupervisor & TC-SUP-DELETE-001: Deshabilitación exitosa \\
+TC-SUP-007 & supervisorsController > toggleSupervisorStatus & TC-SUP-TOGGLE-001: Cambiar estado activo/autorizado \\
+TC-SUP-008 & supervisorsController > generateInviteLink & TC-INVITE-001: Generar link de invitación válido por 48h \\
+TC-SUP-009 & supervisorsController > joinWithInvite & TC-JOIN-001: Registro con invitación exitoso \\
+TC-SUP-010 & supervisorsController > joinWithInvite & TC-JOIN-002: Error 400 - Campos faltantes \\
+TC-SUP-011 & supervisorsController > joinWithInvite & TC-JOIN-003: Error 400 - Token inválido \\
+TC-SUP-012 & supervisorsController > joinWithInvite & TC-JOIN-004: Error 400 - Email ya registrado \\
+TC-SUP-013 & supervisorsController > assignStudentToSupervisor & TC-ASSIGN-001: Asignación exitosa \\
+TC-SUP-014 & supervisorsController > assignStudentToSupervisor & TC-ASSIGN-002: Error 400 - Ya asignado \\
+TC-SUP-015 & supervisorsController > assignStudentToSupervisor & TC-ASSIGN-003: Error 404 - Supervisor no encontrado \\
+TC-SUP-016 & supervisorsController > removeStudentFromSupervisor & TC-REMOVE-001: Eliminación exitosa \\
+TC-SUP-017 & supervisorsController > removeStudentFromSupervisor & TC-REMOVE-002: Error 404 - Asignación no encontrada \\
+TC-SUP-018 & supervisorsController > getSupervisorStudents & TC-SUP-STU-001: Obtener estudiantes asignados \\
+TC-SUP-019 & supervisorsController > getSupervisorLogs & TC-LOGS-001: Obtener logs con paginación \\
+\end{longtable}
+
+\subsubsection{Ratings/Complaints/News (\texttt{unit/ratingsComplaintsNews.test.ts})}
+La suite \texttt{unit/ratingsComplaintsNews.test.ts} contiene 17 casos de prueba (Tabla~\ref{tab:cat-tc-rcn}).
+\begin{longtable}{l L{0.30\textwidth} L{0.40\textwidth}}
+\caption{Casos de prueba --- Ratings/Complaints/News}\label{tab:cat-tc-rcn}\\
+\toprule \textbf{ID} & \textbf{Contexto} & \textbf{Caso de prueba} \\ \midrule
+\endfirsthead
+\toprule \textbf{ID} & \textbf{Contexto} & \textbf{Caso de prueba} \\ \midrule
+\endhead \bottomrule \endlastfoot
+TC-RCN-001 & ratingsController > createRating & TC-RAT-001: Calificación exitosa (1-5 estrellas) \\
+TC-RCN-002 & ratingsController > createRating & TC-RAT-002: Error 401 - No autenticado \\
+TC-RCN-003 & ratingsController > createRating & TC-RAT-003: Error 404 - Estudiante no encontrado \\
+TC-RCN-004 & ratingsController > getRatings & TC-RAT-GET-001: Obtener calificaciones con promedio \\
+TC-RCN-005 & ratingsController > getAverageRating & TC-AVG-001: Calcular distribución de estrellas \\
+TC-RCN-006 & complaintsController > createComplaint & TC-COMP-001: Queja anónima creada exitosamente \\
+TC-RCN-007 & complaintsController > createComplaint & TC-COMP-002: Queja identificada con studentId \\
+TC-RCN-008 & complaintsController > getComplaints & TC-COMP-GET-001: Obtener quejas con paginación \\
+TC-RCN-009 & complaintsController > respondComplaint & TC-COMP-RESP-001: Respuesta a queja exitosa \\
+TC-RCN-010 & complaintsController > respondComplaint & TC-COMP-RESP-002: Error 404 - Queja no encontrada \\
+TC-RCN-011 & newsController > getNews & TC-NEWS-001: Obtener noticias activas \\
+TC-RCN-012 & newsController > getNewsById & TC-NEWS-BY-ID-001: Obtener noticia por ID \\
+TC-RCN-013 & newsController > getNewsById & TC-NEWS-BY-ID-002: Error 404 - Noticia no encontrada \\
+TC-RCN-014 & newsController > createNews & TC-NEWS-CREATE-001: Creación exitosa \\
+TC-RCN-015 & newsController > updateNews & TC-NEWS-UPDATE-001: Actualización exitosa \\
+TC-RCN-016 & newsController > updateNews & TC-NEWS-UPDATE-002: Error 404 - No encontrada \\
+TC-RCN-017 & newsController > deleteNews & TC-NEWS-DELETE-001: Soft delete exitoso \\
+\end{longtable}
+
+\subsubsection{Middleware de seguridad (\texttt{unit/middleware.test.ts})}
+La suite \texttt{unit/middleware.test.ts} contiene 15 casos de prueba (Tabla~\ref{tab:cat-tc-mw}).
+\begin{longtable}{l L{0.30\textwidth} L{0.40\textwidth}}
+\caption{Casos de prueba --- Middleware de seguridad}\label{tab:cat-tc-mw}\\
+\toprule \textbf{ID} & \textbf{Contexto} & \textbf{Caso de prueba} \\ \midrule
+\endfirsthead
+\toprule \textbf{ID} & \textbf{Contexto} & \textbf{Caso de prueba} \\ \midrule
+\endhead \bottomrule \endlastfoot
+TC-MW-001 & middleware/auth > authenticate & TC-AUTH-MW-001: Token válido -> next() llamado \\
+TC-MW-002 & middleware/auth > authenticate & TC-AUTH-MW-002: Sin header Authorization -> 401 \\
+TC-MW-003 & middleware/auth > authenticate & TC-AUTH-MW-003: Header sin Bearer -> 401 \\
+TC-MW-004 & middleware/auth > authenticate & TC-AUTH-MW-004: Token JWT inválido -> 401 \\
+TC-MW-005 & middleware/auth > authenticate & TC-AUTH-MW-005: Usuario no encontrado en BD -> 401 \\
+TC-MW-006 & middleware/auth > authenticate & TC-AUTH-MW-006: Usuario inactivo -> 401 \\
+TC-MW-007 & middleware/auth > authorize & TC-AUTHZ-001: Rol permitido -> next() llamado \\
+TC-MW-008 & middleware/auth > authorize & TC-AUTHZ-002: Sin req.user -> 401 \\
+TC-MW-009 & middleware/auth > authorize & TC-AUTHZ-003: Rol no permitido -> 403 \\
+TC-MW-010 & middleware/auth > authorize & TC-AUTHZ-004: Solo ADMIN puede acceder a rutas de admin \\
+TC-MW-011 & middleware/auth > authorize & TC-AUTHZ-005: ADMIN o SUPERVISOR pueden acceder \\
+TC-MW-012 & middleware/auth > optionalAuth & TC-OPT-001: Sin token -> next() sin error \\
+TC-MW-013 & middleware/auth > optionalAuth & TC-OPT-002: Token válido -> req.user asignado \\
+TC-MW-014 & middleware/auth > optionalAuth & TC-OPT-003: Token inválido -> next() sin error (swallow) \\
+TC-MW-015 & middleware/auth > optionalAuth & TC-OPT-004: Token válido pero usuario inactivo -> next() sin asignar user \\
+\end{longtable}
+
+\subsubsection{MealsController (\texttt{unit/mealsController.test.ts})}
+La suite \texttt{unit/mealsController.test.ts} contiene 12 casos de prueba (Tabla~\ref{tab:cat-tc-meal}).
+\begin{longtable}{l L{0.30\textwidth} L{0.40\textwidth}}
+\caption{Casos de prueba --- MealsController}\label{tab:cat-tc-meal}\\
+\toprule \textbf{ID} & \textbf{Contexto} & \textbf{Caso de prueba} \\ \midrule
+\endfirsthead
+\toprule \textbf{ID} & \textbf{Contexto} & \textbf{Caso de prueba} \\ \midrule
+\endhead \bottomrule \endlastfoot
+TC-MEAL-001 & mealsController > registerMeal > Caja Negra - Clases de Equivalencia & TC-MEAL-001: Registro de almuerzo exitoso (camino completo) \\
+TC-MEAL-002 & mealsController > registerMeal > Caja Negra - Clases de Equivalencia & TC-MEAL-002: Error 401 - Supervisor no autenticado \\
+TC-MEAL-003 & mealsController > registerMeal > Caja Negra - Clases de Equivalencia & TC-MEAL-003: Error 404 - Estudiante no encontrado \\
+TC-MEAL-004 & mealsController > registerMeal > Caja Negra - Clases de Equivalencia & TC-MEAL-004: Error 400 - Estudiante inactivo \\
+TC-MEAL-005 & mealsController > registerMeal > Caja Negra - Clases de Equivalencia & TC-MEAL-005: Error 400 - Día no autorizado para el estudiante \\
+TC-MEAL-006 & mealsController > registerMeal > Caja Negra - Clases de Equivalencia & TC-MEAL-006: Error 400 - Ya usó el comedor hoy \\
+TC-MEAL-007 & mealsController > registerMeal > Caja Negra - Clases de Equivalencia & TC-MEAL-007: Error 400 - Sin almuerzos disponibles \\
+TC-MEAL-008 & mealsController > registerMeal > Caja Negra - Clases de Equivalencia & TC-MEAL-008: Actualiza mealsUsed en el último pago \\
+TC-MEAL-009 & mealsController > registerMeal > Caja Negra - Clases de Equivalencia & TC-MEAL-009: Registra SupervisorLog correctamente \\
+TC-MEAL-010 & mealsController > getMealHistory & TC-HIST-001: Obtener historial completo \\
+TC-MEAL-011 & mealsController > getMealHistory & TC-HIST-002: Filtrar por studentId y rango de fechas \\
+TC-MEAL-012 & mealsController > getTodayAttendance & TC-TODAY-001: Obtener asistencias de hoy \\
+\end{longtable}
+
+\subsubsection{SisbenValidationService (\texttt{unit/sisbenValidationService.test.ts})}
+La suite \texttt{unit/sisbenValidationService.test.ts} contiene 6 casos de prueba (Tabla~\ref{tab:cat-tc-sis}).
+\begin{longtable}{l L{0.30\textwidth} L{0.40\textwidth}}
+\caption{Casos de prueba --- SisbenValidationService}\label{tab:cat-tc-sis}\\
+\toprule \textbf{ID} & \textbf{Contexto} & \textbf{Caso de prueba} \\ \midrule
+\endfirsthead
+\toprule \textbf{ID} & \textbf{Contexto} & \textbf{Caso de prueba} \\ \midrule
+\endhead \bottomrule \endlastfoot
+TC-SIS-001 & sisbenValidationService > extractSisbenText & extrae texto desde PDF \\
+TC-SIS-002 & sisbenValidationService > extractSisbenText & extrae texto desde imagen usando OCR \\
+TC-SIS-003 & sisbenValidationService > extractSisbenText & lanza error para tipo de archivo no soportado \\
+TC-SIS-004 & sisbenValidationService > validateSisbenFile & retorna validación exitosa cuando cédula, nombre y apellido coinciden \\
+TC-SIS-005 & sisbenValidationService > validateSisbenAgainstCedula & retorna validación exitosa cuando SISBEN y cédula frontal coinciden \\
+TC-SIS-006 & sisbenValidationService > validateSisbenAgainstCedula & marca mismatch cuando la cédula no aparece en el documento de identidad \\
+\end{longtable}
+
+\subsubsection{Integración incremental (bottom-up) (\texttt{integration/incremental.test.ts})}
+La suite \texttt{integration/incremental.test.ts} contiene 13 casos de prueba (Tabla~\ref{tab:cat-it-inc}).
+\begin{longtable}{l L{0.30\textwidth} L{0.40\textwidth}}
+\caption{Casos de prueba --- Integración incremental (bottom-up)}\label{tab:cat-it-inc}\\
+\toprule \textbf{ID} & \textbf{Contexto} & \textbf{Caso de prueba} \\ \midrule
+\endfirsthead
+\toprule \textbf{ID} & \textbf{Contexto} & \textbf{Caso de prueba} \\ \midrule
+\endhead \bottomrule \endlastfoot
+IT-INC-001 & Pruebas de Integración - Estrategia Incremental > Nivel 1: Integración Auth Module & INT-AUTH-001: Flujo completo Register -> Login -> Get Profile \\
+IT-INC-002 & Pruebas de Integración - Estrategia Incremental > Nivel 1: Integración Auth Module & INT-AUTH-002: Login fallido con credenciales incorrectas \\
+IT-INC-003 & Pruebas de Integración - Estrategia Incremental > Nivel 1: Integración Auth Module & INT-AUTH-003: Admin no autorizado no puede loguearse como admin \\
+IT-INC-004 & Pruebas de Integración - Estrategia Incremental > Nivel 2: Integración Students Module & INT-STU-001: Crear usuario y estudiante, luego obtener con almuerzos \\
+IT-INC-005 & Pruebas de Integración - Estrategia Incremental > Nivel 2: Integración Students Module & INT-STU-002: Validar SISBEN actualiza flag en student \\
+IT-INC-006 & Pruebas de Integración - Estrategia Incremental > Nivel 2: Integración Students Module & INT-STU-003: Deshabilitar usuario deshabilita estudiante \\
+IT-INC-007 & Pruebas de Integración - Estrategia Incremental > Nivel 3: Integración Payments Module & INT-PAY-001: Crear pago para estudiante y calcular almuerzos disponibles \\
+IT-INC-008 & Pruebas de Integración - Estrategia Incremental > Nivel 3: Integración Payments Module & INT-PAY-002: Múltiples pagos acumulan almuerzos correctamente \\
+IT-INC-009 & Pruebas de Integración - Estrategia Incremental > Nivel 3: Integración Payments Module & INT-PAY-003: Verificar pago lo marca como verificado por admin \\
+IT-INC-010 & Pruebas de Integración - Estrategia Incremental > Nivel 4: Integración Meals Module & INT-MEAL-001: Flujo completo - Registrar almuerzo decrementa disponibilidad \\
+IT-INC-011 & Pruebas de Integración - Estrategia Incremental > Nivel 4: Integración Meals Module & INT-MEAL-002: No permitir registrar almuerzo si ya comió hoy \\
+IT-INC-012 & Pruebas de Integración - Estrategia Incremental > Nivel 4: Integración Meals Module & INT-MEAL-003: No permitir registrar si no tiene almuerzos disponibles \\
+IT-INC-013 & Pruebas de Integración - Estrategia Incremental > Nivel 4: Integración Meals Module & INT-MEAL-004: Registrar almuerzo crea SupervisorLog \\
+\end{longtable}
+
+\subsubsection{Integración basada en hilos (\texttt{integration/threads.test.ts})}
+La suite \texttt{integration/threads.test.ts} contiene 6 casos de prueba (Tabla~\ref{tab:cat-it-thr}).
+\begin{longtable}{l L{0.30\textwidth} L{0.40\textwidth}}
+\caption{Casos de prueba --- Integración basada en hilos}\label{tab:cat-it-thr}\\
+\toprule \textbf{ID} & \textbf{Contexto} & \textbf{Caso de prueba} \\ \midrule
+\endfirsthead
+\toprule \textbf{ID} & \textbf{Contexto} & \textbf{Caso de prueba} \\ \midrule
+\endhead \bottomrule \endlastfoot
+IT-THR-001 & Pruebas de Integración - Estrategia Basada en Hilos > HILO 1: Flujo Completo del Estudiante & H1-001: Flujo completo desde registro hasta envío de queja \\
+IT-THR-002 & Pruebas de Integración - Estrategia Basada en Hilos > HILO 1: Flujo Completo del Estudiante & H1-002: Estudiante no puede registrar almuerzo sin pagos \\
+IT-THR-003 & Pruebas de Integración - Estrategia Basada en Hilos > HILO 2: Flujo Completo del Supervisor & H2-001: Flujo completo - Supervisor registra almuerzo de estudiante \\
+IT-THR-004 & Pruebas de Integración - Estrategia Basada en Hilos > HILO 2: Flujo Completo del Supervisor & H2-002: Supervisor no autorizado no puede registrar almuerzos \\
+IT-THR-005 & Pruebas de Integración - Estrategia Basada en Hilos > HILO 3: Flujo Completo del Administrador & H3-001: Flujo completo administrador - Crear supervisor, importar, verificar \\
+IT-THR-006 & Pruebas de Integración - Estrategia Basada en Hilos > HILO 4: Flujo Noticias y Quejas & H4-001: Admin crea noticia, estudiante lee y envía queja, admin responde \\
+\end{longtable}

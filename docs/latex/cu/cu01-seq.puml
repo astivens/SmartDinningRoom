@@ -1,0 +1,32 @@
+@startuml
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam defaultFontName Helvetica
+skinparam dpi 150
+skinparam ActorBackgroundColor #E3F2FD
+skinparam UsecaseBackgroundColor #F5F7FA
+skinparam UsecaseBorderColor #607D8B
+skinparam SequenceLifeLineBorderColor #90A4AE
+skinparam ParticipantBackgroundColor #E3F2FD
+skinparam ActivityBackgroundColor #E8F5E9
+skinparam ActivityDiamondBackgroundColor #FFF3E0
+actor Estudiante
+participant "Frontend\n(SPA)" as FE
+participant "API /auth/register" as API
+participant "AuthController" as C
+database "PostgreSQL" as DB
+Estudiante -> FE : Diligencia formulario + adjuntos
+FE -> API : POST /api/auth/register (multipart)
+API -> C : register(req)
+C -> C : Valida archivo SISBEN
+C -> DB : SELECT user WHERE email
+alt email ya existe
+  C --> FE : 400 Email ya registrado
+else email disponible
+  C -> C : bcrypt.hash(password)
+  C -> DB : INSERT User(role=student)
+  C -> DB : INSERT Student(isValidatedSisben=false)
+  C --> FE : 201 Created
+end
+FE --> Estudiante : Confirmacion de registro
+@enduml

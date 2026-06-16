@@ -1,0 +1,26 @@
+@startuml
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam defaultFontName Helvetica
+skinparam dpi 150
+skinparam ActorBackgroundColor #E3F2FD
+skinparam UsecaseBackgroundColor #F5F7FA
+skinparam UsecaseBorderColor #607D8B
+skinparam SequenceLifeLineBorderColor #90A4AE
+skinparam ParticipantBackgroundColor #E3F2FD
+skinparam ActivityBackgroundColor #E8F5E9
+skinparam ActivityDiamondBackgroundColor #FFF3E0
+start
+:Recibir archivo .xlsx;
+:Parsear filas (xlsx);
+repeat
+  :Leer fila;
+  if (Fila valida?) then (si)
+    :Crear estudiante;
+  else (no)
+    :Registrar error;
+  endif
+repeat while (Mas filas?)
+:Devolver resumen;
+stop
+@enduml

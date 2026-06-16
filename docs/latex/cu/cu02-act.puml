@@ -1,0 +1,38 @@
+@startuml
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam defaultFontName Helvetica
+skinparam dpi 150
+skinparam ActorBackgroundColor #E3F2FD
+skinparam UsecaseBackgroundColor #F5F7FA
+skinparam UsecaseBorderColor #607D8B
+skinparam SequenceLifeLineBorderColor #90A4AE
+skinparam ParticipantBackgroundColor #E3F2FD
+skinparam ActivityBackgroundColor #E8F5E9
+skinparam ActivityDiamondBackgroundColor #FFF3E0
+start
+:Recibir email, password y rol;
+if (Campos completos?) then (no)
+  :HTTP 400;
+  stop
+endif
+if (Usuario existe?) then (no)
+  :HTTP 401;
+  stop
+endif
+if (Password correcto?) then (no)
+  :HTTP 401;
+  stop
+endif
+if (Cuenta activa?) then (no)
+  :HTTP 401;
+  stop
+endif
+if (Rol coincide y autorizado?) then (no)
+  :HTTP 403;
+  stop
+endif
+:Emitir access + refresh token;
+:HTTP 200;
+stop
+@enduml

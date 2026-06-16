@@ -1,0 +1,28 @@
+@startuml
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam defaultFontName Helvetica
+skinparam dpi 150
+skinparam ActorBackgroundColor #E3F2FD
+skinparam UsecaseBackgroundColor #F5F7FA
+skinparam UsecaseBorderColor #607D8B
+skinparam SequenceLifeLineBorderColor #90A4AE
+skinparam ParticipantBackgroundColor #E3F2FD
+skinparam ActivityBackgroundColor #E8F5E9
+skinparam ActivityDiamondBackgroundColor #FFF3E0
+actor Administrador as A
+participant Frontend as FE
+participant "API /supervisors" as API
+participant SupervisorsController as C
+database PostgreSQL as DB
+A -> FE : Crear supervisor
+FE -> API : POST /api/supervisors
+API -> C : create()
+C -> C : Generar contrasena temporal (hash)
+C -> DB : INSERT User(role=supervisor)
+C --> FE : 201 creado
+A -> FE : Cambiar estado (activo/autorizado)
+FE -> API : PATCH /api/supervisors/:id/status
+C -> DB : UPDATE estado
+C --> FE : 200
+@enduml

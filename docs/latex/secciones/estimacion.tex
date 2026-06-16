@@ -1,0 +1,212 @@
+% ════════════════════════════════════════════════════════════════════════════
+\part*{CUARTA PARTE. Estimación del Software}
+\addcontentsline{toc}{part}{CUARTA PARTE. Estimación del Software}
+% ════════════════════════════════════════════════════════════════════════════
+
+\section{Introducción a la estimación}
+La estimación del software busca predecir el tamaño, el esfuerzo, el costo y la
+duración del proyecto a partir de sus características \parencite{pressman2014,sommerville2011}.
+En esta parte se estima SmartComedor mediante cuatro técnicas complementarias —puntos de
+función, puntos de caso de uso, puntos objeto y puntos de historia— y se contrastan con
+una estimación basada en líneas de código (COCOMO). Los conteos provienen del sistema
+real: 21 casos de uso, 11 entidades, 56 endpoints y 45 requisitos funcionales.
+
+% ────────────────────────────────────────────────────────────────────────────
+\section{Estimación por puntos de función (PF)}
+Se aplica el método IFPUG, contando las funciones de datos y de transacción. La
+Tabla~\ref{tab:pf-conteo} muestra el conteo de puntos de función sin ajustar (PFSA).
+
+\begin{table}[H]\centering
+\caption{Conteo de puntos de función sin ajustar}\label{tab:pf-conteo}
+\begin{tabularx}{\textwidth}{X c c c}
+\toprule
+\textbf{Tipo de función} & \textbf{Cant.} & \textbf{Peso (medio)} & \textbf{Total} \\
+\midrule
+Entradas externas (EI) & 22 & 4 & 88 \\
+Salidas externas (EO) & 8 & 5 & 40 \\
+Consultas externas (EQ) & 14 & 4 & 56 \\
+Archivos lógicos internos (ILF) & 11 & 10 & 110 \\
+Archivos de interfaz externos (EIF) & 2 & 7 & 14 \\
+\midrule
+\textbf{Puntos de función sin ajustar (PFSA)} & & & \textbf{308} \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+El factor de ajuste de valor (VAF) se obtiene de las 14 características generales del
+sistema (GSC). Con un grado total de influencia (TDI) estimado en 40
+(promedio $\approx 2{,}9$ por característica, propio de un sistema web transaccional con
+seguridad y portabilidad relevantes):
+\[
+\text{VAF} = 0{,}65 + 0{,}01 \cdot \text{TDI} = 0{,}65 + 0{,}01 \cdot 40 = 1{,}05
+\]
+\[
+\text{PF ajustados} = \text{PFSA} \cdot \text{VAF} = 308 \cdot 1{,}05 = \mathbf{323{,}4}
+\]
+
+Con una productividad de 8 horas por punto de función (proyecto TypeScript con equipo de
+experiencia media), el esfuerzo estimado es:
+\[
+323{,}4 \times 8 \approx 2.587\ \text{horas} \approx 16{,}2\ \text{meses-persona}.
+\]
+
+% ────────────────────────────────────────────────────────────────────────────
+\section{Estimación por puntos de caso de uso (PCU)}
+Se aplica el método de Karner. Primero se calcula el peso de los actores sin ajustar
+(UAW) y el de los casos de uso sin ajustar (UUCW).
+
+\begin{table}[H]\centering
+\caption{Peso de los actores sin ajustar (UAW)}\label{tab:uaw}
+\begin{tabularx}{\textwidth}{X c c c}
+\toprule
+\textbf{Tipo de actor} & \textbf{Cant.} & \textbf{Peso} & \textbf{Total} \\
+\midrule
+Complejo (persona vía GUI: estudiante, supervisor, administrador, auditor) & 4 & 3 & 12 \\
+Simple (otro sistema/API: cron, servicio de correo) & 2 & 1 & 2 \\
+\midrule
+\textbf{UAW} & & & \textbf{14} \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\begin{table}[H]\centering
+\caption{Peso de los casos de uso sin ajustar (UUCW)}\label{tab:uucw}
+\begin{tabularx}{\textwidth}{X c c c}
+\toprule
+\textbf{Complejidad (transacciones)} & \textbf{Cant.} & \textbf{Peso} & \textbf{Total} \\
+\midrule
+Simple ($\leq 3$) & 0 & 5 & 0 \\
+Medio (4--7) & 18 & 10 & 180 \\
+Complejo ($>7$: CU-01, CU-07, CU-14) & 3 & 15 & 45 \\
+\midrule
+\textbf{UUCW} & & & \textbf{225} \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\[
+\text{UUCP} = \text{UAW} + \text{UUCW} = 14 + 225 = 239
+\]
+
+El factor de complejidad técnica (TCF) y el factor ambiental (ECF) ajustan el valor.
+Con un total de factores técnicos $TF = 51{,}5$ y ambientales $EF = 20{,}5$:
+\[
+\text{TCF} = 0{,}6 + 0{,}01 \cdot 51{,}5 = 1{,}115 \qquad
+\text{ECF} = 1{,}4 - 0{,}03 \cdot 20{,}5 = 0{,}785
+\]
+\[
+\text{UCP} = \text{UUCP} \cdot \text{TCF} \cdot \text{ECF}
+       = 239 \cdot 1{,}115 \cdot 0{,}785 \approx \mathbf{209{,}2}
+\]
+
+Con un factor de productividad de 20 horas-persona por UCP, el esfuerzo estimado es:
+\[
+209{,}2 \times 20 \approx 4.184\ \text{horas} \approx 26{,}2\ \text{meses-persona}.
+\]
+
+% ────────────────────────────────────────────────────────────────────────────
+\section{Estimación por puntos objeto}
+Los puntos objeto cuentan pantallas, informes y módulos 3GL ponderados por
+complejidad. La Tabla~\ref{tab:po} resume el conteo.
+
+\begin{table}[H]\centering
+\caption{Conteo de puntos objeto}\label{tab:po}
+\begin{tabularx}{\textwidth}{X c c c}
+\toprule
+\textbf{Objeto} & \textbf{Cant.} & \textbf{Peso (medio)} & \textbf{Total} \\
+\midrule
+Pantallas (vistas por rol) & 20 & 2 & 40 \\
+Informes (reportes/exportaciones) & 6 & 5 & 30 \\
+Módulos 3GL (servicios/integraciones) & 5 & 10 & 50 \\
+\midrule
+\textbf{Puntos objeto (bruto)} & & & \textbf{120} \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+Aplicando un porcentaje de reúso estimado del 25\%, los nuevos puntos objeto (NOP) son
+$120 \cdot (1-0{,}25) = 90$. Con una productividad media (PROD = 13 NOP/mes para un
+equipo de experiencia y madurez \emph{nominal}):
+\[
+\text{Esfuerzo} = \frac{\text{NOP}}{\text{PROD}} = \frac{90}{13} \approx 6{,}9\ \text{meses-persona}.
+\]
+
+% ────────────────────────────────────────────────────────────────────────────
+\section{Estimación por puntos de historia}
+Bajo el enfoque ágil (Scrum), el trabajo se estima en puntos de historia con la
+sucesión de Fibonacci. La Tabla~\ref{tab:ph} agrupa las épicas del producto.
+
+\begin{table}[H]\centering
+\caption{Estimación por puntos de historia (épicas)}\label{tab:ph}
+\begin{tabularx}{\textwidth}{X c c}
+\toprule
+\textbf{Épica} & \textbf{Historias} & \textbf{Puntos} \\
+\midrule
+Autenticación y cuentas (login, 2FA, recuperación) & 6 & 21 \\
+Gestión de estudiantes (CRUD, importación, SISBÉN) & 7 & 34 \\
+Gestión de supervisores e invitaciones & 5 & 21 \\
+Pagos y comprobantes & 4 & 13 \\
+Registro y control de almuerzos & 5 & 21 \\
+Ciclos y automatización & 3 & 13 \\
+Retroalimentación (calificaciones y quejas) & 4 & 8 \\
+Noticias & 2 & 5 \\
+Auditoría y analítica & 3 & 13 \\
+\midrule
+\textbf{Total} & \textbf{39} & \textbf{149} \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+Con una velocidad de equipo estimada en 20 puntos por \emph{sprint} de dos semanas, el
+proyecto requeriría $\lceil 149/20 \rceil = 8$ \emph{sprints} ($\approx 4$ meses de
+calendario con el equipo completo).
+
+% ────────────────────────────────────────────────────────────────────────────
+\section{Estimación con una herramienta (COCOMO básico)}
+Como contraste, se aplica COCOMO básico (modo orgánico) sobre el tamaño real medido:
+$\text{KLOC} \approx 11{,}29$ (código de aplicación de servidor y cliente, sin pruebas).
+\[
+E = 2{,}4 \cdot (11{,}29)^{1{,}05} \approx 30{,}6\ \text{meses-persona}
+\]
+\[
+T_{dev} = 2{,}5 \cdot (30{,}6)^{0{,}38} \approx 9{,}2\ \text{meses}
+\qquad
+N = \frac{E}{T_{dev}} \approx 3{,}3\ \text{personas}
+\]
+
+% ────────────────────────────────────────────────────────────────────────────
+\section{Análisis de los resultados}
+La Tabla~\ref{tab:est-comp} compara las técnicas. Los métodos basados en
+funcionalidad (PF y PCU) y el modelo COCOMO convergen en un esfuerzo del orden de
+\textbf{16 a 31 meses-persona}, mientras que los métodos de productividad agregada
+(puntos objeto y puntos de historia) proyectan duraciones de calendario de
+\textbf{4 a 7 meses} para un equipo pequeño.
+
+\begin{table}[H]\centering
+\caption{Comparación de técnicas de estimación}\label{tab:est-comp}
+\begin{tabularx}{\textwidth}{X c X}
+\toprule
+\textbf{Técnica} & \textbf{Resultado} & \textbf{Interpretación} \\
+\midrule
+Puntos de función & 323,4 PF & $\approx 2.587$ h ($\approx 16{,}2$ meses-persona) \\
+Puntos de caso de uso & 209,2 UCP & $\approx 4.184$ h ($\approx 26{,}2$ meses-persona) \\
+Puntos objeto & 90 NOP & $\approx 6{,}9$ meses-persona \\
+Puntos de historia & 149 pts & 8 \emph{sprints} ($\approx 4$ meses) \\
+COCOMO (11,29 KLOC) & 30,6 MP & 9,2 meses con $\approx 3{,}3$ personas \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+La diferencia entre PF y PCU se explica por los factores de ajuste: el método de
+Karner penaliza con un factor ambiental bajo (equipo en formación), elevando el esfuerzo.
+La coincidencia entre COCOMO (30,6 MP) y PCU (26,2 MP) refuerza la validez del rango
+superior, en tanto que PF y puntos objeto marcan el límite inferior. Para la planeación
+se recomienda adoptar el valor medio del rango y gestionar el riesgo con entregas
+incrementales (Scrum), monitoreando la velocidad real frente a la estimada.
+
+\section{Conclusiones de la estimación}
+Las cinco técnicas aplicadas sobre datos reales del sistema ofrecen un intervalo de
+esfuerzo coherente y permiten triangular la planeación. El sistema SmartComedor se
+clasifica como un proyecto de tamaño medio ($\approx 11{,}3$ KLOC de aplicación,
+323 PF, 209 UCP), abordable por un equipo de 3 a 4 personas en un horizonte de
+4 a 9 meses según el alcance comprometido por \emph{sprint}.

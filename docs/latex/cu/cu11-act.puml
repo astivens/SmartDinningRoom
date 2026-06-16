@@ -1,0 +1,23 @@
+@startuml
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam defaultFontName Helvetica
+skinparam dpi 150
+skinparam ActorBackgroundColor #E3F2FD
+skinparam UsecaseBackgroundColor #F5F7FA
+skinparam UsecaseBorderColor #607D8B
+skinparam SequenceLifeLineBorderColor #90A4AE
+skinparam ParticipantBackgroundColor #E3F2FD
+skinparam ActivityBackgroundColor #E8F5E9
+skinparam ActivityDiamondBackgroundColor #FFF3E0
+start
+:Ingresar monto y comprobante;
+if (Monto >= 2000?) then (no)
+  :HTTP 400;
+  stop
+endif
+:Calcular almuerzos = floor(monto/2000);
+:INSERT Payment (pendiente de verificar);
+:HTTP 201;
+stop
+@enduml

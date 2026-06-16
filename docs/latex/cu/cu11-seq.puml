@@ -1,0 +1,28 @@
+@startuml
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam defaultFontName Helvetica
+skinparam dpi 150
+skinparam ActorBackgroundColor #E3F2FD
+skinparam UsecaseBackgroundColor #F5F7FA
+skinparam UsecaseBorderColor #607D8B
+skinparam SequenceLifeLineBorderColor #90A4AE
+skinparam ParticipantBackgroundColor #E3F2FD
+skinparam ActivityBackgroundColor #E8F5E9
+skinparam ActivityDiamondBackgroundColor #FFF3E0
+actor Estudiante as E
+participant Frontend as FE
+participant "API /payments" as API
+participant PaymentsController as C
+database PostgreSQL as DB
+E -> FE : Ingresa monto + comprobante
+FE -> API : POST /api/payments
+API -> C : create()
+C -> C : mealsIncluded = floor(monto/2000)
+alt monto < 2000
+  C --> FE : 400 monto invalido
+else
+  C -> DB : INSERT Payment(isVerified=false)
+  C --> FE : 201 creado (pendiente)
+end
+@enduml
