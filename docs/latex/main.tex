@@ -1,0 +1,1346 @@
+\documentclass[stu,11pt,floatsintext]{apa7}
+
+% ─── Idioma y codificación ──────────────────────────────────────────────────
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage[spanish,es-tabla]{babel}
+
+% ─── Tablas, figuras y utilidades ───────────────────────────────────────────
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{array}
+\usepackage{tabularx}
+\usepackage{ragged2e}
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage{enumitem}
+
+% Columnas de ancho fijo con justificación
+\newcolumntype{L}[1]{>{\RaggedRight\arraybackslash}p{#1}}
+\newcolumntype{C}[1]{>{\Centering\arraybackslash}p{#1}}
+
+% ─── Bibliografía APA (biblatex-apa + biber) ────────────────────────────────
+\usepackage[style=apa,backend=biber]{biblatex}
+\DeclareLanguageMapping{spanish}{spanish-apa}
+\addbibresource{references.bib}
+
+% ─── Estilo de bloques de código / pseudocódigo ─────────────────────────────
+\definecolor{codebg}{rgb}{0.96,0.96,0.96}
+\definecolor{codekw}{rgb}{0.10,0.20,0.55}
+\definecolor{codecm}{rgb}{0.30,0.45,0.30}
+\lstdefinestyle{plano}{
+  backgroundcolor=\color{codebg},
+  basicstyle=\ttfamily\footnotesize,
+  breaklines=true,
+  breakatwhitespace=false,
+  columns=fullflexible,
+  keepspaces=true,
+  showstringspaces=false,
+  frame=single,
+  rulecolor=\color{gray!40},
+  framesep=4pt,
+  xleftmargin=6pt,
+  xrightmargin=2pt,
+  extendedchars=true,
+  literate=
+    {á}{{\'a}}1 {é}{{\'e}}1 {í}{{\'i}}1 {ó}{{\'o}}1 {ú}{{\'u}}1
+    {Á}{{\'A}}1 {É}{{\'E}}1 {Í}{{\'I}}1 {Ó}{{\'O}}1 {Ú}{{\'U}}1
+    {ñ}{{\~n}}1 {Ñ}{{\~N}}1 {ü}{{\"u}}1 {¿}{{?`}}1 {¡}{{!`}}1
+    {→}{{$\rightarrow$}}1 {←}{{$\leftarrow$}}1 {▶}{{$\blacktriangleright$}}1
+    {≥}{{$\geq$}}1 {≤}{{$\leq$}}1 {×}{{$\times$}}1
+}
+\lstset{style=plano}
+
+\usepackage{hyperref}
+\hypersetup{colorlinks=true,linkcolor=blue!50!black,urlcolor=blue!50!black,citecolor=blue!50!black}
+
+% ─── Metadatos del documento (portada APA estudiante) ───────────────────────
+\title{Documentación Técnica y Diseño de Pruebas del Sistema SmartComedor}
+\shorttitle{Documentación Técnica — SmartComedor}
+\author{Sandro Jaramillo, Anuar Sierra y Gabriel Macias}
+\affiliation{Universidad Popular del Cesar\\Facultad de Ingenierías y Tecnologías}
+\course{Ingeniería de Software II}
+\professor{Docente: Maribel Romero}
+\duedate{Valledupar, 2026}
+
+\begin{document}
+
+\maketitle
+
+% ─── Resumen ────────────────────────────────────────────────────────────────
+\begin{abstract}
+\noindent Este documento presenta la documentación técnica integral del sistema
+\textbf{SmartComedor}, una aplicación web de tres capas para la gestión del comedor
+universitario (registro y validación de elegibilidad de estudiantes, gestión de pagos,
+control de asistencia, retroalimentación del servicio y auditoría). La primera parte
+describe el problema, el sistema, el modelo de requerimientos (funcionales y no
+funcionales), el modelo de casos de uso y el modelo de diseño (clases, secuencias,
+entidad–relación y componentes). La segunda parte documenta el proceso de verificación
+y validación: planificación, pruebas unitarias (caja negra y caja blanca), pruebas de
+integración (incremental y basada en hilos), pruebas de sistema (seguridad, rendimiento,
+usabilidad y portabilidad) y pruebas de aceptación. La suite automatizada ejecuta
+\textbf{196 pruebas con 100\% de éxito} y una cobertura global aproximada del
+\textbf{80,4\%} de sentencias. El trabajo se apoya en estándares y técnicas reconocidas
+de la ingeniería de software \parencite{ieee829,iso25010,myers2011,pressman2014}.
+
+\par\vspace{6pt}\noindent\textit{Palabras clave:} pruebas de software, verificación y
+validación, casos de uso, requerimientos, calidad de software, JWT, SISBÉN.
+\end{abstract}
+
+\tableofcontents
+\newpage
+
+% ════════════════════════════════════════════════════════════════════════════
+\part*{PRIMERA PARTE. Descripción del Sistema}
+\addcontentsline{toc}{part}{PRIMERA PARTE. Descripción del Sistema}
+% ════════════════════════════════════════════════════════════════════════════
+
+\section{Descripción del sistema}
+
+\subsection{Identificación del problema}
+
+\subsubsection{Contexto}
+El programa de bienestar universitario ofrece un servicio de comedor (almuerzos
+subsidiados) dirigido a estudiantes en condición de vulnerabilidad socioeconómica. La
+elegibilidad para el subsidio depende de la clasificación del estudiante en el SISBÉN
+(Sistema de Identificación de Potenciales Beneficiarios de Programas Sociales del Estado
+colombiano), de su situación académica (carrera, semestre) y de su situación personal.
+Históricamente la operación se gestionaba mediante procesos manuales y en papel: el
+estudiante diligenciaba formularios físicos y entregaba fotocopias; un funcionario
+validaba manualmente que la cédula y los nombres del certificado SISBÉN correspondieran
+al documento de identidad; el control de asistencia se llevaba en planillas impresas, y
+el pago/recarga de almuerzos se soportaba con comprobantes físicos. No existía
+trazabilidad ni un canal estructurado de retroalimentación.
+
+\subsubsection{Problemas concretos detectados}
+La Tabla~\ref{tab:problemas} resume los problemas identificados y sus consecuencias.
+
+\begin{table}[H]
+\centering
+\caption{Problemas identificados en la operación manual del comedor}
+\label{tab:problemas}
+\begin{tabularx}{\textwidth}{c L{0.45\textwidth} X}
+\toprule
+\textbf{\#} & \textbf{Problema} & \textbf{Consecuencia} \\
+\midrule
+P1 & Validación manual de elegibilidad (SISBÉN vs. cédula) & Lentitud, error humano y riesgo de fraude documental \\
+P2 & Control de asistencia en papel & Doble cobro, suplantación y pérdida de información \\
+P3 & Conciliación manual de pagos/recargas & Descuadres contables y comprobantes extraviados \\
+P4 & Ausencia de trazabilidad/auditoría & Imposibilidad de investigar incidentes \\
+P5 & Falta de canal de retroalimentación & Desconocimiento de la percepción del servicio \\
+P6 & Gestión de cupos y ciclos sin automatizar & Beneficios vencidos que siguen activos \\
+P7 & Información dispersa entre actores & Ausencia de una fuente única de verdad \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\subsubsection{Planteamiento del problema}
+¿Cómo digitalizar y automatizar la gestión integral del comedor universitario
+—registro y validación de elegibilidad, control de asistencia, gestión de pagos,
+retroalimentación del servicio y auditoría— de manera segura, trazable y verificable,
+reduciendo el trabajo manual y el riesgo de fraude?
+
+\subsubsection{Justificación}
+Un sistema de información web que centralice estos procesos reduce el fraude (validación
+automática del SISBÉN por OCR/parseo de PDF e identificación con código QR único por
+estudiante), garantiza trazabilidad (bitácoras \texttt{audit\_logs} y
+\texttt{supervisor\_logs}), acelera la operación (importación masiva desde Excel, cálculo
+automático de almuerzos y cierre automático de ciclos) y mejora la calidad del servicio
+(calificaciones y quejas/sugerencias/comentarios).
+
+\subsection{Descripción detallada del sistema o aplicación}
+
+\subsubsection{Propósito y alcance}
+\textbf{SmartComedor} permite registrar estudiantes, gestionar pagos, supervisar
+almuerzos y administrar el servicio de comedor universitario, con control de acceso por
+roles, validación automática de elegibilidad y auditoría completa. El alcance funcional
+abarca nueve módulos: autenticación y cuentas; gestión de estudiantes; gestión de
+supervisores; pagos/recargas; asistencia (almuerzos); ciclos; retroalimentación;
+noticias; y auditoría.
+
+\subsubsection{Actores y roles}
+El sistema define cuatro roles (enum \texttt{UserRole}), descritos en la
+Tabla~\ref{tab:roles}.
+
+\begin{table}[H]
+\centering
+\caption{Actores y roles del sistema}
+\label{tab:roles}
+\begin{tabularx}{\textwidth}{L{0.22\textwidth} L{0.16\textwidth} X}
+\toprule
+\textbf{Rol} & \textbf{Valor} & \textbf{Descripción} \\
+\midrule
+Administrador & \texttt{admin} & Configura el sistema; gestiona estudiantes, supervisores, pagos, ciclos y noticias; responde quejas; valida SISBÉN. \\
+Supervisor & \texttt{supervisor} & Registra la asistencia/almuerzo de los estudiantes; busca estudiantes y consulta su historial. \\
+Estudiante & \texttt{student} & Se registra; consulta perfil y almuerzos disponibles; sube pagos; califica el servicio; envía quejas; lee noticias. \\
+Auditor externo & \texttt{external\_auditor} & Acceso de solo lectura a auditoría, supervisores, pagos, asistencia y analítica. \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\subsubsection{Arquitectura general}
+El sistema sigue una arquitectura cliente–servidor de tres capas desplegada con Docker
+Compose (Figura~\ref{fig:arquitectura}). El frontend (React + Vite + Material UI) consume
+una API REST (Express + TypeScript) que persiste en PostgreSQL mediante el ORM Sequelize.
+El backend integra servicios de correo (Nodemailer), validación SISBÉN (pdf-parse y OCR
+con tesseract.js), auditoría, backups (\texttt{pg\_dump}) y automatización de ciclos
+(node-cron).
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{figs/architecture.pdf}
+\caption{Arquitectura general del sistema SmartComedor.}
+\label{fig:arquitectura}
+\end{figure}
+
+\subsubsection{Stack tecnológico}
+La Tabla~\ref{tab:stack} resume las tecnologías por capa.
+
+\begin{table}[H]
+\centering
+\caption{Stack tecnológico}
+\label{tab:stack}
+\begin{tabularx}{\textwidth}{L{0.22\textwidth} X}
+\toprule
+\textbf{Capa / aspecto} & \textbf{Tecnología} \\
+\midrule
+Frontend & React 18 + TypeScript + Vite + Material UI (MUI) \\
+Backend & Node.js + Express + TypeScript (API REST bajo \texttt{/api}) \\
+Base de datos & PostgreSQL 14 con ORM Sequelize \\
+Autenticación & JWT (access + refresh); contraseñas con bcrypt \\
+Segundo factor & TOTP (speakeasy + qrcode) \\
+Correo & Nodemailer (SMTP) \\
+OCR / PDF & tesseract.js, pdf-parse \\
+Archivos / importación & multer; xlsx \\
+Programación de tareas & node-cron \\
+Contenedores & Docker Compose (perfiles \texttt{dev} y \texttt{prod}, nginx en prod) \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\subsubsection{Reglas de negocio principales}
+\begin{itemize}[leftmargin=1.4em]
+  \item \textbf{Precio del almuerzo:} \texttt{MEAL\_PRICE = 2000} (COP). Los almuerzos
+  incluidos en un pago se calculan como $\lfloor monto/2000 \rfloor$; el residuo
+  ($monto \bmod 2000$) no genera almuerzo.
+  \item \textbf{Monto mínimo de recarga:} un pago debe ser $\geq 2000$; en caso
+  contrario se rechaza con HTTP 400.
+  \item \textbf{Almuerzos disponibles:} se calculan sobre los pagos \emph{verificados}
+  como $\sum (mealsIncluded - mealsUsed)$.
+  \item \textbf{Un almuerzo por día:} un estudiante no puede registrar dos almuerzos el
+  mismo día.
+  \item \textbf{Días autorizados:} el almuerzo solo se registra en los días del comedor
+  asignados al estudiante (\texttt{diasComedor}).
+  \item \textbf{Elegibilidad SISBÉN:} las categorías válidas pertenecen a los grupos A,
+  B y C; la validación coteja cédula, nombre y apellido contra la cédula frontal.
+  \item \textbf{Autorización de cuentas:} un usuario con \texttt{isAuthorized = false}
+  no puede iniciar sesión.
+  \item \textbf{Invitación de supervisores:} el enlace de invitación es válido por 48
+  horas.
+  \item \textbf{Ciclos:} un ciclo vencido (\texttt{endDate} $<$ hoy) con estado
+  \texttt{Activo} se cierra automáticamente.
+\end{itemize}
+
+% ────────────────────────────────────────────────────────────────────────────
+\section{Modelo de requerimientos}
+
+\subsection{Descripción}
+El modelo de requerimientos especifica qué debe hacer el sistema (requisitos funcionales,
+RF) y bajo qué condiciones de calidad (requisitos no funcionales, RNF)
+\parencite{sommerville2011}. Los requisitos se derivaron del análisis del problema, de
+las rutas REST implementadas, de los controladores y de las reglas de negocio
+verificadas por las pruebas. Se emplea la convención RF-XX y RNF-XX, con prioridad Alta,
+Media o Baja.
+
+\subsection{Requisitos funcionales}
+
+\begin{longtable}{c L{0.62\textwidth} c}
+\caption{Requisitos funcionales del sistema}\label{tab:rf}\\
+\toprule
+\textbf{ID} & \textbf{Requisito} & \textbf{Prioridad} \\
+\midrule
+\endfirsthead
+\multicolumn{3}{c}{\tablename\ \thetable\ -- \textit{continuación}}\\
+\toprule
+\textbf{ID} & \textbf{Requisito} & \textbf{Prioridad} \\
+\midrule
+\endhead
+\midrule \multicolumn{3}{r}{\textit{continúa en la siguiente página}}\\
+\endfoot
+\bottomrule
+\endlastfoot
+RF-01 & Registro de estudiante con datos personales/académicos y carga de archivos (SISBÉN, cédula frontal, horario PDF, recibo de pago). & Alta \\
+RF-02 & Iniciar sesión con email, contraseña y rol, retornando access token y refresh token JWT. & Alta \\
+RF-03 & Rechazar el inicio de sesión ante campos faltantes (400), credenciales inválidas (401), usuario inactivo (401), rol no coincidente (403) o cuenta no autorizada (403). & Alta \\
+RF-04 & Refrescar el access token a partir de un refresh token válido. & Alta \\
+RF-05 & Consultar y actualizar el perfil del usuario autenticado. & Media \\
+RF-06 & Cambiar la contraseña validando la contraseña actual. & Media \\
+RF-07 & Recuperar la contraseña por correo con token, sin revelar si el email existe. & Alta \\
+RF-08 & Restablecer la contraseña con un token válido y no expirado. & Alta \\
+RF-09 & Configurar y verificar 2FA (TOTP) exclusivamente para estudiantes. & Media \\
+RF-10 & Listar estudiantes con paginación y búsqueda. & Alta \\
+RF-11 & Consultar un estudiante por ID, incluyendo sus almuerzos disponibles. & Alta \\
+RF-12 & Crear un estudiante y su usuario asociado. & Alta \\
+RF-13 & Actualizar y deshabilitar (soft delete) un estudiante. & Alta \\
+RF-14 & Importar estudiantes masivamente desde Excel (.xlsx). & Alta \\
+RF-15 & Buscar estudiantes (por cédula y otros filtros) para el registro de almuerzo. & Alta \\
+RF-16 & Calcular los almuerzos disponibles a partir de los pagos verificados. & Alta \\
+RF-17 & Validar el SISBÉN cotejando cédula, nombre y apellido contra la cédula frontal. & Alta \\
+RF-18 & Actualizar el ciclo de un estudiante (revalidación/deshabilitación). & Media \\
+RF-19 & Listar supervisores y sus bitácoras. & Media \\
+RF-20 & Crear un supervisor con contraseña temporal. & Alta \\
+RF-21 & Actualizar, deshabilitar y cambiar el estado (activo/autorizado) de un supervisor. & Media \\
+RF-22 & Generar un enlace de invitación válido por 48 h para autorregistro de supervisor. & Media \\
+RF-23 & Unirse mediante invitación validando el token. & Media \\
+RF-24 & Asignar y remover estudiantes a un supervisor, evitando duplicados. & Media \\
+RF-25 & Consultar los estudiantes asignados a un supervisor. & Media \\
+RF-26 & Crear un pago asociado a un estudiante, calculando los almuerzos incluidos. & Alta \\
+RF-27 & Cargar los comprobantes del pago (comprobante, recibo universidad, recibo banco). & Alta \\
+RF-28 & Calcular los almuerzos de un monto, rechazando montos $<$ \$2000. & Alta \\
+RF-29 & Listar pagos con paginación y filtros (por estudiante y por estado). & Alta \\
+RF-30 & Verificar un pago (marcar \texttt{isVerified}, registrar \texttt{verifiedBy} y \texttt{verifiedAt}). & Alta \\
+RF-31 & Registrar el almuerzo validando estudiante activo, día autorizado, no haber comido hoy y disponibilidad. & Alta \\
+RF-32 & Decrementar la disponibilidad y registrar un \texttt{SupervisorLog} al registrar el almuerzo. & Alta \\
+RF-33 & Consultar el historial de asistencia con filtros por estudiante y fechas. & Media \\
+RF-34 & Consultar la asistencia del día. & Media \\
+RF-35 & Ofrecer analítica del tablero (métricas agregadas). & Media \\
+RF-36 & Crear, listar y consultar ciclos. & Media \\
+RF-37 & Cerrar un ciclo manualmente. & Media \\
+RF-38 & Cerrar automáticamente los ciclos vencidos y gestionar la revalidación. & Media \\
+RF-39 & Calificar el servicio (1--5 estrellas + comentario opcional). & Media \\
+RF-40 & Consultar calificaciones y su promedio/distribución. & Baja \\
+RF-41 & Crear quejas, sugerencias o comentarios, de forma anónima o identificada. & Media \\
+RF-42 & Responder y marcar como resueltas las quejas. & Media \\
+RF-43 & Publicar, editar y eliminar (soft delete) noticias, y listarlas. & Baja \\
+RF-44 & Registrar en auditoría las acciones y eventos HTTP sensibles. & Alta \\
+RF-45 & Consultar y filtrar la auditoría (acción, método, código, ruta, rol, fechas) con paginación. & Alta \\
+\end{longtable}
+
+\subsection{Requisitos no funcionales}
+Los RNF se organizan según el modelo de calidad ISO/IEC 25010 \parencite{iso25010}.
+
+\begin{longtable}{c L{0.20\textwidth} L{0.58\textwidth}}
+\caption{Requisitos no funcionales del sistema}\label{tab:rnf}\\
+\toprule
+\textbf{ID} & \textbf{Categoría} & \textbf{Requisito} \\
+\midrule
+\endfirsthead
+\multicolumn{3}{c}{\tablename\ \thetable\ -- \textit{continuación}}\\
+\toprule
+\textbf{ID} & \textbf{Categoría} & \textbf{Requisito} \\
+\midrule
+\endhead
+\bottomrule
+\endlastfoot
+RNF-01 & Seguridad & Contraseñas almacenadas cifradas con bcrypt (hash + salt). \\
+RNF-02 & Seguridad & Control de acceso por JWT (access 15 min, refresh 7 días) y autorización por rol. \\
+RNF-03 & Seguridad & Rechazo de peticiones sin token (401) y de rol no permitido (403). \\
+RNF-04 & Seguridad & No filtrar trazas de error (stack traces); mensajes genéricos. \\
+RNF-05 & Seguridad & Recuperación de contraseña sin revelar si un correo existe. \\
+RNF-06 & Seguridad & Cabeceras de seguridad (nosniff, anti-clickjacking) y sin \texttt{X-Powered-By}. \\
+RNF-07 & Seguridad & Validación de filtros de auditoría contra listas blancas. \\
+RNF-08 & Seguridad & 2FA (TOTP) como segundo factor para estudiantes. \\
+RNF-09 & Rendimiento & Consultas críticas y autenticación responden en menos de 3 s. \\
+RNF-10 & Rendimiento & Soportar pruebas de carga/estrés (p. ej. 200 hilos) con umbral configurable. \\
+RNF-11 & Rendimiento & Listados paginados para acotar el volumen por respuesta. \\
+RNF-12 & Disponibilidad & Healthcheck de PostgreSQL y perfiles dev/prod. \\
+RNF-13 & Disponibilidad & Endpoint de salud \texttt{GET /api/health}. \\
+RNF-14 & Disponibilidad & Backups diarios (\texttt{pg\_dump}) con retención de 30 días. \\
+RNF-15 & Disponibilidad & Cierre de ciclos y revalidación automáticos y programados. \\
+RNF-16 & Usabilidad & UI con componentes MUI responsive, labels, estados y mensajes guiados. \\
+RNF-17 & Usabilidad & Experiencia diferenciada por rol. \\
+RNF-18 & Usabilidad & Formularios con label/aria-label y landmark \texttt{main}. \\
+RNF-19 & Portabilidad & Funcionar en Chrome, Firefox, Edge y Safari (escritorio). \\
+RNF-20 & Portabilidad & Desplegable en cualquier entorno con Docker. \\
+RNF-21 & Portabilidad & Operar con APIs estándar del navegador sin polyfills. \\
+RNF-22 & Mantenibilidad & Código en TypeScript (tipado estático) en cliente y servidor. \\
+RNF-23 & Mantenibilidad & Auditoría de acciones sensibles y bitácora de supervisor. \\
+RNF-24 & Mantenibilidad & Identificador legible (\texttt{uid}) por entidad con prefijo. \\
+RNF-25 & Mantenibilidad & Batería de pruebas automatizadas y reportes de cobertura. \\
+\end{longtable}
+
+% ────────────────────────────────────────────────────────────────────────────
+\section{Modelo de casos de uso}
+
+\subsection{Diagramas de caso de uso}
+La Figura~\ref{fig:casos} presenta el diagrama general de casos de uso. La
+Tabla~\ref{tab:catalogo} lista el catálogo de casos de uso del sistema.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{figs/use-cases.pdf}
+\caption{Diagrama general de casos de uso.}
+\label{fig:casos}
+\end{figure}
+
+\begin{longtable}{c L{0.55\textwidth} L{0.28\textwidth}}
+\caption{Catálogo de casos de uso}\label{tab:catalogo}\\
+\toprule
+\textbf{ID} & \textbf{Caso de uso} & \textbf{Actor principal} \\
+\midrule
+\endfirsthead
+\toprule
+\textbf{ID} & \textbf{Caso de uso} & \textbf{Actor principal} \\
+\midrule
+\endhead
+\bottomrule
+\endlastfoot
+CU-01 & Registrar estudiante & Estudiante \\
+CU-02 & Iniciar sesión & Todos \\
+CU-03 & Recuperar/restablecer contraseña & Todos \\
+CU-04 & Configurar y verificar 2FA & Estudiante \\
+CU-05 & Gestionar estudiantes (CRUD) & Administrador \\
+CU-06 & Importar estudiantes desde Excel & Administrador \\
+CU-07 & Validar SISBÉN & Administrador \\
+CU-08 & Gestionar supervisores & Administrador \\
+CU-09 & Invitar supervisor / unirse por invitación & Admin / Supervisor \\
+CU-10 & Asignar estudiantes a supervisor & Administrador \\
+CU-11 & Subir pago y comprobantes & Estudiante \\
+CU-12 & Verificar pago & Administrador \\
+CU-13 & Calcular almuerzos por monto & Autenticado \\
+CU-14 & Registrar almuerzo & Supervisor \\
+CU-15 & Consultar historial / asistencia del día & Autenticado \\
+CU-16 & Consultar analítica del tablero & Admin / Auditor \\
+CU-17 & Gestionar ciclos / cierre automático & Admin / Sistema \\
+CU-18 & Calificar servicio & Estudiante \\
+CU-19 & Enviar y responder quejas & Estudiante / Admin \\
+CU-20 & Gestionar noticias & Administrador \\
+CU-21 & Consultar auditoría & Admin / Auditor \\
+\end{longtable}
+
+\subsection{Descripción de casos de uso}
+Se documentan los casos de uso más relevantes con la plantilla extendida (actor,
+precondiciones, flujo principal, flujos alternativos y postcondiciones). Las reglas y
+códigos de respuesta provienen de los controladores reales y están verificados por las
+pruebas (Segunda Parte).
+
+\subsubsection{CU-01 — Registrar estudiante}
+\textbf{Actor:} Estudiante (no autenticado). \textbf{Endpoint:}
+\texttt{POST /api/auth/register} (multipart). \textbf{Precondición:} el email no debe
+existir.
+\begin{description}[leftmargin=1.4em,style=nextline]
+\item[Flujo principal] (1) El estudiante diligencia el formulario y adjunta documentos.
+(2) Se valida la presencia de \texttt{archivoSisben}. (3) Se valida que el email no
+exista. (4) Se parsea \texttt{diasComedor}. (5) Se crea el usuario (rol student,
+contraseña cifrada) y el estudiante. (6) Respuesta 201.
+\item[Alternativos] 2a. Falta el archivo SISBÉN $\rightarrow$ 400. 3a. Email ya
+registrado $\rightarrow$ 400.
+\item[Postcondición] Se crea un \texttt{User} (student) y un \texttt{Student} con
+\texttt{isValidatedSisben = false}.
+\end{description}
+
+\subsubsection{CU-02 — Iniciar sesión}
+\textbf{Actor:} Todos. \textbf{Endpoint:} \texttt{POST /api/auth/login}.
+\begin{description}[leftmargin=1.4em,style=nextline]
+\item[Flujo principal] (1) Envío de email, contraseña y rol. (2) Validación de campos.
+(3) Búsqueda del usuario. (4) Verificación de contraseña (\texttt{bcrypt.compare}). (5)
+Validación de \texttt{isActive}, rol e \texttt{isAuthorized}. (6) Emisión de tokens y
+respuesta 200.
+\item[Alternativos] 2a. Campos faltantes $\rightarrow$ 400. 3a. Usuario inexistente
+$\rightarrow$ 401. 4a. Contraseña incorrecta $\rightarrow$ 401. 5a. Inactivo
+$\rightarrow$ 401; rol no coincide $\rightarrow$ 403; no autorizado $\rightarrow$ 403.
+Excepción no controlada $\rightarrow$ 500 (sin filtrar el stack trace).
+\item[Postcondición] El cliente almacena los tokens para autenticar peticiones.
+\end{description}
+
+\subsubsection{CU-07 — Validar SISBÉN}
+\textbf{Actor:} Administrador. \textbf{Endpoint:}
+\texttt{POST /api/students/:id/validate-sisben}.
+\begin{description}[leftmargin=1.4em,style=nextline]
+\item[Flujo principal] (1) Solicitud de validación. (2) Extracción del texto del
+documento SISBÉN (PDF con pdf-parse o imagen con OCR tesseract.js). (3) Normalización y
+cotejo de cédula, nombre y apellido, verificando que la cédula aparezca en el documento
+de identidad. (4) Si todo coincide, \texttt{isValidatedSisben = true} y respuesta 200.
+\item[Alternativos] 1a. Estudiante no encontrado $\rightarrow$ 404. 3a. Inconsistencia
+$\rightarrow$ \texttt{validated = false} con el detalle de cada \emph{mismatch}.
+\item[Postcondición] Se actualiza el estado de validación y \texttt{sisbenValidationDetails}.
+\end{description}
+
+\subsubsection{CU-11 — Subir pago y comprobantes}
+\textbf{Actor:} Estudiante. \textbf{Endpoints:} \texttt{POST /api/payments},
+\texttt{POST /api/payments/upload}, \texttt{POST /api/payments/calculate}.
+\begin{description}[leftmargin=1.4em,style=nextline]
+\item[Flujo principal] (1) Se ingresa el monto y se calcula
+$mealsIncluded = \lfloor monto/2000\rfloor$. (2) Se adjunta el comprobante. (3) Se crea
+el pago con \texttt{isVerified = false} y respuesta 201.
+\item[Alternativos] 1a. Monto $<2000 \rightarrow$ 400. 1b. Estudiante no encontrado
+$\rightarrow$ 404. 2a. Sin archivo $\rightarrow$ 400.
+\item[Postcondición] Queda un pago pendiente de verificación.
+\end{description}
+
+\subsubsection{CU-14 — Registrar almuerzo (caso de uso central)}
+\textbf{Actor:} Supervisor. \textbf{Endpoint:} \texttt{POST /api/meals}.
+\begin{description}[leftmargin=1.4em,style=nextline]
+\item[Flujo principal] (1) Búsqueda/escaneo del estudiante (QR/cédula). (2) Validación de
+existencia y estado activo. (3) Validación de día autorizado. (4) Validación de no haber
+comido hoy. (5) Validación de disponibilidad de almuerzos. (6) Creación del
+\texttt{MealAttendance}, incremento de \texttt{mealsUsed} y creación de
+\texttt{SupervisorLog}. (7) Registro en \texttt{audit\_logs} y respuesta 201.
+\item[Alternativos] 1a. No autenticado $\rightarrow$ 401. 2a. No encontrado
+$\rightarrow$ 404; inactivo $\rightarrow$ 400. 3a. Día no autorizado $\rightarrow$ 400.
+4a. Ya comió hoy $\rightarrow$ 400. 5a. Sin almuerzos $\rightarrow$ 400.
+\item[Postcondición] Disminuye la disponibilidad; quedan trazas en
+\texttt{meal\_attendances}, \texttt{supervisor\_logs} y \texttt{audit\_logs}.
+\end{description}
+
+\subsubsection{Otros casos de uso}
+Por brevedad se resumen: \textbf{CU-12 Verificar pago} (\texttt{PATCH /api/payments/:id/verify};
+404 si no existe; tras verificar, los \texttt{mealsIncluded} cuentan como disponibles);
+\textbf{CU-09 Invitar/unir supervisor} (token válido 48 h; 400 ante campos faltantes,
+token inválido o email duplicado); \textbf{CU-18 Calificar} (1--5 estrellas; 401 sin
+autenticar, 404 si el estudiante no existe); \textbf{CU-19 Quejas} (anónimas o
+identificadas; respuesta del admin con 404 si no existe); \textbf{CU-21 Auditoría}
+(filtros validados por lista blanca; 400 ante filtros no permitidos).
+
+% ────────────────────────────────────────────────────────────────────────────
+\section{Modelo de diseño del sistema}
+
+\subsection{Diagrama de clases detallado}
+El modelo de dominio se implementa con Sequelize. La Figura~\ref{fig:clases} muestra el
+diagrama de clases. Todas las entidades incluyen \texttt{id} (UUID, PK), \texttt{uid}
+(identificador legible único con prefijo por tipo, generado en el hook
+\texttt{beforeValidate}), \texttt{createdAt} y \texttt{updatedAt}.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{figs/class-diagram.pdf}
+\caption{Diagrama de clases del dominio.}
+\label{fig:clases}
+\end{figure}
+
+La Tabla~\ref{tab:entidades} resume las entidades principales y sus atributos
+representativos.
+
+\begin{longtable}{L{0.20\textwidth} L{0.74\textwidth}}
+\caption{Entidades principales y atributos representativos}\label{tab:entidades}\\
+\toprule
+\textbf{Entidad (tabla)} & \textbf{Atributos representativos} \\
+\midrule
+\endfirsthead
+\toprule
+\textbf{Entidad (tabla)} & \textbf{Atributos representativos} \\
+\midrule
+\endhead
+\bottomrule
+\endlastfoot
+User (\texttt{users}) & email (único), password (hash), name, lastName, telefono, role, isActive, isAuthorized, diasAsignados, resetPasswordToken/Expires; método \texttt{validatePassword}. \\
+Student (\texttt{students}) & userId (FK), cedula, carrera, semestre, categoriaSisben, archivoSisben, cedulaFrontalPath, horarioPdfPath, direccion, barrio, telefono, trabaja, etnia, desplazado, diasComedor, qrCode/qrCodeSecret, isValidatedSisben, sisbenValidationDetails, currentCycle, cycleRevalidationDueAt. \\
+Payment (\texttt{payments}) & studentId (FK), amount, mealsIncluded, mealsUsed, comprobantePath, universityReceiptPath, bankReceiptPath, isVerified, verifiedBy, verifiedAt. \\
+MealAttendance (\texttt{meal\_attendances}) & studentId (FK), supervisorId (FK), date, hora. \\
+SupervisorAssignment (\texttt{supervisor\_assignments}) & supervisorId (FK), studentId (FK) — relación N:M. \\
+SupervisorLog (\texttt{supervisor\_logs}) & supervisorId (FK), studentId (FK), action, hora. \\
+Rating (\texttt{ratings}) & studentId (FK), stars (1--5), comment. \\
+Complaint (\texttt{complaints}) & studentId (FK, opcional), type (queja/sugerencia/comentario), content, isAnonymous, response, respondedBy, isResolved. \\
+News (\texttt{news}) & title, content, imageUrl, isActive. \\
+Cycle (\texttt{cycles}) & name, startDate, endDate, status (Activo/Cerrado). \\
+AuditLog (\texttt{audit\_logs}) & userId, userEmail, action, details, ipAddress. \\
+\end{longtable}
+
+\subsection{Diagramas de secuencias}
+Se documentan las secuencias de los flujos críticos: inicio de sesión
+(Figura~\ref{fig:seq-login}), registro de estudiante (Figura~\ref{fig:seq-register}),
+pago (Figura~\ref{fig:seq-payment}), registro de almuerzo (Figura~\ref{fig:seq-meal}) y
+validación SISBÉN (Figura~\ref{fig:seq-sisben}).
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.92\textwidth]{figs/sequence-login.pdf}
+\caption{Diagrama de secuencia — Inicio de sesión.}
+\label{fig:seq-login}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.92\textwidth]{figs/sequence-register.pdf}
+\caption{Diagrama de secuencia — Registro de estudiante.}
+\label{fig:seq-register}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.92\textwidth]{figs/sequence-payment.pdf}
+\caption{Diagrama de secuencia — Subida y verificación de pago.}
+\label{fig:seq-payment}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.92\textwidth]{figs/sequence-meal.pdf}
+\caption{Diagrama de secuencia — Registro de almuerzo.}
+\label{fig:seq-meal}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.92\textwidth]{figs/seq-sisben.pdf}
+\caption{Diagrama de secuencia — Validación SISBÉN.}
+\label{fig:seq-sisben}
+\end{figure}
+
+\subsection{Diagrama entidad–relación}
+La Figura~\ref{fig:er} presenta el modelo entidad–relación. La
+Tabla~\ref{tab:cardinalidades} resume las cardinalidades.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{figs/er-diagram.pdf}
+\caption{Diagrama entidad–relación.}
+\label{fig:er}
+\end{figure}
+
+\begin{table}[H]
+\centering
+\caption{Cardinalidades del modelo relacional}
+\label{tab:cardinalidades}
+\begin{tabularx}{\textwidth}{X c}
+\toprule
+\textbf{Relación} & \textbf{Cardinalidad} \\
+\midrule
+USERS — STUDENTS & 1 : 1 \\
+STUDENTS — PAYMENTS & 1 : N \\
+STUDENTS — MEAL\_ATTENDANCES & 1 : N \\
+USERS (supervisor) — MEAL\_ATTENDANCES & 1 : N \\
+STUDENTS — RATINGS & 1 : N \\
+STUDENTS — COMPLAINTS & 1 : N (0..1 del lado estudiante, anónimas) \\
+STUDENTS — SUPERVISOR\_LOGS & 1 : N \\
+USERS (supervisor) — STUDENTS & N : M (vía SUPERVISOR\_ASSIGNMENTS) \\
+USERS — AUDIT\_LOGS & 1 : N \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\subsection{Diagrama de componentes}
+La Figura~\ref{fig:componentes} muestra la organización en componentes; la
+Tabla~\ref{tab:componentes} describe sus responsabilidades.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{figs/components.pdf}
+\caption{Diagrama de componentes.}
+\label{fig:componentes}
+\end{figure}
+
+\begin{longtable}{L{0.30\textwidth} L{0.64\textwidth}}
+\caption{Responsabilidades de los componentes}\label{tab:componentes}\\
+\toprule
+\textbf{Componente} & \textbf{Responsabilidad} \\
+\midrule
+\endfirsthead
+\toprule
+\textbf{Componente} & \textbf{Responsabilidad} \\
+\midrule
+\endhead
+\bottomrule
+\endlastfoot
+Frontend SPA & Interfaz por rol, manejo de sesión (tokens), consumo de la API (axios), rutas protegidas. \\
+API Express & Exposición de endpoints REST bajo \texttt{/api}, validación y orquestación de servicios. \\
+Middleware Auth & \texttt{authenticate} (verifica JWT), \texttt{authorize} (rol), \texttt{optionalAuth}. \\
+Middleware Upload & Recepción de archivos con multer. \\
+Middleware EventAudit & Registro automático de eventos HTTP en la auditoría. \\
+Controllers & Lógica de negocio por entidad. \\
+EmailService & Envío de correos (recuperación de contraseña, invitaciones). \\
+SisbenValidationService & Extracción de texto (PDF/OCR) y cotejo de elegibilidad. \\
+AuditService & Persistencia de la bitácora de auditoría. \\
+BackupService & Respaldo periódico de la base de datos. \\
+CycleAutomationService & Cierre automático de ciclos y revalidación (cron). \\
+Models (Sequelize) & Mapeo objeto-relacional y asociaciones. \\
+PostgreSQL & Persistencia de datos. \\
+\end{longtable}
+
+% ────────────────────────────────────────────────────────────────────────────
+\section{Producto del software}
+
+\subsection{Despliegue}
+El producto se despliega con Docker Compose. El Código~\ref{lst:deploy} muestra los
+comandos principales.
+
+\begin{lstlisting}[caption={Despliegue del producto},label={lst:deploy},captionpos=b]
+# Variables de entorno
+cp .env.example server/.env   # completar JWT_SECRET, JWT_REFRESH_SECRET, SMTP_USER, SMTP_PASS
+
+# Desarrollo (hot-reload): Frontend :5174, Backend :3002, PostgreSQL :5433
+docker compose --profile dev up --build
+
+# Produccion (builds + nginx): Frontend :80, Backend :3002
+docker compose --profile prod up --build
+\end{lstlisting}
+
+\subsection{Estructura del producto}
+\begin{lstlisting}[caption={Estructura del proyecto},captionpos=b]
+SmartDinningRoom/
+  client/   # Frontend React + Vite (SPA por rol)
+  server/   # Backend Express + Sequelize (API REST /api)
+  diagrams/ # Diagramas PlantUML + SVG
+  docs/     # Documentacion, diagramas e informes
+  tests/    # Pruebas de sistema (seguridad, rendimiento, portabilidad)
+  docker-compose.yml
+  .env.example
+\end{lstlisting}
+
+\subsection{Características destacadas}
+Seguridad por diseño (JWT con refresh, control de acceso por rol, 2FA TOTP, cifrado de
+contraseñas, validación de filtros por lista blanca y cabeceras de seguridad);
+antifraude (validación automática del SISBÉN por OCR/PDF e identificación con QR);
+trazabilidad total (\texttt{audit\_logs} y \texttt{supervisor\_logs}); automatización
+(importación masiva, cálculo de almuerzos, cierre de ciclos y backups programados); y
+operación 24/7 (healthchecks, perfiles dev/prod y backups con retención de 30 días).
+
+% ════════════════════════════════════════════════════════════════════════════
+\part*{SEGUNDA PARTE. Pruebas del Software}
+\addcontentsline{toc}{part}{SEGUNDA PARTE. Pruebas del Software}
+% ════════════════════════════════════════════════════════════════════════════
+
+\section{Introducción}
+Esta parte describe el proceso de verificación y validación (V\&V) del sistema
+SmartComedor \parencite{ieee829}. Las pruebas garantizan que el software cumple los
+requisitos funcionales y no funcionales y que las reglas de negocio críticas
+(elegibilidad SISBÉN, cálculo de almuerzos, control de asistencia, control de acceso y
+auditoría) se comportan de forma correcta, segura y predecible. La estrategia combina
+varios niveles: pruebas unitarias (caja negra y caja blanca), pruebas de integración
+(incremental y basada en hilos), pruebas de sistema (seguridad, rendimiento, usabilidad y
+portabilidad) y pruebas de aceptación \parencite{myers2011,pressman2014}. Como resumen,
+la suite automatizada ejecuta \textbf{196 pruebas con 100\% de éxito} (10 suites) y una
+cobertura global aproximada del \textbf{80,4\%} de sentencias medida con Jest
+\parencite{jest}.
+
+% ────────────────────────────────────────────────────────────────────────────
+\section{Planificación de las pruebas}
+
+\subsection{Objetivos de las pruebas}
+\begin{table}[H]
+\centering
+\caption{Objetivos de las pruebas}
+\label{tab:objetivos}
+\begin{tabularx}{\textwidth}{c X}
+\toprule
+\textbf{ID} & \textbf{Objetivo} \\
+\midrule
+OBJ-01 & Verificar que cada requisito funcional (RF-01\,\ldots\,RF-45) está implementado y se comporta según lo especificado. \\
+OBJ-02 & Verificar las reglas de negocio críticas (cálculo de almuerzos, monto mínimo, un almuerzo por día, día autorizado, disponibilidad y validación SISBÉN). \\
+OBJ-03 & Verificar el control de acceso (JWT, autorización por rol y manejo de cuentas inactivas/no autorizadas). \\
+OBJ-04 & Detectar defectos lo antes posible mediante pruebas automatizadas. \\
+OBJ-05 & Validar atributos de calidad (seguridad, rendimiento, usabilidad, portabilidad). \\
+OBJ-06 & Asegurar una cobertura de código adecuada y trazable. \\
+OBJ-07 & Validar, con criterios de aceptación, la satisfacción de las necesidades del usuario. \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\subsection{Alcance de las pruebas}
+\textbf{Dentro del alcance:} controladores del backend; middleware de seguridad;
+servicios (validación SISBÉN, auditoría); flujos de integración entre módulos; atributos
+de calidad (cabeceras de seguridad, control de acceso, carga/estrés, portabilidad
+cross-browser y usabilidad/accesibilidad básica). \textbf{Fuera del alcance (o cubierto
+indirectamente):} pruebas exhaustivas de componentes React; pruebas de proveedores
+externos (SMTP, infraestructura de BrowserStack); y \emph{penetration testing} avanzado
+más allá del escaneo automatizado (OWASP ZAP) y JMeter \parencite{owasp2021}.
+
+\subsection{Estrategias de pruebas}
+La Tabla~\ref{tab:estrategias} resume el mapeo de niveles, técnicas y herramientas.
+
+\begin{longtable}{L{0.20\textwidth} L{0.34\textwidth} L{0.38\textwidth}}
+\caption{Estrategias de pruebas por nivel}\label{tab:estrategias}\\
+\toprule
+\textbf{Nivel} & \textbf{Técnica} & \textbf{Herramienta / ubicación} \\
+\midrule
+\endfirsthead
+\toprule
+\textbf{Nivel} & \textbf{Técnica} & \textbf{Herramienta / ubicación} \\
+\midrule
+\endhead
+\bottomrule
+\endlastfoot
+Unitario & Caja negra (equivalencia, valores límite) + caja blanca (caminos) & Jest + ts-jest (\texttt{server/src/tests/unit/}) \\
+Integración & Incremental (bottom-up) & Jest (\texttt{integration/incremental.test.ts}) \\
+Integración & Basada en hilos (por actor) & Jest (\texttt{integration/threads.test.ts}) \\
+Sistema — Seguridad & Cabeceras, control de acceso, escaneo & Playwright + OWASP ZAP + JMeter \\
+Sistema — Rendimiento & Carga y estrés & Apache JMeter (\texttt{tests/security/jmeter/}) \\
+Sistema — Portabilidad & Cross-browser & Playwright + BrowserStack \\
+Sistema — Usabilidad & Inspección heurística + accesibilidad & Playwright + revisión MUI \\
+Aceptación & Escenarios de usuario (Gherkin) & Manual / Playwright \\
+\end{longtable}
+
+Las técnicas de diseño empleadas son: \textbf{particiones de equivalencia} (clases
+válidas e inválidas), \textbf{análisis de valores límite} (fronteras de rangos),
+\textbf{cobertura de caminos} (grafo de flujo) y \textbf{pruebas basadas en estado}
+\parencite{myers2011,beizer1990}.
+
+\subsection{Ambiente de pruebas}
+La Tabla~\ref{tab:ambiente} describe el ambiente. Las pruebas unitarias y de integración
+emplean una base de datos simulada en memoria (mocks), lo que permite ejecutarlas sin
+PostgreSQL real, de forma determinista y veloz.
+
+\begin{table}[H]
+\centering
+\caption{Ambiente de pruebas}
+\label{tab:ambiente}
+\begin{tabularx}{\textwidth}{L{0.34\textwidth} X}
+\toprule
+\textbf{Elemento} & \textbf{Versión / detalle} \\
+\midrule
+Node.js & 20+ (probado con v22) \\
+Framework de pruebas & Jest 29 + ts-jest 29 \\
+Lenguaje & TypeScript 5 \\
+BD en unitarias/integración & Mock en memoria (sin PostgreSQL real) \\
+Pruebas de sistema & Docker (JMeter), Playwright 1.44, BrowserStack, OWASP ZAP \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\begin{lstlisting}[caption={Scripts de ejecución (backend)},captionpos=b]
+cd server
+npm test                  # toda la suite
+npm run test:unit         # solo unitarias
+npm run test:integration  # solo integracion
+npm run test:coverage     # con reporte de cobertura
+\end{lstlisting}
+
+% ────────────────────────────────────────────────────────────────────────────
+\section{Pruebas unitarias}
+
+\subsection{Análisis de las pruebas}
+Las pruebas unitarias aíslan la unidad bajo prueba (controlador, middleware o servicio)
+mediante mocks de los modelos Sequelize, de \texttt{jsonwebtoken}, de \texttt{bcrypt}, de
+\texttt{nodemailer} y del sistema de archivos. Se priorizaron las unidades de mayor
+riesgo: \texttt{authController} (seguridad de acceso, tokens, recuperación de contraseña,
+2FA), \texttt{middleware/auth} (control de acceso), \texttt{paymentsController} (cálculo
+monetario), \texttt{mealsController} (reglas de asistencia), \texttt{studentsController}
+(CRUD, importación, SISBÉN) y los servicios de validación. La
+Tabla~\ref{tab:distribucion} presenta la distribución de casos por suite.
+
+\begin{table}[H]
+\centering
+\caption{Distribución de casos por suite}
+\label{tab:distribucion}
+\begin{tabularx}{\textwidth}{X c}
+\toprule
+\textbf{Suite (archivo)} & \textbf{Casos \texttt{it()}} \\
+\midrule
+unit/authController.test.ts & 59 \\
+unit/studentsController.test.ts & 28 \\
+unit/paymentsController.test.ts & 21 \\
+unit/supervisorsController.test.ts & 19 \\
+unit/ratingsComplaintsNews.test.ts & 17 \\
+unit/middleware.test.ts & 15 \\
+unit/mealsController.test.ts & 13 \\
+unit/sisbenValidationService.test.ts & 6 \\
+integration/incremental.test.ts & 16 \\
+integration/threads.test.ts & 8 \\
+\midrule
+\textbf{Total} & \textbf{202 declarados (196 ejecutados/aprobados)} \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\subsection{Diseño de casos de prueba}
+
+\subsubsection{Caja negra — Clases de equivalencia (Login)}
+La Tabla~\ref{tab:login} muestra los casos de equivalencia del inicio de sesión.
+
+\begin{longtable}{l L{0.42\textwidth} L{0.22\textwidth} c}
+\caption{Clases de equivalencia — Login}\label{tab:login}\\
+\toprule
+\textbf{Caso} & \textbf{Entrada} & \textbf{Clase} & \textbf{Esperado} \\
+\midrule
+\endfirsthead
+\toprule
+\textbf{Caso} & \textbf{Entrada} & \textbf{Clase} & \textbf{Esperado} \\
+\midrule
+\endhead
+\bottomrule
+\endlastfoot
+TC-LOGIN-001 & admin válido & Válida & 200 + tokens \\
+TC-LOGIN-002 & estudiante válido & Válida & 200 + tokens \\
+TC-LOGIN-003 & supervisor autorizado & Válida & 200 + tokens \\
+TC-LOGIN-004 & sin email & Inválida (campos) & 400 \\
+TC-LOGIN-005 & sin password & Inválida (campos) & 400 \\
+TC-LOGIN-006 & sin role & Inválida (campos) & 400 \\
+TC-LOGIN-007 & usuario inexistente & Inválida (credenciales) & 401 \\
+TC-LOGIN-008 & contraseña incorrecta & Inválida (credenciales) & 401 \\
+TC-LOGIN-009 & usuario inactivo & Inválida (estado) & 401 \\
+TC-LOGIN-010 & rol no coincide & Inválida (rol) & 403 \\
+TC-LOGIN-011 & admin no autorizado & Inválida (autorización) & 403 \\
+TC-LOGIN-012 & supervisor no autorizado & Inválida (autorización) & 403 \\
+TC-LOGIN-013 & excepción del servidor & Error interno & 500 \\
+\end{longtable}
+
+\subsubsection{Caja blanca — Cobertura de caminos (login)}
+El método \texttt{login} tiene un grafo de flujo con 7 caminos independientes; su
+complejidad ciclomática es 7 \parencite{mccabe1976}. La Tabla~\ref{tab:caminos} lista los
+caminos cubiertos.
+
+\begin{table}[H]
+\centering
+\caption{Cobertura de caminos del flujo de login}
+\label{tab:caminos}
+\begin{tabularx}{\textwidth}{c X c}
+\toprule
+\textbf{Camino} & \textbf{Descripción} & \textbf{Esperado} \\
+\midrule
+1 & Campos faltantes & 400 \\
+2 & Campos OK $\rightarrow$ usuario no existe & 401 \\
+3 & Campos OK $\rightarrow$ contraseña incorrecta & 401 \\
+4 & Campos OK $\rightarrow$ pass OK $\rightarrow$ inactivo & 401 \\
+5 & Campos OK $\rightarrow$ pass OK $\rightarrow$ activo $\rightarrow$ rol incorrecto & 403 \\
+6 & Camino completo hasta no autorizado & 403 \\
+7 & Camino completo exitoso & 200 \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\subsubsection{Caja negra — Valores límite (registro y montos)}
+La Tabla~\ref{tab:limite} resume el análisis de valores límite.
+
+\begin{longtable}{l L{0.18\textwidth} L{0.24\textwidth} L{0.26\textwidth}}
+\caption{Análisis de valores límite}\label{tab:limite}\\
+\toprule
+\textbf{Caso} & \textbf{Atributo} & \textbf{Valor} & \textbf{Resultado} \\
+\midrule
+\endfirsthead
+\toprule
+\textbf{Caso} & \textbf{Atributo} & \textbf{Valor} & \textbf{Resultado} \\
+\midrule
+\endhead
+\bottomrule
+\endlastfoot
+VL-EMAIL-001 & email & 30 caracteres & válido \\
+VL-CEDULA-001 & cédula & 6 dígitos (mín) & válido \\
+VL-CEDULA-002 & cédula & 12 dígitos (máx) & válido \\
+VL-CEDULA-003 & cédula & 5 dígitos & inválido \\
+VL-NOMBRE-001 & nombre & 20 caracteres & válido \\
+VL-NOMBRE-002 & nombre & 21 caracteres & inválido \\
+VL-MONTO-001 & monto & 2000 & 1 almuerzo \\
+VL-MONTO-002 & monto & 1999 & 0 almuerzos \\
+VL-MONTO-003 & monto & 10000 & 5 almuerzos \\
+VL-MONTO-004 & monto & 4500 & 2 almuerzos (residuo 500) \\
+VL-CALC-002 & calcular & 1999 & 400 (bajo el mínimo) \\
+VL-CALC-005 & calcular & 10000 & 5 almuerzos \\
+VL-CALC-006 & calcular & 24000 & 12 almuerzos \\
+VL-CALC-007 & calcular & $\leq 0$ & 400 \\
+\end{longtable}
+
+\subsubsection{Registro de almuerzo y middleware}
+La Tabla~\ref{tab:meal-mw} resume casos del registro de almuerzo y del middleware de
+seguridad.
+
+\begin{longtable}{l L{0.50\textwidth} L{0.24\textwidth}}
+\caption{Casos de registro de almuerzo y middleware de seguridad}\label{tab:meal-mw}\\
+\toprule
+\textbf{Caso} & \textbf{Escenario} & \textbf{Esperado} \\
+\midrule
+\endfirsthead
+\toprule
+\textbf{Caso} & \textbf{Escenario} & \textbf{Esperado} \\
+\midrule
+\endhead
+\bottomrule
+\endlastfoot
+TC-MEAL-001 & Registro exitoso (camino completo) & 201 \\
+TC-MEAL-002 & Supervisor no autenticado & 401 \\
+TC-MEAL-003 & Estudiante no encontrado & 404 \\
+TC-MEAL-004 & Estudiante inactivo & 400 \\
+TC-MEAL-005 & Día no autorizado & 400 \\
+TC-MEAL-006 & Ya usó el comedor hoy & 400 \\
+TC-MEAL-007 & Sin almuerzos disponibles & 400 \\
+TC-MEAL-008 & Actualiza \texttt{mealsUsed} en el último pago & OK \\
+TC-MEAL-009 & Registra \texttt{SupervisorLog} & OK \\
+TC-AUTH-MW-002 & Sin header Authorization & 401 \\
+TC-AUTH-MW-004 & Token JWT inválido & 401 \\
+TC-AUTH-MW-006 & Usuario inactivo & 401 \\
+TC-AUTHZ-003 & Rol no permitido & 403 \\
+TC-OPT-003 & Token inválido (optionalAuth) & next() sin error \\
+\end{longtable}
+
+El catálogo completo de los 202 casos (refresh token, perfil, recuperación de contraseña,
+2FA, estudiantes, supervisores, pagos, ratings, quejas y noticias) está implementado en
+\texttt{server/src/tests/unit/} con identificadores \texttt{TC-*}/\texttt{VL-*}.
+
+\subsection{Ejecución y evaluación de las pruebas}
+
+\subsubsection{Resultado de ejecución}
+La ejecución de \texttt{npm run test:coverage} produjo el resultado del
+Código~\ref{lst:resultado}.
+
+\begin{lstlisting}[caption={Resultado de ejecución de la suite},label={lst:resultado},captionpos=b]
+Test Suites: 10 passed, 10 total
+Tests:       196 passed, 196 total
+Snapshots:   0 total
+Time:        ~4.7 s
+\end{lstlisting}
+
+\subsubsection{Cobertura de código}
+La Tabla~\ref{tab:cobertura} presenta la cobertura por ámbito (Jest/Istanbul).
+
+\begin{longtable}{L{0.40\textwidth} c c c c}
+\caption{Cobertura de código (Jest/Istanbul)}\label{tab:cobertura}\\
+\toprule
+\textbf{Ámbito} & \textbf{\% Sent.} & \textbf{\% Ramas} & \textbf{\% Func.} & \textbf{\% Líneas} \\
+\midrule
+\endfirsthead
+\toprule
+\textbf{Ámbito} & \textbf{\% Sent.} & \textbf{\% Ramas} & \textbf{\% Func.} & \textbf{\% Líneas} \\
+\midrule
+\endhead
+\bottomrule
+\endlastfoot
+\textbf{Total} & \textbf{80,44} & \textbf{70,25} & \textbf{76,41} & \textbf{79,91} \\
+constants & 100 & 100 & 100 & 100 \\
+middleware (auth.ts) & 97,50 & 91,66 & 100 & 97,29 \\
+services & 96,66 & 78,94 & 87,50 & 96,36 \\
+\quad sisbenValidationService.ts & 100 & 93,33 & 100 & 100 \\
+\quad auditService.ts & 83,33 & 25,00 & 50,00 & 80,00 \\
+controllers (global) & 78,47 & 67,75 & 74,19 & 77,90 \\
+\quad authController.ts & 83,33 & 81,19 & 84,61 & 82,93 \\
+\quad ratingsController.ts & 85,00 & 66,66 & 100 & 82,85 \\
+\quad complaintsController.ts & 80,00 & 60,00 & 100 & 82,85 \\
+\quad supervisorsController.ts & 79,54 & 80,00 & 78,57 & 77,68 \\
+\quad paymentsController.ts & 78,94 & 70,45 & 66,66 & 77,27 \\
+\quad studentsController.ts & 78,50 & 62,02 & 78,26 & 77,34 \\
+\quad newsController.ts & 77,55 & 66,66 & 100 & 75,00 \\
+\quad mealsController.ts & 63,00 & 31,81 & 31,25 & 65,11 \\
+\end{longtable}
+
+\subsubsection{Evaluación}
+La tasa de éxito es del 100\% (196/196); no se detectaron defectos abiertos en la suite
+automatizada. La lógica de seguridad (\texttt{middleware/auth.ts}) y la validación SISBÉN
+alcanzan cobertura muy alta ($\geq 97\%$ y 100\% de sentencias), apropiada por ser
+componentes críticos. Las áreas con menor cobertura —\texttt{mealsController.ts}
+(analítica del tablero) y \texttt{auditService.ts} (manejo de error del logging)— son
+oportunidades de mejora: se recomienda añadir casos para \texttt{getDashboardAnalytics} y
+para los caminos de error de \texttt{auditService} a fin de elevar la cobertura de ramas
+por encima del 80\%.
+
+% ────────────────────────────────────────────────────────────────────────────
+\section{Pruebas de integración}
+Las pruebas de integración verifican que los módulos colaboran correctamente, con dos
+estrategias complementarias y una base de datos simulada en memoria que reproduce las
+asociaciones reales.
+
+\subsection{Estrategia de pruebas incrementales}
+
+\subsubsection{Descripción}
+Implementada en \texttt{integration/incremental.test.ts}, integra los módulos de abajo
+hacia arriba (bottom-up): (1) Auth (base), (2) Students (usa Auth), (3) Payments (usa
+Students) y (4) Meals (usa Students + Payments). Cada nivel se prueba solo cuando el
+inferior ya está integrado, de modo que un fallo se localiza en el módulo recién
+incorporado.
+
+\subsubsection{Diseño y ejecución de casos}
+La Tabla~\ref{tab:incremental} resume los casos. Resultado: PASS (16 casos).
+
+\begin{longtable}{l L{0.30\textwidth} L{0.34\textwidth} L{0.16\textwidth}}
+\caption{Pruebas de integración incrementales}\label{tab:incremental}\\
+\toprule
+\textbf{Caso} & \textbf{Módulos} & \textbf{Escenario} & \textbf{Esperado} \\
+\midrule
+\endfirsthead
+\toprule
+\textbf{Caso} & \textbf{Módulos} & \textbf{Escenario} & \textbf{Esperado} \\
+\midrule
+\endhead
+\bottomrule
+\endlastfoot
+INT-AUTH-001 & Auth & Register $\rightarrow$ Login $\rightarrow$ Profile & Perfil correcto \\
+INT-AUTH-002 & Auth & Login con credenciales incorrectas & Falla controlada \\
+INT-AUTH-003 & Auth & Admin no autorizado no puede loguearse & 403 \\
+INT-STU-001 & Auth + Students & Crear usuario/estudiante y obtener con almuerzos & OK \\
+INT-STU-002 & Students & Validar SISBÉN actualiza flag en student & flag = true \\
+INT-STU-003 & Auth + Students & Deshabilitar usuario deshabilita estudiante & inactivo \\
+INT-PAY-001 & Students + Payments & Crear pago y calcular almuerzos & OK \\
+INT-PAY-002 & Payments & Múltiples pagos acumulan almuerzos & suma correcta \\
+INT-PAY-003 & Payments & Verificar pago lo marca verificado & isVerified=true \\
+INT-MEAL-001 & Students + Payments + Meals & Registrar almuerzo decrementa disponibilidad & $-1$ \\
+INT-MEAL-002 & Meals & No registrar si ya comió hoy & rechazo \\
+INT-MEAL-003 & Meals & No registrar sin almuerzos & rechazo \\
+INT-MEAL-004 & Meals & Registrar almuerzo crea \texttt{SupervisorLog} & log creado \\
+\end{longtable}
+
+\noindent\textbf{Evaluación.} Se confirma que las interfaces entre módulos funcionan: el
+flag de SISBÉN se propaga al estudiante, la verificación de pagos habilita almuerzos
+disponibles y el registro de almuerzo actualiza la disponibilidad y la bitácora. La
+integración bottom-up valida que la regla acumulativa de almuerzos (varios pagos) y la
+regla de consumo (un almuerzo por día) operan en conjunto.
+
+\subsection{Estrategia de pruebas basadas en hilos}
+
+\subsubsection{Descripción}
+Implementada en \texttt{integration/threads.test.ts}, cada ``hilo'' prueba la secuencia
+completa de interacciones de un actor de principio a fin: \textbf{Hilo 1 (Estudiante)}
+Registro $\rightarrow$ Login $\rightarrow$ Perfil $\rightarrow$ Pago $\rightarrow$
+Almuerzos $\rightarrow$ Calificar $\rightarrow$ Noticias $\rightarrow$ Queja;
+\textbf{Hilo 2 (Supervisor)} Login $\rightarrow$ Buscar estudiante $\rightarrow$
+Registrar almuerzo $\rightarrow$ Historial; \textbf{Hilo 3 (Administrador)} Login
+$\rightarrow$ Crear supervisor $\rightarrow$ Asignar $\rightarrow$ Verificar pago
+$\rightarrow$ Validar SISBÉN $\rightarrow$ Reportes.
+
+\subsubsection{Diseño y ejecución de casos}
+La Tabla~\ref{tab:hilos} resume los casos. Resultado: PASS (8 casos).
+
+\begin{table}[H]
+\centering
+\caption{Pruebas de integración basadas en hilos}
+\label{tab:hilos}
+\begin{tabularx}{\textwidth}{l L{0.16\textwidth} X L{0.22\textwidth}}
+\toprule
+\textbf{Caso} & \textbf{Hilo} & \textbf{Escenario} & \textbf{Esperado} \\
+\midrule
+H1-001 & Estudiante & Flujo completo desde registro hasta envío de queja & Pasos OK \\
+H1-002 & Estudiante & No puede registrar almuerzo sin pagos & rechazo \\
+H2-001 & Supervisor & Supervisor registra almuerzo de estudiante & registrado \\
+H3-xxx & Administrador & Login $\rightarrow$ crear supervisor $\rightarrow$ asignar $\rightarrow$ verificar pago $\rightarrow$ validar SISBÉN & flujo OK \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\noindent\textbf{Evaluación.} Las pruebas por hilo validan los recorridos de usuario
+reales end-to-end a nivel de lógica de negocio, confirmando que la composición de
+operaciones de cada rol produce el estado esperado. Mientras las incrementales validan
+interfaces entre capas, las de hilos validan flujos completos por actor.
+
+% ────────────────────────────────────────────────────────────────────────────
+\section{Pruebas de sistema}
+Las pruebas de sistema evalúan atributos de calidad sobre el sistema desplegado, según el
+modelo ISO/IEC 25010 \parencite{iso25010}.
+
+\subsection{Pruebas de seguridad}
+
+\subsubsection{Diseño}
+Se diseñaron pruebas automatizadas en tres frentes: API y frontend con Playwright
+(\texttt{security.test.ts}); escaneo dinámico con OWASP ZAP (DAST); e inyección/fuzzing
+con JMeter (\texttt{security-plan.jmx} y \texttt{sql-payloads.csv})
+\parencite{owasp2021,playwright,jmeter}. La Tabla~\ref{tab:seguridad} resume casos
+representativos.
+
+\begin{longtable}{L{0.20\textwidth} L{0.46\textwidth} L{0.28\textwidth}}
+\caption{Casos de prueba de seguridad (Playwright)}\label{tab:seguridad}\\
+\toprule
+\textbf{Grupo} & \textbf{Caso} & \textbf{Verificación} \\
+\midrule
+\endfirsthead
+\toprule
+\textbf{Grupo} & \textbf{Caso} & \textbf{Verificación} \\
+\midrule
+\endhead
+\bottomrule
+\endlastfoot
+Cabeceras & \texttt{X-Powered-By} no expuesto & No revela tecnología \\
+Cabeceras & \texttt{X-Content-Type-Options: nosniff} & Evita MIME sniffing \\
+Cabeceras & Protección anti-clickjacking & X-Frame-Options/CSP \\
+Acceso & \texttt{GET /api/students} sin token & 401 \\
+Acceso & \texttt{GET /api/audit} sin token & 401 \\
+Acceso & Login con credenciales inválidas & 401 \\
+Errores & Login no filtra stack traces & Mensaje genérico \\
+Rutas & Endpoint inexistente & 404 (no 200) \\
+Frontend & Redirige a login si no autenticado & Redirección \\
+Frontend & Password con \texttt{autocomplete='off'} & No autocompleta \\
+Frontend & No expone tokens en la URL tras login & URL limpia \\
+Frontend & Bundle no expone variables sensibles & Sin secretos \\
+Frontend & Cookies de sesión con \texttt{HttpOnly} & No accesibles por JS \\
+\end{longtable}
+
+\subsubsection{Ejecución y evaluación}
+El diseño valida los requisitos RNF-01\,\ldots\,RNF-08. El control de acceso por token y
+rol queda corroborado a nivel unitario (TC-AUTH-MW-*, TC-AUTHZ-*) y de sistema (rechazos
+401 en endpoints protegidos). La política de no filtrar stack traces y el mensaje
+genérico en recuperación de contraseña (TC-FORGOT-003) reducen la fuga de información.
+Los filtros de auditoría usan listas blancas (método, código, ruta, rol), mitigando la
+inyección por parámetros. Para inyección SQL, el uso de Sequelize con consultas
+parametrizadas y el plan JMeter con \texttt{sql-payloads.csv} permiten comprobar que los
+payloads no alteran el comportamiento ni exponen datos. \emph{Nota:} estas pruebas
+requieren la app desplegada (frontend en \texttt{:5174}, backend en \texttt{:3002}) y,
+para BrowserStack/ZAP, credenciales y túnel local.
+
+\subsection{Pruebas de rendimiento}
+
+\subsubsection{Diseño}
+Implementadas con Apache JMeter en Docker \parencite{jmeter}: \texttt{load-test.jmx}
+(carga sostenida), \texttt{stress-test.jmx} (punto de quiebre) y \texttt{security-plan.jmx}
+(aserciones de seguridad). La Tabla~\ref{tab:perf} muestra los parámetros por defecto del
+script \texttt{run-load-stress.sh}.
+
+\begin{table}[H]
+\centering
+\caption{Parámetros por defecto de la prueba de carga/estrés}
+\label{tab:perf}
+\begin{tabularx}{\textwidth}{l c X}
+\toprule
+\textbf{Parámetro} & \textbf{Valor} & \textbf{Significado} \\
+\midrule
+LOAD\_THREADS & 200 & Usuarios virtuales concurrentes \\
+LOAD\_RAMP\_SECS & 60 & Tiempo de rampa de subida \\
+LOAD\_DURATION\_SECS & 300 & Duración de la prueba \\
+THRESHOLD\_MS & 500 & Umbral de tiempo de respuesta aceptable \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\subsubsection{Ejecución y evaluación}
+El objetivo (RNF-09/RNF-10) es que la autenticación y las consultas críticas respondan
+dentro del umbral (objetivo $<3$ s; umbral estricto configurado en 500 ms). El reporte
+HTML de JMeter entrega métricas de tiempo de respuesta (media, percentiles),
+\emph{throughput} y tasa de error. El criterio de aceptación es una tasa de error
+$\approx 0\%$ y un percentil 95 por debajo del umbral bajo la carga objetivo. La
+paginación de los listados (RNF-11) acota el tamaño de respuesta y favorece el
+rendimiento bajo alto volumen de datos.
+
+\subsection{Pruebas de usabilidad}
+
+\subsubsection{Diseño}
+La usabilidad se evaluó mediante inspección heurística \parencite{nielsen1994} y
+verificaciones automatizadas de accesibilidad básica, alineadas con la regla de diseño
+Material Design 3 / MUI del proyecto \parencite{material3}. La Tabla~\ref{tab:usabilidad}
+mapea heurísticas y verificaciones.
+
+\begin{longtable}{L{0.38\textwidth} L{0.56\textwidth}}
+\caption{Heurísticas de usabilidad y verificación}\label{tab:usabilidad}\\
+\toprule
+\textbf{Heurística / criterio} & \textbf{Verificación} \\
+\midrule
+\endfirsthead
+\toprule
+\textbf{Heurística / criterio} & \textbf{Verificación} \\
+\midrule
+\endhead
+\bottomrule
+\endlastfoot
+Visibilidad del estado del sistema & Estados de carga/disabled/success/error (\texttt{FeedbackState}) \\
+Correspondencia con el mundo real & Copys en español y terminología del dominio \\
+Prevención de errores & Validación de formularios, labels visibles, campos requeridos \\
+Reconocer antes que recordar & Navegación por rol; \texttt{Layout} y \texttt{DataSectionCard} reutilizables \\
+Flexibilidad y eficiencia & Asistente virtual, búsqueda y paginación \\
+Diseño estético y minimalista & Componentes MUI responsive, jerarquía tipográfica \\
+Accesibilidad & label/aria-label en inputs, landmark \texttt{main}, foco visible \\
+\bottomrule
+\end{longtable}
+
+\subsubsection{Ejecución y evaluación}
+La interfaz por rol y los componentes reutilizables garantizan consistencia y reducen la
+carga cognitiva (RNF-16/RNF-17/RNF-18). Las verificaciones de accesibilidad básica
+(labels, landmark, foco) pasan en el formulario de login. Se recomienda complementar con
+pruebas de usabilidad con usuarios reales (tareas cronometradas y cuestionario SUS) para
+obtener una métrica cuantitativa de satisfacción.
+
+\subsection{Pruebas de portabilidad}
+
+\subsubsection{Diseño}
+Implementadas con Playwright sobre BrowserStack \parencite{playwright}. La matriz de
+navegadores/plataformas (definida en \texttt{browserstack.yml}) cubre Chrome (Windows
+11), Firefox (macOS Sonoma), Edge (Windows 10) y Safari (macOS Ventura). Las suites
+verifican: carga y renderizado (sin errores JS, título, viewport, recursos críticos);
+navegación y routing (\texttt{/login}, ruta protegida, History API, 404 por la SPA);
+formulario de login; APIs del navegador (localStorage, fetch, Promise, CSS variables,
+Flexbox); conectividad API (\texttt{/api/health}, CORS); y accesibilidad básica.
+
+\subsubsection{Ejecución y evaluación}
+Valida RNF-19/RNF-20/RNF-21: el frontend funciona en los cuatro navegadores principales
+sin polyfills (APIs ES2015+ disponibles); la SPA maneja routing, History API y rutas 404
+de forma consistente; y la portabilidad de despliegue se garantiza con Docker Compose
+(independiente del SO anfitrión). \emph{Nota:} requiere
+\texttt{BROWSERSTACK\_USERNAME}/\texttt{ACCESS\_KEY} y el túnel BrowserStack Local activo.
+
+% ────────────────────────────────────────────────────────────────────────────
+\section{Pruebas de aceptación}
+
+\subsection{Diseño de casos de prueba}
+Las pruebas de aceptación validan, desde la perspectiva del usuario, que los flujos de
+negocio completos satisfacen las necesidades reales, expresadas como criterios en formato
+Gherkin (Dado–Cuando–Entonces).
+
+\begin{description}[leftmargin=1.2em,style=nextline]
+\item[CA-01 Registro y validación de estudiante elegible] \emph{Dado} un estudiante con
+categoría SISBÉN válida y sus documentos, \emph{cuando} se registra y el administrador
+valida su SISBÉN, \emph{entonces} su cuenta queda creada, su estado de validación pasa a
+``validado'' y puede iniciar sesión. \textit{Criterio:} registro 201; validación
+cotejada; login 200.
+\item[CA-02 Recarga y verificación de almuerzos] \emph{Dado} un estudiante autenticado,
+\emph{cuando} sube un comprobante por \$10.000 y el administrador lo verifica,
+\emph{entonces} se le acreditan 5 almuerzos. \textit{Criterio:}
+$\lfloor 10000/2000\rfloor = 5$; disponibles $=5$ tras verificar.
+\item[CA-03 Registro de asistencia] \emph{Dado} un supervisor autorizado y un estudiante
+con almuerzos en un día autorizado, \emph{cuando} registra su almuerzo, \emph{entonces}
+se descuenta un almuerzo, queda la asistencia con fecha/hora y se crea el registro de
+bitácora. \textit{Criterio:} 201; disponibilidad $-1$; \texttt{SupervisorLog} y
+\texttt{AuditLog} creados.
+\item[CA-04 Prevención de doble consumo] \emph{Dado} un estudiante que ya comió hoy,
+\emph{cuando} el supervisor intenta registrar otro almuerzo, \emph{entonces} el sistema
+lo rechaza. \textit{Criterio:} 400 ``ya usó el comedor hoy''.
+\item[CA-05 Retroalimentación] \emph{Dado} un estudiante autenticado, \emph{cuando}
+califica con 4 estrellas y envía una sugerencia anónima, \emph{entonces} la calificación
+se contabiliza y la sugerencia queda sin asociar su identidad. \textit{Criterio:} rating
+creado; promedio actualizado; queja con \texttt{isAnonymous = true}.
+\item[CA-06 Control de acceso por rol] \emph{Dado} un estudiante autenticado,
+\emph{cuando} intenta acceder a la auditoría, \emph{entonces} el sistema deniega el
+acceso. \textit{Criterio:} 403 para rol no permitido; 200 solo para admin/auditor.
+\item[CA-07 Auditoría y trazabilidad] \emph{Dado} un administrador o auditor,
+\emph{cuando} consulta la auditoría filtrando por fecha y ruta, \emph{entonces} obtiene
+los eventos paginados y los filtros inválidos son rechazados. \textit{Criterio:} 200 con
+paginación; 400 ante filtros fuera de lista blanca.
+\end{description}
+
+\subsection{Ejecución y evaluación de la prueba}
+La Tabla~\ref{tab:aceptacion} relaciona cada criterio de aceptación con las pruebas que
+lo respaldan.
+
+\begin{table}[H]
+\centering
+\caption{Trazabilidad de las pruebas de aceptación}
+\label{tab:aceptacion}
+\begin{tabularx}{\textwidth}{l X c}
+\toprule
+\textbf{Caso} & \textbf{Soporte de verificación} & \textbf{Resultado} \\
+\midrule
+CA-01 & INT-STU-002, TC-SISBEN-001, INT-AUTH-001 & Aceptado \\
+CA-02 & VL-CALC-005, INT-PAY-001/003 & Aceptado \\
+CA-03 & TC-MEAL-001/008/009, INT-MEAL-001/004 & Aceptado \\
+CA-04 & TC-MEAL-006, INT-MEAL-002 & Aceptado \\
+CA-05 & TC-RAT-001, TC-COMP-001, TC-AVG-001 & Aceptado \\
+CA-06 & TC-AUTHZ-003, pruebas de seguridad de acceso & Aceptado \\
+CA-07 & RF-45, validación de listas blancas (auditRoutes) & Aceptado \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\noindent Todos los criterios quedan respaldados por pruebas automatizadas (unitarias y
+de integración) y por las pruebas de sistema. Se concluye que el sistema satisface los
+flujos de negocio esperados de los cuatro actores y cumple las reglas críticas de
+elegibilidad, recarga, consumo, retroalimentación, control de acceso y trazabilidad.
+
+% ────────────────────────────────────────────────────────────────────────────
+\section{Conclusiones}
+\begin{enumerate}[leftmargin=1.5em]
+\item \textbf{Calidad funcional verificada.} La suite automatizada ejecuta 196 pruebas
+con 100\% de éxito (10 suites), cubriendo controladores, middleware, servicios y flujos
+de integración. Las reglas de negocio críticas están probadas con técnicas de caja negra
+y caja blanca.
+\item \textbf{Cobertura sólida con áreas de mejora.} La cobertura global es de
+$\sim 80,4\%$ de sentencias y $70,3\%$ de ramas. Los componentes críticos para la
+seguridad (\texttt{middleware/auth}) y la elegibilidad
+(\texttt{sisbenValidationService}) alcanzan cobertura muy alta. Se recomienda elevar la
+cobertura de ramas de \texttt{mealsController} y \texttt{auditService}.
+\item \textbf{Estrategias de integración complementarias.} La estrategia incremental
+(bottom-up) valida las interfaces entre capas y la basada en hilos valida los recorridos
+completos por actor; ambas pasan al 100\%.
+\item \textbf{Atributos de calidad cubiertos.} Se dispone de planes ejecutables para
+seguridad (Playwright + OWASP ZAP + JMeter), rendimiento (carga/estrés con JMeter),
+usabilidad (heurísticas + accesibilidad) y portabilidad (cross-browser + Docker).
+\item \textbf{Seguridad y trazabilidad por diseño.} El control de acceso por JWT y rol,
+el 2FA para estudiantes, el cifrado de contraseñas, la no exposición de stack traces y la
+auditoría completa constituyen una base de seguridad robusta y verificada.
+\item \textbf{Aceptación del usuario.} Los siete criterios de aceptación quedan
+respaldados por pruebas automatizadas y de sistema, confirmando que SmartComedor
+satisface las necesidades de los actores del comedor universitario.
+\end{enumerate}
+
+\noindent\textbf{Recomendaciones.} (i) Incrementar la cobertura de ramas en
+\texttt{mealsController} y \texttt{auditService}; (ii) añadir pruebas unitarias de
+componentes React con Testing Library; (iii) ejecutar periódicamente los planes de JMeter
+y BrowserStack en integración continua; y (iv) realizar pruebas de usabilidad con
+usuarios reales (cuestionario SUS) para cuantificar la satisfacción.
+
+% ─── Referencias APA ────────────────────────────────────────────────────────
+\newpage
+\printbibliography[title=Referencias]
+
+\end{document}
