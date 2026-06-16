@@ -21,6 +21,7 @@ export interface UserAttributes {
   role: UserRole;
   isActive: boolean;
   isAuthorized: boolean;
+  diasAsignados?: string[];
   resetPasswordToken?: string | null;
   resetPasswordExpires?: Date | null;
   createdAt?: Date;
@@ -40,6 +41,7 @@ export class User extends Model<UserAttributes, UserCreationAttributes> implemen
   declare role: UserRole;
   declare isActive: boolean;
   declare isAuthorized: boolean;
+  declare diasAsignados?: string[];
   declare resetPasswordToken?: string | null;
   declare resetPasswordExpires?: Date | null;
   declare readonly createdAt: Date;
@@ -63,12 +65,12 @@ User.init(
       allowNull: false
     },
     email: {
-      type: DataTypes.STRING(30),
+      type: DataTypes.STRING(254),
       allowNull: false,
       unique: true,
       validate: {
         isEmail: true,
-        len: [1, 30]
+        len: [1, 254]
       }
     },
     password: {
@@ -76,17 +78,17 @@ User.init(
       allowNull: false
     },
     name: {
-      type: DataTypes.STRING(20),
+      type: DataTypes.STRING(50),
       allowNull: false,
       validate: {
-        len: [1, 20]
+        len: [1, 50]
       }
     },
     lastName: {
-      type: DataTypes.STRING(20),
+      type: DataTypes.STRING(50),
       allowNull: false,
       validate: {
-        len: [1, 20]
+        len: [1, 50]
       }
     },
     telefono: {
@@ -106,6 +108,11 @@ User.init(
       type: DataTypes.BOOLEAN,
       defaultValue: false
     },
+    diasAsignados: {
+      type: DataTypes.JSONB,
+      allowNull: true,
+      defaultValue: []
+    },
     resetPasswordToken: {
       type: DataTypes.STRING(255),
       allowNull: true
@@ -120,15 +127,17 @@ User.init(
     modelName: 'User',
     tableName: 'users',
     hooks: {
-      beforeValidate: async (user: User) => {
-        user.uid = generateUid('USR');
+      beforeCreate: async (user: User) => {
+        if (!user.uid) {
+          user.uid = generateUid('USR');
+        }
         if (user.password) {
           const salt = await bcrypt.genSalt(10);
           user.password = await bcrypt.hash(user.password, salt);
         }
       },
       beforeUpdate: async (user: User) => {
-        if (user.changed('password')) {
+        if (user.changed('password') && user.password) {
           const salt = await bcrypt.genSalt(10);
           user.password = await bcrypt.hash(user.password, salt);
         }
