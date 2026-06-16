@@ -1,0 +1,23 @@
+@startuml
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam defaultFontName Helvetica
+skinparam dpi 150
+skinparam ActorBackgroundColor #E3F2FD
+skinparam UsecaseBackgroundColor #F5F7FA
+skinparam UsecaseBorderColor #607D8B
+skinparam SequenceLifeLineBorderColor #90A4AE
+skinparam ParticipantBackgroundColor #E3F2FD
+skinparam ActivityBackgroundColor #E8F5E9
+skinparam ActivityDiamondBackgroundColor #FFF3E0
+left to right direction
+actor "Estudiante" as E
+rectangle "SmartComedor" {
+  usecase "Registrar estudiante" as UC
+  usecase "Adjuntar documentos\n(SISBEN, cedula, horario)" as A
+  usecase "Crear cuenta de usuario" as C
+}
+E --> UC
+UC ..> A : <<include>>
+UC ..> C : <<include>>
+@enduml

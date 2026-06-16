@@ -1,0 +1,22 @@
+@startuml
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam defaultFontName Helvetica
+skinparam dpi 150
+skinparam ActorBackgroundColor #E3F2FD
+skinparam UsecaseBackgroundColor #F5F7FA
+skinparam UsecaseBorderColor #607D8B
+skinparam SequenceLifeLineBorderColor #90A4AE
+skinparam ParticipantBackgroundColor #E3F2FD
+skinparam ActivityBackgroundColor #E8F5E9
+skinparam ActivityDiamondBackgroundColor #FFF3E0
+left to right direction
+actor "Estudiante" as E
+actor "Administrador" as A
+rectangle "SmartComedor" {
+  usecase "Enviar queja/sugerencia" as Q
+  usecase "Responder queja" as R
+}
+E --> Q
+A --> R
+@enduml

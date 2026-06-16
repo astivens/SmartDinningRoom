@@ -1,0 +1,28 @@
+@startuml
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam defaultFontName Helvetica
+skinparam dpi 150
+skinparam ActorBackgroundColor #E3F2FD
+skinparam UsecaseBackgroundColor #F5F7FA
+skinparam UsecaseBorderColor #607D8B
+skinparam SequenceLifeLineBorderColor #90A4AE
+skinparam ParticipantBackgroundColor #E3F2FD
+skinparam ActivityBackgroundColor #E8F5E9
+skinparam ActivityDiamondBackgroundColor #FFF3E0
+start
+:Solicitar validacion del estudiante;
+if (Estudiante existe?) then (no)
+  :HTTP 404;
+  stop
+endif
+:Extraer texto del SISBEN (PDF u OCR);
+:Normalizar cedula, nombre y apellido;
+if (Coincide con cedula frontal?) then (no)
+  :validated=false + detalle;
+  stop
+endif
+:isValidatedSisben = true;
+:HTTP 200;
+stop
+@enduml

@@ -1,0 +1,26 @@
+@startuml
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam defaultFontName Helvetica
+skinparam dpi 150
+skinparam ActorBackgroundColor #E3F2FD
+skinparam UsecaseBackgroundColor #F5F7FA
+skinparam UsecaseBorderColor #607D8B
+skinparam SequenceLifeLineBorderColor #90A4AE
+skinparam ParticipantBackgroundColor #E3F2FD
+skinparam ActivityBackgroundColor #E8F5E9
+skinparam ActivityDiamondBackgroundColor #FFF3E0
+actor Estudiante
+participant Frontend as FE
+participant "API /auth" as API
+participant AuthController as C
+Estudiante -> FE : Activar 2FA
+FE -> API : POST /setup-2fa
+API -> C : setup2FA()
+C -> C : speakeasy.generateSecret()
+C --> FE : secret + QR (otpauth)
+Estudiante -> FE : Ingresa codigo TOTP
+FE -> API : POST /verify-2fa
+C -> C : speakeasy.verify(token)
+C --> FE : 200 / 400
+@enduml

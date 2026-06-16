@@ -1,0 +1,24 @@
+@startuml
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam defaultFontName Helvetica
+skinparam dpi 150
+skinparam ActorBackgroundColor #E3F2FD
+skinparam UsecaseBackgroundColor #F5F7FA
+skinparam UsecaseBorderColor #607D8B
+skinparam SequenceLifeLineBorderColor #90A4AE
+skinparam ParticipantBackgroundColor #E3F2FD
+skinparam ActivityBackgroundColor #E8F5E9
+skinparam ActivityDiamondBackgroundColor #FFF3E0
+actor Usuario as U
+participant "API /payments/calculate" as API
+participant PaymentsController as C
+U -> API : POST { amount }
+API -> C : calculate()
+alt amount <= 0 o < 2000
+  C --> U : 400
+else
+  C -> C : meals = floor(amount/2000)
+  C --> U : 200 { meals, residuo }
+end
+@enduml

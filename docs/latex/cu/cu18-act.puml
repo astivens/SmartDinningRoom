@@ -1,0 +1,23 @@
+@startuml
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam defaultFontName Helvetica
+skinparam dpi 150
+skinparam ActorBackgroundColor #E3F2FD
+skinparam UsecaseBackgroundColor #F5F7FA
+skinparam UsecaseBorderColor #607D8B
+skinparam SequenceLifeLineBorderColor #90A4AE
+skinparam ParticipantBackgroundColor #E3F2FD
+skinparam ActivityBackgroundColor #E8F5E9
+skinparam ActivityDiamondBackgroundColor #FFF3E0
+start
+:Seleccionar estrellas (1-5) y comentario;
+if (Autenticado?) then (no)
+  :HTTP 401;
+  stop
+endif
+:INSERT Rating;
+:Actualizar promedio;
+:HTTP 201;
+stop
+@enduml

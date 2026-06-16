@@ -32,6 +32,8 @@ Thumbs.db
 # Coverage and generated test reports
 server/coverage-unit/
 server/coverage-integration/
+server/coverage/
+coverage/
 tests/security/browserstack/test-results/
 tests/security/jmeter/results/
 docs/latex/*.aux

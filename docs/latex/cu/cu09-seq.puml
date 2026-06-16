@@ -1,0 +1,27 @@
+@startuml
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam defaultFontName Helvetica
+skinparam dpi 150
+skinparam ActorBackgroundColor #E3F2FD
+skinparam UsecaseBackgroundColor #F5F7FA
+skinparam UsecaseBorderColor #607D8B
+skinparam SequenceLifeLineBorderColor #90A4AE
+skinparam ParticipantBackgroundColor #E3F2FD
+skinparam ActivityBackgroundColor #E8F5E9
+skinparam ActivityDiamondBackgroundColor #FFF3E0
+actor Administrador as A
+actor Supervisor as S
+participant "API /supervisors" as API
+participant SupervisorsController as C
+participant EmailService as MAIL
+database PostgreSQL as DB
+A -> API : POST /invite (email)
+API -> C : invite()
+C -> DB : Crear token (valido 48h)
+C -> MAIL : Enviar enlace de invitacion
+S -> API : POST /join (token, datos)
+C -> DB : Validar token vigente
+C -> DB : INSERT User supervisor
+C --> S : 201 cuenta creada
+@enduml

@@ -1,0 +1,27 @@
+$ npm run test:coverage
+-----------------------------|---------|----------|---------|---------|
+File                         | % Stmts | % Branch | % Funcs | % Lines |
+-----------------------------|---------|----------|---------|---------|
+All files                    |   80.44 |    70.25 |   76.41 |   79.91 |
+ constants                   |     100 |      100 |     100 |     100 |
+  index.ts                   |     100 |      100 |     100 |     100 |
+ controllers                 |   78.47 |    67.75 |   74.19 |   77.90 |
+  authController.ts          |   83.33 |    81.19 |   84.61 |   82.93 |
+  complaintsController.ts    |   80.00 |    60.00 |  100.00 |   82.85 |
+  mealsController.ts         |   63.00 |    31.81 |   31.25 |   65.11 |
+  newsController.ts          |   77.55 |    66.66 |  100.00 |   75.00 |
+  paymentsController.ts      |   78.94 |    70.45 |   66.66 |   77.27 |
+  ratingsController.ts       |   85.00 |    66.66 |  100.00 |   82.85 |
+  studentsController.ts      |   78.50 |    62.02 |   78.26 |   77.34 |
+  supervisorsController.ts   |   79.54 |    80.00 |   78.57 |   77.68 |
+ middleware                  |   97.50 |    91.66 |  100.00 |   97.29 |
+  auth.ts                    |   97.50 |    91.66 |  100.00 |   97.29 |
+ services                    |   96.66 |    78.94 |   87.50 |   96.36 |
+  auditService.ts            |   83.33 |    25.00 |   50.00 |   80.00 |
+  sisbenValidationService.ts |  100.00 |    93.33 |  100.00 |  100.00 |
+-----------------------------|---------|----------|---------|---------|
+
+Test Suites: 10 passed, 10 total
+Tests:       196 passed, 196 total
+Snapshots:   0 total
+Time:        ~4.7 s

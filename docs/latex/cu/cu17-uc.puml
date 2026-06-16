@@ -1,0 +1,24 @@
+@startuml
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam defaultFontName Helvetica
+skinparam dpi 150
+skinparam ActorBackgroundColor #E3F2FD
+skinparam UsecaseBackgroundColor #F5F7FA
+skinparam UsecaseBorderColor #607D8B
+skinparam SequenceLifeLineBorderColor #90A4AE
+skinparam ParticipantBackgroundColor #E3F2FD
+skinparam ActivityBackgroundColor #E8F5E9
+skinparam ActivityDiamondBackgroundColor #FFF3E0
+left to right direction
+actor "Administrador" as A
+actor "Sistema (cron)" as SY
+rectangle "SmartComedor" {
+  usecase "Crear ciclo" as C
+  usecase "Cerrar ciclo manual" as M
+  usecase "Cierre automatico" as AU
+}
+A --> C
+A --> M
+SY --> AU
+@enduml

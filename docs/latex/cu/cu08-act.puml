@@ -1,0 +1,27 @@
+@startuml
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam defaultFontName Helvetica
+skinparam dpi 150
+skinparam ActorBackgroundColor #E3F2FD
+skinparam UsecaseBackgroundColor #F5F7FA
+skinparam UsecaseBorderColor #607D8B
+skinparam SequenceLifeLineBorderColor #90A4AE
+skinparam ParticipantBackgroundColor #E3F2FD
+skinparam ActivityBackgroundColor #E8F5E9
+skinparam ActivityDiamondBackgroundColor #FFF3E0
+start
+:Seleccionar operacion sobre supervisor;
+if (Operacion) then (Crear)
+  :Generar contrasena temporal;
+  :INSERT User supervisor;
+elseif () then (Cambiar estado)
+  :UPDATE isActive/isAuthorized;
+elseif () then (Deshabilitar)
+  :isActive=false;
+else (Consultar)
+  :SELECT supervisores/bitacoras;
+endif
+:Responder;
+stop
+@enduml

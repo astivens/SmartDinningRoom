@@ -1,0 +1,31 @@
+@startuml
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam defaultFontName Helvetica
+skinparam dpi 150
+skinparam ActorBackgroundColor #E3F2FD
+skinparam UsecaseBackgroundColor #F5F7FA
+skinparam UsecaseBorderColor #607D8B
+skinparam SequenceLifeLineBorderColor #90A4AE
+skinparam ParticipantBackgroundColor #E3F2FD
+skinparam ActivityBackgroundColor #E8F5E9
+skinparam ActivityDiamondBackgroundColor #FFF3E0
+actor Administrador as A
+participant Frontend as FE
+participant "API /students/:id/validate-sisben" as API
+participant StudentsController as C
+participant SisbenValidationService as S
+database PostgreSQL as DB
+A -> FE : Validar SISBEN del estudiante
+FE -> API : POST validate-sisben
+API -> C : validateSisben()
+C -> DB : Buscar estudiante
+C -> S : extraer texto (pdf-parse / tesseract)
+S -> S : Normalizar y cotejar cedula/nombre/apellido
+alt coincide
+  C -> DB : isValidatedSisben = true
+  C --> FE : 200 validated=true
+else discrepancia
+  C --> FE : 200 validated=false + detalle
+end
+@enduml

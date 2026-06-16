@@ -1,0 +1,24 @@
+@startuml
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam defaultFontName Helvetica
+skinparam dpi 150
+skinparam ActorBackgroundColor #E3F2FD
+skinparam UsecaseBackgroundColor #F5F7FA
+skinparam UsecaseBorderColor #607D8B
+skinparam SequenceLifeLineBorderColor #90A4AE
+skinparam ParticipantBackgroundColor #E3F2FD
+skinparam ActivityBackgroundColor #E8F5E9
+skinparam ActivityDiamondBackgroundColor #FFF3E0
+start
+:Seleccionar pago a verificar;
+if (Pago existe?) then (no)
+  :HTTP 404;
+  stop
+endif
+:Marcar isVerified=true (verifiedBy/At);
+:Registrar evento en auditoria;
+note right: Los almuerzos pasan a estar disponibles
+:HTTP 200;
+stop
+@enduml

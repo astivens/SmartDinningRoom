@@ -1,0 +1,26 @@
+@startuml
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam defaultFontName Helvetica
+skinparam dpi 150
+skinparam ActorBackgroundColor #E3F2FD
+skinparam UsecaseBackgroundColor #F5F7FA
+skinparam UsecaseBorderColor #607D8B
+skinparam SequenceLifeLineBorderColor #90A4AE
+skinparam ParticipantBackgroundColor #E3F2FD
+skinparam ActivityBackgroundColor #E8F5E9
+skinparam ActivityDiamondBackgroundColor #FFF3E0
+actor Auditor as X
+participant "API /audit" as API
+participant AuditController as C
+database PostgreSQL as DB
+X -> API : GET /api/audit?accion&metodo&fechas
+API -> C : list()
+C -> C : Validar filtros (lista blanca)
+alt filtro invalido
+  C --> X : 400
+else
+  C -> DB : SELECT audit_logs (paginado)
+  C --> X : 200 eventos
+end
+@enduml

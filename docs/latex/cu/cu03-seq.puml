@@ -1,0 +1,31 @@
+@startuml
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam defaultFontName Helvetica
+skinparam dpi 150
+skinparam ActorBackgroundColor #E3F2FD
+skinparam UsecaseBackgroundColor #F5F7FA
+skinparam UsecaseBorderColor #607D8B
+skinparam SequenceLifeLineBorderColor #90A4AE
+skinparam ParticipantBackgroundColor #E3F2FD
+skinparam ActivityBackgroundColor #E8F5E9
+skinparam ActivityDiamondBackgroundColor #FFF3E0
+actor Usuario
+participant Frontend as FE
+participant "API /auth" as API
+participant AuthController as C
+participant EmailService as MAIL
+database PostgreSQL as DB
+Usuario -> FE : Solicita recuperacion (email)
+FE -> API : POST /forgot-password
+API -> C : forgotPassword()
+C -> DB : Buscar usuario
+C -> DB : Guardar resetToken + expiracion
+C -> MAIL : Enviar correo con enlace
+C --> FE : 200 (mensaje generico)
+Usuario -> FE : Nueva contrasena + token
+FE -> API : POST /reset-password
+C -> DB : Validar token no expirado
+C -> DB : Actualizar password (hash)
+C --> FE : 200 OK
+@enduml
