@@ -34,3 +34,14 @@ server/coverage-unit/
 server/coverage-integration/
 tests/security/browserstack/test-results/
 tests/security/jmeter/results/
+docs/latex/*.aux
+docs/latex/*.bbl
+docs/latex/*.bcf
+docs/latex/*.blg
+docs/latex/*.fdb_latexmk
+docs/latex/*.fls
+docs/latex/*.log
+docs/latex/*.out
+docs/latex/*.run.xml
+docs/latex/*.toc
+docs/latex/*.synctex.gz
